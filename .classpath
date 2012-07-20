@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
+	<classpathentry kind="lib" path="D:/Devel/eclipseJava/plugins/org.eclipse.osgi_3.7.2.v20120110-1415.jar" sourcepath="D:/Devel/eclipseJava/plugins/org.eclipse.osgi.source_3.7.2.v20120110-1415.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/eclipseJava/plugins/org.eclipse.core.commands_3.6.0.I20110111-0800.jar" sourcepath="D:/Devel/eclipseJava/plugins/org.eclipse.core.commands.source_3.6.0.I20110111-0800.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/eclipseJava/plugins/org.eclipse.equinox.common_3.6.0.v20110523.jar" sourcepath="D:/Devel/eclipseJava/plugins/org.eclipse.equinox.common.source_3.6.0.v20110523.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/eclipseJava/plugins/org.eclipse.equinox.registry_3.5.101.R37x_v20110810-1611.jar" sourcepath="D:/Devel/eclipseJava/plugins/org.eclipse.equinox.registry.source_3.5.101.R37x_v20110810-1611.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/eclipseJava/plugins/org.eclipse.core.runtime_3.7.0.v20110110.jar" sourcepath="D:/Devel/eclipseJava/plugins/org.eclipse.core.runtime.source_3.7.0.v20110110.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/eclipseJava/plugins/org.eclipse.text_3.5.101.v20110928-1504.jar" sourcepath="D:/Devel/eclipseJava/plugins/org.eclipse.text.source_3.5.101.v20110928-1504.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/eclipseJava/plugins/org.eclipse.swt.win32.win32.x86_64_3.7.2.v3740f.jar" sourcepath="D:/Devel/eclipseJava/plugins/org.eclipse.swt.win32.win32.x86_64.source_3.7.2.v3740f.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/eclipseJava/plugins/org.eclipse.jface_3.7.0.v20110928-1505.jar" sourcepath="D:/Devel/eclipseJava/plugins/org.eclipse.jface.source_3.7.0.v20110928-1505.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/eclipseJava/plugins/org.eclipse.jface.text_3.7.2.v20111213-1208.jar" sourcepath="D:/Devel/eclipseJava/plugins/org.eclipse.jface.text.source_3.7.2.v20111213-1208.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/eclipseJava/plugins/org.eclipse.ui.workbench_3.7.1.v20120104-1859.jar" sourcepath="D:/Devel/eclipseJava/plugins/org.eclipse.ui.workbench.source_3.7.1.v20120104-1859.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/eclipseJava/plugins/com.ibm.icu_4.4.2.v20110823.jar" sourcepath="D:/Devel/eclipseJava/plugins/com.ibm.icu.source_4.4.2.v20110823.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/eclipseJava/plugins/org.eclipse.ui.forms_3.5.101.v20111011-1919.jar" sourcepath="D:/Devel/eclipseJava/plugins/org.eclipse.ui.forms.source_3.5.101.v20111011-1919.jar"/>
+	<classpathentry kind="lib" path="forms-1.3.0.jar" sourcepath="forms-1.3.0-src.zip"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/activation.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/axis.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/axis-ant.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/commons-discovery.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/commons-discovery-0.2.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/commons-logging.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/commons-logging-1.0.4.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/jaxrpc.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/log4j.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/log4j-1.2.8.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/mail.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/saaj.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/wsdl4j.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/wsdl4j-1.5.1.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/commons-httpclient-3.1.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/3rdparty/commons-codec-1.5.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/F5Libs/iControl/Java/lib/JDK1.6/iControl.jar" sourcepath="D:/Devel/F5Libs/iControl/Java/iControlAssembly_11_1_0-Java-Source.zip">
+		<attributes>
+			<attribute name="javadoc_location" value="file:/D:/Devel/F5Libs/iControl/Java/WrappersJavaDoc/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="D:/Devel/JavaStuff/rsyntaxtextarea/rsyntaxtextarea.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
