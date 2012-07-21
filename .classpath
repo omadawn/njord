@@ -36,7 +36,11 @@
 			<attribute name="javadoc_location" value="file:/D:/Devel/F5Libs/iControl/Java/WrappersJavaDoc/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="D:/Devel/JavaStuff/rsyntaxtextarea/rsyntaxtextarea.jar"/>
+	<classpathentry kind="lib" path="D:/Devel/JavaStuff/rsyntaxtextarea/rsyntaxtextarea.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="http://javadoc.fifesoft.com/rsyntaxtextarea/"/>
+		</attributes>
+	</classpathentry>
 	<classpathentry kind="lib" path="D:/Devel/JavaStuff/slf4j-1.6.6/slf4j-api-1.6.6.jar">
 		<attributes>
 			<attribute name="javadoc_location" value="file:/D:/Devel/JavaStuff/slf4j-1.6.6/doc/slf4j-api-1.6.6-javadoc/"/>
@@ -44,5 +48,6 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="D:/Devel/JavaStuff/ClassFiles"/>
 	<classpathentry kind="lib" path="D:/Devel/JavaStuff/slf4j-1.6.6/slf4j-simple-1.6.6.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

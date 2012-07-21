@@ -28,7 +28,7 @@ import com.jgoodies.forms.layout.RowSpec;
 // Currently this code will produce a bunch of different dialogs. I need to add one that will produce the prefs dialog I am going for.
 
 public class PreferencesDialog extends JDialog implements ActionListener, PropertyChangeListener {
-	private String logPrefix = "PreferencesDialog: ";
+//	private String logPrefix = "PreferencesDialog: ";
 	
 	private String typedText = null;
     private JTextField textField1;
@@ -40,14 +40,7 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
 
     private String btnString1 = "Enter";
     private String btnString2 = "Cancel";
-    /**
-     * @wbp.nonvisual location=170,69
-     */
-    //private final JPanel panel = new JPanel();
-    //JPanel myPanel = new JPanel();
 
-    
-    
 	public JFrame frame;
 	public JTextField ConnPreffsHostTextField;
 	public JTextField ConnPreffsPortTextField;
@@ -66,12 +59,12 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
     }
 
     /** Creates the reusable dialog. */
-    public PreferencesDialog(Frame aFrame, String aWord, MainGuiWindow parent) {
+    public PreferencesDialog(Frame aFrame, MainGuiWindow parent) {
         super(aFrame, true);
         mainGuiWindow = parent;
 
-        magicWord = aWord.toUpperCase();
-        setTitle("Quiz");
+//        magicWord = aWord.toUpperCase();
+        setTitle("Preferences");
 
         textField1 = new JTextField(10);
         textField2 = new JTextField(10);
@@ -335,9 +328,7 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
                     textField1.requestFocusInWindow();
                 }
             } else { //user closed dialog or clicked cancel
-                mainGuiWindow.setLabel("It's OK.  "
-                         + "We won't force you to type "
-                         + magicWord + ".");
+                mainGuiWindow.setLabel("It's OK.");
                 typedText = null;
                 clearAndHide();
             }
