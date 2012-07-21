@@ -1,4 +1,4 @@
-package com.f5.AaronForster.javaiRulesEditor;
+package com.f5.AaronForster.njord;
 
 import iControl.LocalLBRuleRuleDefinition;
 
@@ -47,12 +47,16 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeSelectionModel;
 import javax.xml.rpc.ServiceException;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
 
-import com.f5.AaronForster.javaiRulesEditor.util.f5ExceptionHandler;
-import com.f5.AaronForster.javaiRulesEditor.util.f5JavaGuiTree;
+import com.f5.AaronForster.njord.util.f5ExceptionHandler;
+import com.f5.AaronForster.njord.util.f5JavaGuiTree;
 
 
 //A tutorial on how to write a text editor with syntax highlighting. Seems like it could be a tiny bit sketchy but worth a look
@@ -64,39 +68,74 @@ import com.f5.AaronForster.javaiRulesEditor.util.f5JavaGuiTree;
 // https://github.com/jgruber/iControlExamples/tree/master/src/main/java/com/f5se/examples
 
 /*
+ * Changelog
+ * 201200719/20 (major changes finished at about 2:30 and 3:30 AM.) base iRule editor and then TCL syntax highlighting functionality completed.
+ * 		Calling this 0.5 now as I figure I'm about 1/2 way to something I wouldn't be embarrased to look at.
+ * 		Renaming to Njord, norse god of wind. it's 'controlling wind' and it's got a J in it. for the Java reference. it's perfect.
+ */
+
+/*
  * TODO SECTION
- * TODO: go through all the 'Auto-generated catch block' sections
- * TODO: Figure out if I want iControl Assembly or JGruber's method.
- * TODO: It seems like now adays the app stays running even after closing w/ x in corner. Make it quit when you stop running it.
- * TODO: Convert to maven package or somehow otherwise figure out how to build a jar than includes all the dependencies.
- * TODO: Come up with some way to switch back and forth between jgruber and icontrol assembly mechanisms?
- * TODO: Make this generic and plugin oriented.
- * TODO: Get rid of 'DestkopBigIPManager and replace it with this as the base.
+ * TODO: Prioritise To Dos
+ * TODO: Start logging instead of printing to stdout
+ * TODO: Make the action Listener be generic
  * TODO: Catch connect from main window
- * TODO: Have a list iRules button. Do this by default on a connect
- * TODO: Figure out why the connect button in the middle of the screen doesn't work but the menu item one does.
+ * 		TODO: Figure out why the connect button in the middle of the screen doesn't work but the menu item one does. It's due to the action listener issue
+ * TODO: Don't populate the iRules tree until it has been expanded.
+ * 		TODO: Should I have a list iRules button or only do it when I expand the tree. Let's only do it on expand for now.  
+ * TODO: Figure out if I want iControl Assembly or JGruber's method. Using assembly for now for safety
+ * TODO: Get rid of the 'edit iRule' button and add a 'new iRule' button instead
+ * TODO: Figure out how to handle a 'New iRule' Do I need an 'offline iRules' section or can I just label them differently in the tree
+ * TODO: Add keyword highlighting for F5 specific keywords. See if I can get these automatically somewhere, maybe I can download them from Devcentral if I have to
+ * 		TODO: on that point I should probably only download them via my own build process so that the code is up to date but that the client one doesn't have to connect to devcentral all the time.
+ 
+ * TODO: Maybe later in $userHome/.f5/njord/preferences.settings if that exists it overrides the one in apphome? I will need to store individual bigip connection info there.  
+ * 			TODO: Perhaps a preferences file in $appHome/preferences.settings could hold generic items
  * TODO: Get rid of the connect/disconnect verbage. It's a web UI and there's really no 'connected' ever. Have a 'verify connection' button instead.
+ * 
+ * TODO: go through all the 'Auto-generated catch block' sections
+ * TODO: It seems like now adays the app stays running even after closing w/ x in corner. Make it quit when you stop running it. It stopped doing this but I will watch it
+ * TODO: Move some code out of the actions in the actionListener and treeSelectionListeners and into subroutines.
+ * 
+ * TODO: Create an 'Add BigIP' button because I need to:
+ * TODO: Have multiple BigIPs in the tree. Each one will hold it's own connection settings. Get the name from the first connection and save it or make it editable?)
+ * 
+ * TODO: Start saving things like expanded state of a branch node
+ * TODO: Create an interface preferences section for things like:
+ * 			Always expand folders/partitions when expanding major sections
+ * TODO: Clean up the tree. Some options:
+ * 			Make the full path folders either git rid of the path in the list and only display on a hover
+ * TODO: Change the display of the tree for an item that we are editing. Maybe put an asterisk in front of it or have an icon on each thing and change it if we're editing it.
+ *  
  * TODO: Let's try and be sure not to allow a user to edit a built in iRule so they don't have to get pissed off when it won't let them save their changes.
  * TODO: Related, figure out how to identify them.
- * TODO: Investigate the way 'Java Simple Text Editor' builds it's GUI from an XML config file. http://javatxteditor.sourceforge.net/ maybe not too closely since it's gui is crap but perhaps....
+
  * TODO: Get rid of the top of the jtree unless I'm planning on having it be the BigIP's host name and having sections for virtuals and iRules and such.
- * TODO: Move some code out of the actions in the actionListener and into subroutines.
+
  * TODO: See if it's possible to have multiple action listeners or if there's some other way to make that portion of it simpler.
  * TODO: Add a heirarchy for things. Use http://docs.oracle.com/javase/tutorial/uiswing/events/treeexpansionlistener.html to not load the contents of a branch node until you expand it.
- * TODO: Rename this to Njord see note on the name below
  * 
+ * TODO: Get rid of 'DestkopBigIPManager and replace it with this as the base.
+ * 
+ * 
+ * PUT OFF
+ * 
+ * TODO: Add iApp editing functionality? 
+ * TODO: Make this generic and plugin oriented.
+ * TODO: Add links to devcentral pages for keywords and functions and such the way iRuler does.
+ * TODO: Come up with some way to switch back and forth between jgruber and icontrol assembly mechanisms?
+ * TODO: Investigate the way 'Java Simple Text Editor' builds it's GUI from an XML config file. http://javatxteditor.sourceforge.net/ maybe not too closely since it's gui is crap but perhaps.... * 
  * 
  * JTree/editor items:
- * JTree has a TreeCellEditor in addition to it's TreeCellRenderer. I believe these are both interfaces. And that you have to implement at least TreeCellRenderer. TreeCellRenderer determines what happens when you select a tree node. If in addition
- * 	you create a TreeCellEditor you define actions that take user input (this is brilliant BTW.) You have to also define TreeCellRenderer because that defines how to render the content _within_ the editor. The editor itself doesn't have to be a text 
- * 	editor it can just be a couple of radio buttons. Or maybe... an enable/disable button. ^_^
+ * JTree has a TreeCellEditor in addition to it's TreeCellRenderer. This is for changind the name and such of the items in the tree itself
+ * 
+ *
  * 
  * 
  * PROGRESS BAR ITEMS:
  * TODO: Get rid of the progress bar after we have verified our connection and replace it with an icon that says 'Connection Verified' or something.
  * 
  * 
- * TODO: I think I accidentally deleted most of my todos by deleting the 'main application' class which turned out to be unneccesary
  * TODO: Peep this http://www.ibm.com/developerworks/opensource/tutorials/os-eclipse-code-templates/os-eclipse-code-templates-pdf.pdf for some in depth dialog on template customization.
  * 
  */
@@ -105,6 +144,7 @@ import com.f5.AaronForster.javaiRulesEditor.util.f5JavaGuiTree;
  * The Norse god of winds, sea and fire. He brings good fortune at sea and in the hunt. He is married to the giantess Skadi. His children are Freya and Freyr, whom he fathered on his own sister.
  * 
  * Originally, Njord was one of the Vanir but when they made peace with the Aesir, he and his children were given to them as hostages. The Aesir appointed both Njord and Freyr as high priests to preside over sacrifices. Freya was consecrated as sacrificial priestess. She taught the Aesir witchcraft, an art that was common knowledge among the Vanir.
+ * http://en.wikipedia.org/wiki/Nj%C3%B6r%C3%B0r
  *  
  * Njord will begin it's life solely as an iRule editor but I'd like it to become a full on bigip manager thus the name.
  * 
@@ -116,6 +156,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener {
 	private JFrame frame;
 	private String newline = "\n";
 
+	
 	
 	JTextArea output;
     JScrollPane scrollPane;
@@ -170,6 +211,11 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener {
 		//Util.log(logPrefix, "Starting up");
 		//TODO: Figure out why I can't do this
 		//Util.log(logPrefix + "Starting up");
+		Logger logger = LoggerFactory.getLogger(MainGuiWindow.class);
+	    logger.info("Starting Up");
+	    //TODO: Go to http://www.slf4j.org/manual.html and see what sort of config file I need to use to make this work.
+
+		
 		EventQueue.invokeLater(new Runnable() {
 			public void run() {
 				try {

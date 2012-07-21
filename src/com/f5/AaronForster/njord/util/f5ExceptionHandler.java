@@ -1,4 +1,4 @@
-package com.f5.AaronForster.javaiRulesEditor.util;
+package com.f5.AaronForster.njord.util;
 
 
 import java.net.MalformedURLException;

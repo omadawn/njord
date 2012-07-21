@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.f5.AaronForster.javaiRulesEditor.util;
+package com.f5.AaronForster.njord.util;
 
 
 //UNG, this is NASTY, I think it will be easier to override LocalLBRuleRuleDefinition

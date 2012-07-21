@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.f5.AaronForster.javaiRulesEditor;
+package com.f5.AaronForster.njord;
 
 /**
  * This is the main class for the app. This is waht will be run wich will then launch the gui and deal with it.

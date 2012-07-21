@@ -1,4 +1,4 @@
-package com.f5.AaronForster.javaiRulesEditor;
+package com.f5.AaronForster.njord;
 
 import iControl.LocalLBRuleRuleDefinition;
 
