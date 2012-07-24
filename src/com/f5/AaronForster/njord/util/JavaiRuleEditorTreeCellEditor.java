@@ -1,4 +1,4 @@
-package com.f5.AaronForster.njord;
+package com.f5.AaronForster.njord.util;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;
@@ -17,7 +17,15 @@ import javax.swing.tree.TreeCellEditor;
 
 public class JavaiRuleEditorTreeCellEditor extends AbstractCellEditor implements
 		TreeCellEditor {
-
+/*##############################################################################################################
+ * NOT CURRENTLY IN USE:
+ * TreeCellEditor is a method that you implement in order to edit the name of a tree cell. AKA the name of 
+ * something in the expandable jTree.
+ * It will need to be implemented later when we want to be able to rename an iRule(or other object) in the
+ * jTree itself.
+ *##############################################################################################################
+ */
+	
 //	@Override
 //	public Object getCellEditorValue() {
 //		// TODO Auto-generated method stub

@@ -47,7 +47,7 @@
 		</attributes>
 	</classpathentry>
 	<classpathentry kind="lib" path="D:/Devel/JavaStuff/ClassFiles"/>
-	<classpathentry kind="lib" path="D:/Devel/JavaStuff/slf4j-1.6.6/slf4j-simple-1.6.6.jar"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
+	<classpathentry kind="lib" path="D:/Devel/JavaStuff/slf4j-1.6.6/slf4j-log4j12-1.6.6.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

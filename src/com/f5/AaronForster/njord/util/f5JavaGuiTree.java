@@ -19,6 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.f5.AaronForster.njord.MainGuiWindow;
+import com.f5.AaronForster.njord.NjordiRuleDefinition;
 
 /**
  * @author forster
@@ -102,7 +103,8 @@ public class f5JavaGuiTree extends JTree {
 		if (node.isLeaf()) {
 		// neither instanceof nor getClass() have been very helpful.
 		//		if (value instanceof LocalLBRuleRuleDefinition) {
-			LocalLBRuleRuleDefinition rule = (LocalLBRuleRuleDefinition) node.getUserObject();
+//			LocalLBRuleRuleDefinition rule = (LocalLBRuleRuleDefinition) node.getUserObject();
+			NjordiRuleDefinition rule = (NjordiRuleDefinition) node.getUserObject();
 			return rule.getRule_name();
 		} else {
 			return super.convertValueToText(value, selected, expanded, leaf, row, hasFocus);

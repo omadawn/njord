@@ -8,6 +8,14 @@ import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMap;
 
 
+/*##############################################################################################################
+ * NOT CURRENTLY IN USE:
+ * TokenMakers are used to create syntax formatting sets. Unfortunately they are used to create the whole set. 
+ * IE instead of just defining reserved words they define also comments, multiline comments, end of a statement character
+ * and much much more. I don't know if they can be used to ADD keywords. 
+ *##############################################################################################################
+ */
+
 /*
  * NOTES
  * 

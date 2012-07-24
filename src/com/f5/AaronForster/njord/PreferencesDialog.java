@@ -28,6 +28,11 @@ import com.jgoodies.forms.layout.RowSpec;
 // Currently this code will produce a bunch of different dialogs. I need to add one that will produce the prefs dialog I am going for.
 
 public class PreferencesDialog extends JDialog implements ActionListener, PropertyChangeListener {
+	/*##############################################################################################################
+	 * POSSIBLY NOT IN USE:
+	 * I'm not sure if this is actually in use anywhere. I need to check.
+	 *##############################################################################################################
+	 */
 //	private String logPrefix = "PreferencesDialog: ";
 	
 	private String typedText = null;
@@ -49,7 +54,7 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
 	public JPanel panel_1;
     
     
-    
+    //TODO: Get rid of this method.
     /**
      * Returns null if the typed string was invalid;
      * otherwise, returns the string as the user entered it.
