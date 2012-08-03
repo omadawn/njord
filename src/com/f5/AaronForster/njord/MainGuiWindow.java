@@ -3,8 +3,10 @@ package com.f5.AaronForster.njord;
 import iControl.LocalLBRuleRuleDefinition;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
+import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -20,8 +22,12 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import javax.swing.Box;
+import javax.swing.GroupLayout;
+import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
 import javax.swing.JEditorPane;
 import javax.swing.JFrame;
@@ -50,12 +56,13 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeSelectionModel;
 import javax.xml.rpc.ServiceException;
 
+import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
+import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 import org.fife.ui.rsyntaxtextarea.Token;
-import org.fife.ui.rsyntaxtextarea.modes.JavaTokenMaker;
+import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 import org.fife.ui.rsyntaxtextarea.modes.TclTokenMaker;
-import org.fife.ui.rtextarea.RTextScrollPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,10 +92,21 @@ import com.f5.AaronForster.njord.util.f5JavaGuiTree;
  * 
  * 
  * TODO SECTION
+ * TODO: Catch and report a syntax error from bigip. Also report success/fail of save.
+ * TODO: How about this. Instead of creating the text editor when we click on a rule create it when the app starts the 
+ * 			way the dialog box is created. Then load it into the frame and stick the iRule code into it when a rule is selected.
+ * 			Then when a rule is edited I can stick it's current contents back into the njordiRule object every time I edit it maybe?
+ * 			Then write it to the BigIP when I save it.
+ * 		OR another alternative is to create a njord editor for every iRule I click on. Then stick that active editor into the frame when 
+ * 		I click on one. How do I keep track of which is which though without creating an editor for every iRule?
  * TODO: Prioritise To Dos - pretty much done, terminal work in progress.
  * TODO: Start logging instead of printing to stdout - started this one.
  * TODO: Add a save on action selected. I'll have to have a 'current iRule or something like that so that I always know what iRule is currently being edited and then update the njord irule object when I've clicked on something and update the editor with the contents of whatever iRule object is selected if you've selected something else.
- * 
+ * TODO: Add a link to the iRules reference https://devcentral.f5.com/wiki/iRules.HomePage.ashx
+ *
+ * TODO: Oooh, switch to textEditor http://javadoc.fifesoft.com/rsyntaxtextarea/org/fife/ui/rsyntaxtextarea/TextEditorPane.html a sub class of rsyntaxTextEditor (and part of that project) which has built in support for loading/saving and also tracks things like is it dirty/etc.
+ * TODO: Add make EOL visible and probably make whitespace visible setEOLMarkersVisible(boolean visible) 	setWhitespaceVisible(boolean visible) 
+ * TODO: add a preference to paint tab lines. See if this setPaintTabLines(boolean paint)  does what I think it does.
  * TODO: The below has changed slightly and I might even ditch the connect button in the main window.
  * TODO: Catch connect from main window 
  * 		TODO: Figure out why the connect button in the middle of the screen doesn't work but the menu item one does. It's due to the action listener issue
@@ -153,7 +171,7 @@ import com.f5.AaronForster.njord.util.f5JavaGuiTree;
  * TODO: Come up with some way to switch back and forth between jgruber and icontrol assembly mechanisms?
  * TODO: Investigate the way 'Java Simple Text Editor' builds it's GUI from an XML config file. http://javatxteditor.sourceforge.net/ maybe not too closely since it's gui is crap but perhaps.... * 
  * TODO: Figure out what 'marked occurrences' is IE getMarkedOccurrences() 
- * 
+ * TODO: Add an option to select what version of iRules to use highlighting on. I'll need some fancy way to crawl the iRules reference pages or some better reference from corporate.
  * 
  * 
  * 
@@ -243,7 +261,9 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	JSplitPane splitPane = new JSplitPane();
 	JEditorPane iRuleEditorPane = null;
 	RSyntaxTextArea rSyntaxTextArea = null;
+	TextEditorPane nTextEditorPane = null;
 	JMenuBar menuBar = null;
+	JPanel EditorPanel = null;
 	
 	//Will be the top node in the jTree
 	DefaultMutableTreeNode top = null;
@@ -303,6 +323,10 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		//TODO: Change this to DO_NOTHING_ON_CLOSE and define a window close operation that saves the window state before closing. Or perhaps detect if the window is resized or moved then save then.
 		//DO_NOTHING_ON_CLOSE (defined in WindowConstants): Don't do anything; require the program to handle the operation in the windowClosing method of a registered WindowListener object. 
 
+		
+
+		
+		
 		//TODO: This returns true/false. Deal with it and bail if it's false.
 		loadPreferences();
 		
@@ -312,6 +336,9 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		// Preferences Dialog stuff
 		preferencesDialog = new PreferencesDialog(frame, this);
 		preferencesDialog.pack();
+		
+		// Create the editor panel. We will use it later
+		EditorPanel = createEditorPanel();
 		
 		// The menu definition	
 		menuBar = new JMenuBar();
@@ -356,6 +383,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		frame.getContentPane().add(splitPane, BorderLayout.CENTER);
 		
 		JPanel NavPanel = new JPanel();
+		Dimension navMinimumSize = new Dimension(200, 30);
+		NavPanel.setMinimumSize(navMinimumSize);
 		splitPane.setLeftComponent(NavPanel);
 		
 		JScrollPane scrollPane = new JScrollPane();
@@ -392,66 +421,74 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	    tree.addTreeSelectionListener(this);
 	    //Listen for when non-leave nodes are expanded
 	    tree.addTreeExpansionListener(this);
+		
+		
 		//DEFAULT RESULTS PANE CONTENT STARTS HERE
 
 		
 		resultsPanel = new JPanel();
+
+		Dimension resultsPanelMinimumSize = new Dimension(500, 700);
+		resultsPanel.setMinimumSize(resultsPanelMinimumSize);
+		
+		JTextPane notificationsPanel = new JTextPane();
+//		Dimension notificationsPanelMaximumSize = new Dimension(50, 300);
+//		notificationsPanel.setMaximumSize(notificationsPanelMaximumSize);
+		
+//		JSplitPane ResultsPanelSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, resultsPanel, notificationsPanel);
+//		frame.getContentPane().add(ResultsPanelSplitPane, BorderLayout.EAST);
+//		splitPane.setRightComponent(ResultsPanelSplitPane);
 		splitPane.setRightComponent(resultsPanel);
-		GridBagLayout gbl_resultsPanel = new GridBagLayout();
-		gbl_resultsPanel.columnWidths = new int[]{138, 1, 20, 743, 0};
-		gbl_resultsPanel.rowHeights = new int[]{20, 0, 0, 0, 33, 0, 0};
-		gbl_resultsPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		gbl_resultsPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-		resultsPanel.setLayout(gbl_resultsPanel);
 		
 		JLabel lblDefaultResultspanelContent = new JLabel("Default resultsPanel Content");
-		GridBagConstraints gbc_lblDefaultResultspanelContent = new GridBagConstraints();
-		gbc_lblDefaultResultspanelContent.insets = new Insets(0, 0, 5, 0);
-		gbc_lblDefaultResultspanelContent.gridx = 3;
-		gbc_lblDefaultResultspanelContent.gridy = 1;
-		resultsPanel.add(lblDefaultResultspanelContent, gbc_lblDefaultResultspanelContent);
 		lblDefaultResultspanelContent.setVerticalAlignment(SwingConstants.TOP);
 		
 		JTextPane defaultResultsDevCentralURLTextPane = new JTextPane();
-		GridBagConstraints gbc_defaultResultsDevCentralURLTextPane = new GridBagConstraints();
-		gbc_defaultResultsDevCentralURLTextPane.fill = GridBagConstraints.BOTH;
-		gbc_defaultResultsDevCentralURLTextPane.insets = new Insets(0, 0, 5, 0);
-		gbc_defaultResultsDevCentralURLTextPane.gridx = 3;
-		gbc_defaultResultsDevCentralURLTextPane.gridy = 2;
-		resultsPanel.add(defaultResultsDevCentralURLTextPane, gbc_defaultResultsDevCentralURLTextPane);
 		defaultResultsDevCentralURLTextPane.setText("This will contain a link to dev central or something");
-		
-//		JTextPane defaultResultsPanelTextPane = new JTextPane();
-		GridBagConstraints gbc_defaultResultsPanelTextPane = new GridBagConstraints();
-		gbc_defaultResultsPanelTextPane.fill = GridBagConstraints.BOTH;
-		gbc_defaultResultsPanelTextPane.insets = new Insets(0, 0, 5, 0);
-		gbc_defaultResultsPanelTextPane.gridx = 3;
-		gbc_defaultResultsPanelTextPane.gridy = 3;
-		resultsPanel.add(defaultResultsPanelTextPane, gbc_defaultResultsPanelTextPane);
 		defaultResultsPanelTextPane.setText("Should have some welcome text here that perhaps includes a little help message and maybe some copywrite information. I would prefer if it was pinned to the bottom of the containing pane.");
 		
 		Component horizontalStrut_1 = Box.createHorizontalStrut(20);
-		GridBagConstraints gbc_horizontalStrut_1 = new GridBagConstraints();
-		gbc_horizontalStrut_1.anchor = GridBagConstraints.WEST;
-		gbc_horizontalStrut_1.insets = new Insets(0, 0, 5, 5);
-		gbc_horizontalStrut_1.gridx = 2;
-		gbc_horizontalStrut_1.gridy = 4;
-		resultsPanel.add(horizontalStrut_1, gbc_horizontalStrut_1);
 		
 		JPanel panel = new JPanel();
 		FlowLayout flowLayout_1 = (FlowLayout) panel.getLayout();
-		GridBagConstraints gbc_panel = new GridBagConstraints();
-		gbc_panel.anchor = GridBagConstraints.NORTHWEST;
-		gbc_panel.insets = new Insets(0, 0, 5, 0);
-		gbc_panel.gridx = 3;
-		gbc_panel.gridy = 4;
-		resultsPanel.add(panel, gbc_panel);
 		
 		JButton defaultTextPaneConnectButton = new JButton("Connect");
-		GridBagConstraints gbc_defaultTextPaneConnectButton = new GridBagConstraints();
-		gbc_defaultTextPaneConnectButton.gridx = 3;
-		gbc_defaultTextPaneConnectButton.gridy = 5;
-		resultsPanel.add(defaultTextPaneConnectButton, gbc_defaultTextPaneConnectButton);
+		GroupLayout gl_resultsPanel = new GroupLayout(resultsPanel);
+		gl_resultsPanel.setHorizontalGroup(
+			gl_resultsPanel.createParallelGroup(Alignment.LEADING)
+				.addComponent(horizontalStrut_1, GroupLayout.PREFERRED_SIZE, 0, GroupLayout.PREFERRED_SIZE)
+				.addGroup(gl_resultsPanel.createSequentialGroup()
+					.addGap(475)
+					.addComponent(lblDefaultResultspanelContent))
+				.addGroup(gl_resultsPanel.createSequentialGroup()
+					.addGap(173)
+					.addComponent(defaultResultsDevCentralURLTextPane, GroupLayout.PREFERRED_SIZE, 743, GroupLayout.PREFERRED_SIZE))
+				.addGroup(gl_resultsPanel.createSequentialGroup()
+					.addGap(173)
+					.addComponent(defaultResultsPanelTextPane, GroupLayout.PREFERRED_SIZE, 743, GroupLayout.PREFERRED_SIZE))
+				.addGroup(gl_resultsPanel.createSequentialGroup()
+					.addGap(173)
+					.addComponent(panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+				.addGroup(gl_resultsPanel.createSequentialGroup()
+					.addGap(508)
+					.addComponent(defaultTextPaneConnectButton))
+		);
+		gl_resultsPanel.setVerticalGroup(
+			gl_resultsPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_resultsPanel.createSequentialGroup()
+					.addComponent(horizontalStrut_1, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addGap(30)
+					.addComponent(lblDefaultResultspanelContent)
+					.addGap(5)
+					.addComponent(defaultResultsDevCentralURLTextPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addGap(5)
+					.addComponent(defaultResultsPanelTextPane, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addGap(5)
+					.addComponent(panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE)
+					.addGap(23)
+					.addComponent(defaultTextPaneConnectButton))
+		);
+		resultsPanel.setLayout(gl_resultsPanel);
 		
 		//DEFAULT RESULTS PANE CONTENT ENDS HERE
 		
@@ -549,41 +586,9 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
     		
         	//Try this for layout
         	
-        	JPanel editorPanel = new JPanel();
-        	GridBagLayout gbl_editorPanel = new GridBagLayout();
         	
-        	gbl_editorPanel.columnWidths = new int[] {100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
-        	gbl_editorPanel.rowHeights = new int[] {100, 100, 100, 100, 100, 100};
-        	gbl_editorPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
-        	gbl_editorPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
-        	editorPanel.setLayout(gbl_editorPanel);
-
-        	rSyntaxTextArea = new RSyntaxTextArea(20, 60); //This is numrows and numcols
-            rSyntaxTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_TCL); //This way doesn't work. I am unclear
-            rSyntaxTextArea.setCodeFoldingEnabled(true);
-            rSyntaxTextArea.setAntiAliasingEnabled(true);
-        	
-        	
-        	JScrollPane scrollPane_1 = new JScrollPane();
-        	scrollPane_1.setViewportView(rSyntaxTextArea);
-        	GridBagConstraints gbc_scrollPane_1 = new GridBagConstraints();
-        	gbc_scrollPane_1.fill = GridBagConstraints.BOTH;
-        	gbc_scrollPane_1.gridwidth = 8;
-        	gbc_scrollPane_1.gridheight = 8;
-        	gbc_scrollPane_1.anchor = GridBagConstraints.NORTHWEST;
-        	gbc_scrollPane_1.insets = new Insets(0, 0, 0, 5);
-        	gbc_scrollPane_1.gridx = 1;
-        	gbc_scrollPane_1.gridy = 0;
-        	editorPanel.add(scrollPane_1, gbc_scrollPane_1);
-
-        	JButton btnSave = new JButton("Save");
-        	GridBagConstraints gbc_btnSave = new GridBagConstraints();
-        	gbc_btnSave.anchor = GridBagConstraints.NORTHWEST;
-        	gbc_btnSave.gridx = 2;
-        	gbc_btnSave.gridy = 8;
-        	editorPanel.add(btnSave, gbc_btnSave);
-    		
-            rSyntaxTextArea.setText(nodeInfo.getRule_definition());
+//        	rSyntaxTextArea.setText(nodeInfo.getRule_definition());
+        	nTextEditorPane.setText(nodeInfo.getRule_definition());
             //TODO: Set isModified once this has been edited
             
             //TODO: Figure out howo tmake this remove whatever is currently there instead of statically coding 'resultsPanel' There will be a point when it's not 'resultsPanel' Quite often in fact. Like when it's now editPanelScrolePane1
@@ -591,7 +596,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
             splitPane.remove(resultsPanel);
 //            splitPane.setRightComponent(editPaneScrollPane1);
 //            splitPane.setRightComponent(editorPanel);
-            splitPane.setRightComponent(editorPanel);
+            splitPane.setRightComponent(EditorPanel);
         } else {
 //            displayURL(helpURL); 
         }
@@ -748,29 +753,52 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         } else if (actionCommand == "Save"){
         	//TODO: Apparently blank is a valid iRule as far as mcpd is concerned. Check to ensure the rule isn't completely blank and handle that.
         	//This will tell me what iRule is selected. Then I need to set the definition. tree.getLastSelectedPathComponent()
-        	log.debug("Save detected");
+        	log.info("Save detected");
             DefaultMutableTreeNode node = (DefaultMutableTreeNode)
                     tree.getLastSelectedPathComponent();
             if (node == null) return;
 //            LocalLBRuleRuleDefinition nodeInfo = (LocalLBRuleRuleDefinition) node.getUserObject();
             NjordiRuleDefinition nodeInfo = (NjordiRuleDefinition) node.getUserObject();
 //            nodeInfo.setRule_definition(rSyntaxTextArea.getText()); // Stick the text from the text area back into the iRule object
-            nodeInfo.setRule_definition(rSyntaxTextArea.getText()); // Stick the text from the text area back into the iRule object
+//            nodeInfo.setRule_definition(rSyntaxTextArea.getText()); // Stick the text from the text area back into the iRule object
+            //TODO: Get rid of this. Save the data to the NjordiRuleDefinition somwehere else like when the rule looses focus or when they stop typing or every 3 seconds or something. Then just use that. instead of the contents of the editor? no maybe the contents of the editor will always be the MOST up to date. Hrm....
+            nodeInfo.setRule_definition(nTextEditorPane.getText());
             LocalLBRuleRuleDefinition[] saveRules = new LocalLBRuleRuleDefinition[1]; // Create a list of iRules in order to write them back. We only have one so we only need a tiny list
             saveRules[0] = nodeInfo.getiRule(); // Stick the iRule object into said list
             //TODO: Decide if I should modify the above to use the njordIruleObjects or not
             try {
 				ic.getLocalLBRule().modify_rule(saveRules); // Then write said rule back to the BigIP This could be easily modified to allow the saving of multiple rules.
 			} catch (RemoteException e1) {
-				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1);
-				exceptionHandler.processException();
-				//Not:
-				//e1.printStackTrace();
+//				If we caught a remote exception the code was wrong. Let's try something here
+				//Can't break this up on new lines I need all the new lines after error_string    : 
+				// Let's try making the grep multi line.
+				String errorContents = e1.getMessage(); //This gets the full message	
+
+				Pattern pattern = Pattern.compile(".*error_string         :", Pattern.DOTALL);
+				Matcher matcher = pattern.matcher(errorContents);
+				//Uncomment if working on the regex. The commented code shows what we are matching.
+//				while (matcher.find()) {
+//					System.out.print("Start index: " + matcher.start());
+//					System.out.print(" End index: " + matcher.end() + " ");
+//					System.out.println(matcher.group());
+//				}
+				//TODO: Replace this println with something that either pops up an error or sets the contents of a status box in the main gui. I prefer the latter.
+				String errorMessage = matcher.replaceAll("");
+				System.out.println("Error: " + errorMessage);
+				
+				//This is what getMessage returns. I need to pull out the last part error_string:
+//				Exception caught in LocalLB::urn:iControl:LocalLB/Rule::modify_rule()
+//				Exception: Common::OperationFailed
+//					primary_error_code   : 17236305 (0x01070151)
+//					secondary_error_code : 0
+//					error_string         : 01070151:3: Rule [/Common/http_responder] error: 
+//				line 15: [parse error: extra characters after close-brace] [ffff]
+				
+//				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1);
+//				exceptionHandler.processException();
 			} catch (Exception e1) {
 				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1);
 				exceptionHandler.processException();
-				//Not:
-				//e1.printStackTrace();
 			}
             
             //TODO: Handle an exception here. This is how the BigIP will let you know if you screwed up.
@@ -1022,6 +1050,162 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 //        public void clearAddedHighlightedIdentifiers();
 		//TODO: Decide if I really should be doing this or just return void
 //		return true;
+	}
+	
+	private JPanel createEditorPanel() {
+		//TODO: Instead of creating a new text editor every time we select an iRule I should perhaps create one earlier or do a use if exists, create if doesn't. Then when someone clicks on an iRule I can just populate the text editor with the contents of said iRule. Perhaps even save the contents of said text editor and then populate it with the new iRule.
+    	JPanel editorPanel = new JPanel();
+    	GridBagLayout gbl_editorPanel = new GridBagLayout();
+//    	GroupLayout gl_EditorPanel = new GroupLayout();
+    	
+//    	GroupLayout gl_EditorPanel = new GroupLayout(editorPanel);
+//    	gl_EditorPanel.setHorizontalGroup(
+//    			gl_EditorPanel.createParallelGroup(Alignment.LEADING)
+    			
+    			
+//				.addComponent(horizontalStrut_1, GroupLayout.PREFERRED_SIZE, 0, GroupLayout.PREFERRED_SIZE)
+//				.addGroup(gl_EditorPanel.createSequentialGroup()
+//					.addGap(475)
+//					.addComponent(lblDefaultResultspanelContent))
+//				.addGroup(gl_EditorPanel.createSequentialGroup()
+//					.addGap(173)
+//					.addComponent(defaultResultsDevCentralURLTextPane, GroupLayout.PREFERRED_SIZE, 743, GroupLayout.PREFERRED_SIZE))
+//				.addGroup(gl_EditorPanel.createSequentialGroup()
+//					.addGap(173)
+//					.addComponent(defaultResultsPanelTextPane, GroupLayout.PREFERRED_SIZE, 743, GroupLayout.PREFERRED_SIZE))
+//				.addGroup(gl_EditorPanel.createSequentialGroup()
+//					.addGap(173)
+//					.addComponent(panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+//				.addGroup(gl_EditorPanel.createSequentialGroup()
+//					.addGap(508)
+//					.addComponent(defaultTextPaneConnectButton))
+//		);
+    	
+    	
+    	gbl_editorPanel.columnWidths = new int[] {100, 100, 100, 100, 100, 100, 100, 100, 100, 100};
+    	gbl_editorPanel.rowHeights = new int[] {100, 100, 100, 100, 100, 100};
+    	gbl_editorPanel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0};
+    	gbl_editorPanel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+//    	editorPanel.setLayout(gbl_editorPanel);
+    	
+    	
+		AbstractTokenMakerFactory atmf = (AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance();
+		atmf.putMapping("SYNTAX_STYLE_IRULES", "com.f5.AaronForster.njord.util.iRulesTokenMaker");
+		TokenMakerFactory.setDefaultInstance(atmf); //Don't know if I need this line or not
+//		textArea.setSyntaxEditingStyle("SyntaxConstants.SYNTAX_STYLE_TCL");
+    	
+    	nTextEditorPane = new TextEditorPane();
+//    	nTextEditorPane.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_TCL);
+    	//This didn't work because setting it above doesn't work quite that way.
+    	nTextEditorPane.setSyntaxEditingStyle("SYNTAX_STYLE_IRULES");
+    	nTextEditorPane.setCodeFoldingEnabled(true);
+    	nTextEditorPane.setAntiAliasingEnabled(true);
+    	
+//    	nTextEditorPane.setSize(textPaneDimension);
+    	
+    	SyntaxScheme scheme = nTextEditorPane.getSyntaxScheme();
+//        scheme.getStyle(Token.RESERVED_WORD).foreground = Color.pink;
+        scheme.getStyle(Token.FUNCTION).foreground = Color.MAGENTA;
+    	
+//    	rSyntaxTextArea = new RSyntaxTextArea(20, 60); //This is numrows and numcols
+//        rSyntaxTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_TCL); 
+//        rSyntaxTextArea.setCodeFoldingEnabled(true);
+//        rSyntaxTextArea.setAntiAliasingEnabled(true);
+    	
+    	
+    	JScrollPane scrollPane_1 = new JScrollPane();
+//    	scrollPane_1.setViewportView(rSyntaxTextArea);
+    	//Let's try this with TextEditorPane;
+    	scrollPane_1.setViewportView(nTextEditorPane);
+    	GridBagConstraints gbc_scrollPane_1 = new GridBagConstraints();
+    	gbc_scrollPane_1.fill = GridBagConstraints.BOTH;
+    	gbc_scrollPane_1.gridwidth = 8;
+    	gbc_scrollPane_1.gridheight = 8;
+    	gbc_scrollPane_1.anchor = GridBagConstraints.NORTHWEST;
+    	gbc_scrollPane_1.insets = new Insets(0, 0, 0, 5);
+    	gbc_scrollPane_1.gridx = 1;
+    	gbc_scrollPane_1.gridy = 0;
+    	editorPanel.add(scrollPane_1, gbc_scrollPane_1);
+
+    	JButton btnSave = new JButton("Save");
+    	GridBagConstraints gbc_btnSave = new GridBagConstraints();
+    	gbc_btnSave.anchor = GridBagConstraints.NORTHWEST;
+    	gbc_btnSave.gridx = 2;
+    	gbc_btnSave.gridy = 8;
+    	btnSave.addActionListener(this);
+    	editorPanel.add(btnSave, gbc_btnSave);
+		
+
+    	GroupLayout gl_EditorPanel = new GroupLayout(editorPanel);
+    	gl_EditorPanel.setHorizontalGroup(
+    			gl_EditorPanel.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(gl_EditorPanel.createSequentialGroup()
+                    .addContainerGap()
+                    .addGroup(gl_EditorPanel.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(scrollPane_1, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, 485, Short.MAX_VALUE)
+                        .addGroup(gl_EditorPanel.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+//                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, gl_EditorPanel.createSequentialGroup()
+//                                .addComponent(wwwButton)
+//                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+//                                .addComponent(urlTextField))
+//                            .addGroup(javax.swing.GroupLayout.Alignment.LEADING, gl_EditorPanel.createSequentialGroup()
+//                                .addComponent(copyButton)
+//                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+//                                .addComponent(cutButton)
+//                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+//                                .addComponent(pasteButton)
+//                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+//                                .addComponent(selectAllButton)
+//                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+//                                .addComponent(clearButton))))
+                        		))
+                    .addContainerGap())
+            );
+    	gl_EditorPanel.setVerticalGroup(
+    			gl_EditorPanel.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, gl_EditorPanel.createSequentialGroup()
+                    .addContainerGap()
+//                    .addGroup(gl_EditorPanel.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+//                        .addComponent(nTextEditorPane)
+//                        .addComponent(cutButton)
+//                        .addComponent(pasteButton)
+//                        .addComponent(selectAllButton)
+//                        .addComponent(clearButton))
+//                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+//                    .addGroup(gl_EditorPanel.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+//                        .addComponent(wwwButton)
+//                        .addComponent(urlTextField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                    .addComponent(scrollPane_1, javax.swing.GroupLayout.DEFAULT_SIZE, 323, Short.MAX_VALUE)
+                    .addContainerGap())
+            );
+    	
+//    	gl_EditorPanel.setHorizontalGroup(
+//    			gl_EditorPanel.createParallelGroup(Alignment.LEADING)
+//    			.addGroup(arg0)
+//				.addComponent(horizontalStrut_1, GroupLayout.PREFERRED_SIZE, 0, GroupLayout.PREFERRED_SIZE)
+//				.addGroup(gl_EditorPanel.createSequentialGroup()
+//					.addGap(475)
+//					.addComponent(lblDefaultResultspanelContent))
+//				.addGroup(gl_EditorPanel.createSequentialGroup()
+//					.addGap(173)
+//					.addComponent(defaultResultsDevCentralURLTextPane, GroupLayout.PREFERRED_SIZE, 743, GroupLayout.PREFERRED_SIZE))
+//				.addGroup(gl_EditorPanel.createSequentialGroup()
+//					.addGap(173)
+//					.addComponent(defaultResultsPanelTextPane, GroupLayout.PREFERRED_SIZE, 743, GroupLayout.PREFERRED_SIZE))
+//				.addGroup(gl_EditorPanel.createSequentialGroup()
+//					.addGap(173)
+//					.addComponent(panel, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
+//				.addGroup(gl_EditorPanel.createSequentialGroup()
+//					.addGap(508)
+//					.addComponent(defaultTextPaneConnectButton))
+//    	);
+    	
+    	
+    	editorPanel.setLayout(gl_EditorPanel);
+    	
+    	return editorPanel;
+    	
 	}
 	
 	/**

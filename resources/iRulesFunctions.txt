@@ -1,0 +1,29 @@
+#From https://devcentral.f5.com/wiki/iRules.Functions.ashx
+    class - Advanced access of classes
+    findclass - Searches a data group list for a member that starts with a specified string and returns the data-group member string.
+    matchclass - Performs comparison against the contents of data group.
+
+
+Edit
+String Functions¶
+These functions will return a string or a subset of a string.
+
+    domain - Parses the specified string as a dotted domain name and returns the last portions of the domain name.
+    findstr - Finds a string within another string and returns the string starting at the offset specified from the match.
+    getfield - Splits a string on a character or string. and returns the string corresponding to the specific field.
+    substr - A custom iRule function which returns a substring from a string
+
+
+Edit
+Utility Functions¶
+Utility functions are those commands that transform information and return the result in the desired format.
+
+    b64decode - Returns a string that is base-64 decoded
+    b64encode - Returns a string that is base-64 encoded. or if an error occurs. an empty string.
+    crc32 - Returns the crc32 checksum for the specified string.
+    decode_uri - Decodes the specified string using HTTP URI encoding.
+    md5 - Returns the RSA MD5 Message Digest Algorithm message digest of the specified string.
+    sha1 - Returns the SHA version 1.0 message digest of the specified string.
+    sha256 - Returns the Secure Hash Algorithm (SHA2) 256-bit message digest of the specified string.
+    sha384 - Returns the Secure Hash Algorithm (SHA2) 384-bit message digest of the specified string.
+    sha512 - Returns the Secure Hash Algorithm (SHA2) 512-bit message digest of the specified string.

@@ -6,6 +6,8 @@ import java.rmi.RemoteException;
 
 import javax.xml.rpc.ServiceException;
 
+import org.apache.axis.AxisFault;
+
 public class f5ExceptionHandler {
 	//TODO: figure out how to log where the exception occured
 	//TODO: Figure out how to log properly in this code.
@@ -37,6 +39,7 @@ public class f5ExceptionHandler {
 //	exceptionHandler.processException();
 	
 	public void processException() {
+		System.out.println("Error is an instance of " + e.getClass().toString());
 		if (e instanceof ServiceException) {
 			// Log ServiceException
 			// What is the difference between ServiceException and RemoteExeption?
@@ -70,6 +73,14 @@ public class f5ExceptionHandler {
 			}
 			System.out.println(message);
 			//log(message) //somehow	
+		} else if (e instanceof AxisFault) {
+			//This might be where we end up if we get an error in the irule saving.
+			if ( message != "" ) {
+				message = "AxisFault: " + e.getMessage();
+			} else {
+				message = message + ": " + e.getMessage();
+			}
+			System.out.println(message);
 		} else {
 			// Log some new exception we were unnaware of happened here.
 			// Perhaps now we stack trace but likely only if in debug

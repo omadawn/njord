@@ -1,0 +1,25 @@
+#from https://devcentral.f5.com/wiki/iRules.Statements.ashx
+    clientside - Causes the specified iRule commands to be evaluated under the client-side context.
+    clone - Causes the system to clone traffic to the specified pool or pool member regardless of monitor status.
+    cpu - The cpu usage command returns the average TMM cpu load for the given interval.
+    discard - Causes the current packet or connection to be dropped/discarded. Same as the drop command.
+    drop - Causes the current packet or connection to be dropped/discarded. Same as the discard command.
+    event - Enables or disables evaluation of the specified iRule event. or all iRule events. on this connection.
+    forward - Sets the connection to forward IP packets.
+    HTTP session - iRules commands and events relating to the HTTP protocol
+    if - Examines the supplied conditional and executes the following code if the result is true.
+    lasthop - Sets the lasthop of an IP connection.
+    log - Generates and logs a message to the syslog-ng utility.
+    nexthop - Sets the nexthop of an IP connection.
+    node - Sends the packet directly to the identified server node.
+    peer - Causes the specified iRule commands to be evaluated under the peer’s (opposite) context.
+    persist - Causes the system to use the named persistence type to persist the connection.
+    pool - Causes the system to load balance traffic to the specified pool or pool member regardless of monitor status.
+    rateclass - Causes the system to select the specified rate class to use when transmitting packets.
+    reject - Causes the connection to be rejected.
+    serverside - Causes the specified iRule command to be evaluated under the server-side context.
+    snat - Causes the LTM system to assign the specified translation address to the current connection.
+    snatpool - Causes the specified pool of addresses to be used as translation addresses to create a SNAT.
+    static - A namespace for creating global variables that hold constant values. in a CMP-compatible fashion
+    tcl_platform - A variable that contains platform specific information
+    when - Used to specify an event in an iRule.
