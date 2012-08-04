@@ -1,0 +1,16 @@
+class
+findclass
+matchclass
+domain
+findstr
+getfield
+substr
+b64decode
+b64encode
+crc32
+decode_uri
+md5
+sha1
+sha256
+sha384
+sha512

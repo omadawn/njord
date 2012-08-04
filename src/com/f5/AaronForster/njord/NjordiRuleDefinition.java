@@ -73,8 +73,10 @@ public class NjordiRuleDefinition extends NjordObject {
 		isNew = true;
 		isModified = true;
 		myName = name; 
-		iRule = new LocalLBRuleRuleDefinition();
-		iRuleDefinition = new String(); // A new empty string
+//		iRule = new LocalLBRuleRuleDefinition();
+		iRuleDefinition = "when CLIENT_ACCEPTED {\n\n\n}" ;
+		iRule = new LocalLBRuleRuleDefinition(myName, iRuleDefinition);
+//		iRuleDefinition = new String(); // A new empty string
 		//TODO: Check to ensure it's a full path.
 	}
 	
