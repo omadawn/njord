@@ -90,13 +90,14 @@ public class f5JavaGuiTree extends JTree {
 			boolean expanded, boolean leaf, int row, boolean hasFocus) {
 		//Value seems to be the 'tree node' object which actually contains the object I care about.
 		
-//		log.info("Value has: " + value.toString());  
-		System.out.println("Value has: " + value.toString());
+//		System.out.println("Value has: " + value.toString());
+//		log.debug("Value has: " + value.toString());  
+
 		
 		// At this point I can't think of a scenario where we won't be getting a defaultMutableTreeNode so I feel safe doing this. We'll see.
 		DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
-//		log.info("Node has: " + node.toString());
-		System.out.println("Node has: " + node.toString());
+//		log.debug("Node has: " + node.toString());
+//		System.out.println("Node has: " + node.toString());
 		
 		// Only try and get the object as an LocalLBRuleRuleDefinition if it's a leaf node
 		// This might get tricky if I have more than one type of object. Like virtuals or iApps.

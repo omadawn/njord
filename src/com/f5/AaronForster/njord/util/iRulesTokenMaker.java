@@ -18,9 +18,15 @@ public class iRulesTokenMaker extends TclTokenMaker {
 		myWordsToHighlight.put("oneword", Token.RESERVED_WORD);
 		myWordsToHighlight.put("twoword", Token.RESERVED_WORD_2);
 		//TODO: For some reason all the stuff with :: in it doesn't get highlighted. Which sorta sucks. I've put in a comment to the thread.
-		myWordsToHighlight.put("HTTP::respond", Token.FUNCTION);
+//		myWordsToHighlight.put("HTTP::respond", Token.FUNCTION);
+		//TODO: This doesn't work because HTTP : and respond are being fed to the syntax the tokenmaker comes out with in order to determine if they are key words. Somehow I have to get it to process the whole thing instead of splitting it up.
+		
+		String respondToken = "HTTP::respond";
+		myWordsToHighlight.put(respondToken, Token.FUNCTION);
+		myWordsToHighlight.put("this:that", Token.FUNCTION);
 		myWordsToHighlight.put("HTTP::path", Token.RESERVED_WORD_2);
 		myWordsToHighlight.put("HTTP::uri", Token.RESERVED_WORD);
+		
 	}
 	
 //	myWordsToHighlight.put("thisword", Token.IDENTIFIER);
