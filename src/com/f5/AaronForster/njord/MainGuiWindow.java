@@ -101,6 +101,8 @@ import com.f5.AaronForster.njord.util.f5JavaGuiTree;
  *  Added a notifications box that persists in the GUI
  * 20120803 0.7
  *  Added new iRule creation
+ * 20120804 0.8
+ *  just creating 0.8 nothing done yet. 0.8 will be all about bug fixes.
  */
 
 
@@ -255,7 +257,7 @@ import com.f5.AaronForster.njord.util.f5JavaGuiTree;
  * At minimum there will be functionality to enable/disable pool members and virtual servers and manage what virtual servers iRules are attached to.
  * 
  * @author Aaron Forster @date 20120601
- * @version 0.7
+ * @version 0.8
  */
 public class MainGuiWindow implements ActionListener, TreeSelectionListener, TreeExpansionListener {
 	private String logPrefix = "MainGuiWindow: ";
