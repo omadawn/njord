@@ -38,10 +38,11 @@ public class NjordiRuleDefinition extends NjordObject {
 	 */
 	private LocalLBRuleRuleDefinition iRule; 
 
+	/**
+	 * iRule definition text is stored in here.
+	 */
 	private String iRuleDefinition = null;
-	//Set the owner in here?
 
-	
 	/*#################################################################################
 	 * CONSTRUCTORS
 	 *#################################################################################*/	
@@ -60,6 +61,8 @@ public class NjordiRuleDefinition extends NjordObject {
 	 */
 	public NjordiRuleDefinition(LocalLBRuleRuleDefinition iRule) {
 		this.iRule = iRule;
+		isNew = false;
+		isModified = false;
 		myName = iRule.getRule_name();
 		iRuleDefinition = iRule.getRule_definition();
 		
@@ -73,10 +76,8 @@ public class NjordiRuleDefinition extends NjordObject {
 		isNew = true;
 		isModified = true;
 		myName = name; 
-//		iRule = new LocalLBRuleRuleDefinition();
 		iRuleDefinition = "when CLIENT_ACCEPTED {\n\n\n}" ;
 		iRule = new LocalLBRuleRuleDefinition(myName, iRuleDefinition);
-//		iRuleDefinition = new String(); // A new empty string
 		//TODO: Check to ensure it's a full path.
 	}
 	
@@ -107,6 +108,7 @@ public class NjordiRuleDefinition extends NjordObject {
 	 */
 	public void setRule_definition(String ruleDefinition) {
 		//TODO: Handle this properly so that we don't save to the iRule automatically because we probably don't have one. 
+		isModified = true;
 		iRuleDefinition = ruleDefinition;
 		iRule.setRule_definition(iRuleDefinition);
 	}
@@ -120,12 +122,12 @@ public class NjordiRuleDefinition extends NjordObject {
 	
 	public void setiRule(LocalLBRuleRuleDefinition newiRule) {
 		iRule = newiRule;
+		iRuleDefinition = iRule.getRule_definition();
 	}
 	
 	/*#################################################################################
 	 * OTHER METHODS
 	 *#################################################################################*/
-
 }
 
 //Irules will want to have:

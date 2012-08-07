@@ -86,7 +86,7 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
 
 
         //Create an array specifying the number of dialog buttons
-        //and their text.
+        //and their text. this makes btnString1 oktext and btnString2 cancel text
         Object[] options = {btnString1, btnString2};
 
         
