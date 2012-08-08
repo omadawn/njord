@@ -106,7 +106,6 @@ import com.f5.AaronForster.njord.util.f5JavaGuiTree;
 
 /*
  * NOTES SECTION
- * //Hrmm... interesting thought. If I make it too fancy it can compete w/ EM. Maybe not connect to multiple bigips? No, let's connect to multiple but definately make it plugin oriented and if it comes up I can pitch a free and commercial version.
  * 
  * TODO SECTION
  * TODO: "Reconnect" IE rebuild the iRules list if you update your connection settings.
