@@ -246,17 +246,6 @@ import com.f5.AaronForster.njord.util.njordTreeRenderer;
  * You can add a document listener which would get called when something is changed in the document. textArea.getDocument().addDocumentListener(new MyDocumentListener());   
  */
 
-/*
- * CODING STANDARDS FROM ADVENTUREMAN:
- * (currently in development)
- * Version numbers.
- * Major, minor, subaa
- * 0.3.1
- * Main app will have major and minor versions such as 
- * 0.3, 1.2, etc.
- * Each class could have it's own sub version but will have the same major and minor version as the main app.
- * 0.3.1, 1.2.6, etc.
- */
 
 /**
  * Currently a java based iRule editor which needs some work.
