@@ -32,7 +32,6 @@ import javax.swing.Box;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
-import javax.swing.JEditorPane;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -47,8 +46,10 @@ import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.LayoutStyle.ComponentPlacement;
 import javax.swing.SwingConstants;
 import javax.swing.Timer;
+import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.event.TreeExpansionEvent;
@@ -65,18 +66,16 @@ import org.fife.ui.autocomplete.CompletionProvider;
 import org.fife.ui.autocomplete.DefaultCompletionProvider;
 import org.fife.ui.autocomplete.ShorthandCompletion;
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
-import org.fife.ui.rsyntaxtextarea.modes.TclTokenMaker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.f5.AaronForster.njord.util.f5ExceptionHandler;
 import com.f5.AaronForster.njord.util.f5JavaGuiTree;
-import javax.swing.LayoutStyle.ComponentPlacement;
+import com.f5.AaronForster.njord.util.njordTreeRenderer;
 //import java.util.prefs;
 
 
@@ -109,13 +108,15 @@ import javax.swing.LayoutStyle.ComponentPlacement;
  *  Added actionBar and moved buttons from the main menu bar to it.
  *  fixed an issue where you could no longer save a change to an existing iRule
  *  Wrote several junit tests but am not near done.
- *  
+ * 20120807
+ *  A bunch more JUnit tests. I still have a bunch of kinks in that to work out but it's a start.
+ *  Got rid of all the System.out.println's in the main code
+ *  Created my own tree renderer. We're now showing if an iRule is dirty though our mechanism for marking it dirty is out of whack.
  */
 
 
 /*
  * NOTES SECTION
- * //Hrmm... interesting thought. If I make it too fancy it can compete w/ EM. Maybe not connect to multiple bigips? No, let's connect to multiple but definately make it plugin oriented and if it comes up I can pitch a free and commercial version.
  * 
  * 
  * ## BUGS ##
@@ -133,17 +134,13 @@ import javax.swing.LayoutStyle.ComponentPlacement;
  * 
  * TODO SECTION
  * 0.8
- * 
- * TODO: Start logging instead of printing to stdout - started this one.
- * TODO: Write some jUnit tests to avoid some of these regression errors.
- * TODO: Record the version long term and take different actions based on the version?
- * TODO: Fix the doesn't ignore sys irules on v10 bug below
- * TODO: Figure out how to do a > < comparison on the version number when I can't store it as a number.
- * TODO: Add a 'connection verified' variable that I can check at stages.
+ * TODO: Write some jUnit tests to avoid some of these regression errors. - started this one too
+ * TODO: Update the njordiRuleObject and the navigation tree. We need to store the name differently based on the version of the BIGIP we are connected to.
+ * TODO: Deal with having the iRule name include the partition if we're on an older version. IE V10 doesn't include the full path in the name but V11 does.
+ * TODO: Expand F5ExceptionHandler's process Exception so that remote Exception deals with other types of remoteExceeption.
  * TODO: Update the notices box on new iRule creation
  * TODO: In general go through code and make sure we are communicating to the user.
  * TODO: "Reconnect" IE rebuild the iRules list if you update your connection settings.
- * TODO: Deal with having the iRule name include the partition if we're on an older version. IE V10 doesn't include the full path in the name but V11 does.
  * TODO: Fix a bug where if you hit new irule while a rule is selected that rule's contents will be replaced with the default template.
  * TODO: Confirm differences and add support for v9
  * TODO: Handle some differences between v10 and v11 Some examples: v10 doesn't return the full path of the iRule where V10 does  
@@ -152,7 +149,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
  * TODO: Go through all the 'Auto-generated catch block' sections
  * TODO: Go through and fix the case of objects I have some which start with lower case and some which start with upper.
  * TODO: Move some code out of the actions in the actionListener and treeSelectionListeners and into subroutines.
- * TODO: Change the display of the tree for an item that we are editing. Maybe put an asterisk in front of it or have an icon on each thing and change it if we're editing it.
+ * TODO: Update so we only mark a NjordiRuleObject dirty if it has been modified not if we have clicked on it. - Sounds dependent on having a bunch of ntexteditors like a few other fixes.
  * TODO: Fix our detection of sys iRules on v10
  * TODO: Add a document listener (See rSyntaxTextArea notes below on how) So that I can tell when a rule has been edited so I can tell that it has been edited and needs to be saved. Update the tree to show.
  * TODO: Get rid of 'DestkopBigIPManager and replace it with this as the base.
@@ -164,6 +161,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
  * I should be able to use something like this to select an element of a tree   window.getTree().select("friends")
  * GAH! uispec4j doesn't seem to be compatible w/ java 7. UNG..... 
  * Maybe I should install java 6 and write to that I'd rather be backwards compatible anyway.
+ * http://www.fitnesse.org/ a standalone wiki and testing framework. IE Jira Jr.
  * 
  * 0.9
  * TODO: Set the get irules button to disabled unless the connection is verified
@@ -182,6 +180,7 @@ import javax.swing.LayoutStyle.ComponentPlacement;
  * TODO: Add some more reasonable sample templates
  * TODO: Add a reload from bigip/reload from disk button. Using whichever is correct.
  * later
+ * TODO: Figure out my problem with logging in my other methods
  * TODO: Add make EOL visible and probably make whitespace visible setEOLMarkersVisible(boolean visible) 	setWhitespaceVisible(boolean visible) 
  * TODO: add a preference to paint tab lines. See if this setPaintTabLines(boolean paint)  does what I think it does.
  * TODO: Implement some of the other fecking awesome features of rsyntax and ntext area like the built in search/replace/highlight all functionality. 
@@ -276,7 +275,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	private String logPrefix = "MainGuiWindow: ";
 	private String newline = "\n";
 	private boolean connectionInitialized = false;
-	private String njordVersion = "0.7";
+	private String njordVersion = "0.8";
 	public String bigIPVersion = "unknown"; // Version number has multiple dots in it so I can't do it as a number type.
 //	public float bigIPVersion = 0;
 
@@ -462,6 +461,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		btnGetiRules.setHorizontalAlignment(SwingConstants.RIGHT);
 		btnGetiRules.setToolTipText("Get the list of editable iRules from the BIGIP and build a navigation tree with them.");
 		btnGetiRules.addActionListener(this);
+		btnGetiRules.setName("listiRulesButton");
 		actionBar.add(btnGetiRules);
 		//		menuBar.add(btnSave1);
 
@@ -469,6 +469,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		JButton btnNewiRule = new JButton("New iRule");
 		btnNewiRule.setToolTipText("Create a new iRule.");
 		btnNewiRule.addActionListener(this);
+		btnNewiRule.setName("newiRuleButton");
 		actionBar.add(btnNewiRule);
 		
 		JButton btnActionSave = new JButton("Save"); // Hide this until we are editing an iRule
@@ -510,6 +511,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		
 		resultsPanelNoticesBox.setEditable(false);
 		resultsPanelNoticesBox.setText(initialNoticesTextboxText);
+		resultsPanelNoticesBox.setName("noticesTextBox");
 		
 		resultsPanel = new JPanel();
 		GroupLayout gl_resultsPanel = new GroupLayout(resultsPanel);
@@ -643,6 +645,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	    	}
 
 	    	addRule = new DefaultMutableTreeNode(rule);
+	    	
 	    	category.add(addRule);
 	    }
 	}
@@ -689,6 +692,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         	
         	currentSelectedRule = nodeInfo;
         	
+        	
 //        	rSyntaxTextArea.setText(nodeInfo.getRule_definition());
         	nTextEditorPane.setText(currentSelectedRule.getRule_definition());
             //TODO: Set isModified once this has been edited
@@ -726,20 +730,13 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		createNodes(top);
 	}
 
-	//This is the action listener implementation. This handles when you click buttons or menu items.
 	/**
 	 * actionPerformed is the method that listens for events like clicking a button or a menu item.
 	 */
 	public void actionPerformed(ActionEvent e) {
-        //This will get me the text of the source action without having to instantiate the source
-        String actionCommand = e.getActionCommand();
-        //This would allow me to identify the class first before getting it with e.getSource() if I needed to instantiate the whole class for something. 
-        Class sourceClass = e.getSource().getClass();
-     
-		//The old way to get the source type
-//		JMenuItem source = (JMenuItem)(e.getSource());
-//        String SourceType = source.getText();
-        
+        String actionCommand = e.getActionCommand(); //This will get me the text of the source action without having to instantiate the source
+        Class sourceClass = e.getSource().getClass(); //This would allow me to identify the class first before getting it with e.getSource() if I needed to instantiate the whole class for something.
+
         String statusText;
         //TODO: Can I use a switch here or is java where switch is numbers only? Ahh... there would be a reason to use id or to set a name or something on all buttons/menu items/etc.
         if (actionCommand == "Edit Settings") {
@@ -762,83 +759,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	        }
         	resultsPanelNoticesBox.setText("Connection Settings Saved");
         } else if (actionCommand == "Verify Connection") {
-        	log.debug("Connect Event Detected.");
-        	//TODO: Figure out why setting progressBar and lblStatusLabel doesn't work here but works below.
-        	progressBar.setValue(50);
-        	lblStatusLabel.setText("Connecting");
-        	resultsPanelNoticesBox.setText("");
-        	
-        	//jgruber syntax
-//        	ic = new iControl.BigIP(iIPAddress,iUserName,iPassword); 
-//        	ic.setIgnoreInvalidCert(true); // otherwise java will bail on the invalid cert
-        	
-        	//TODO: Move this somewhere else
-        	boolean animateCountdownTimer = false;
-        	
-        	if (animateCountdownTimer == true) {
-    			//TODO: I should probably pick some minimum length of time in between testing to see if we actually have a valid connection. Like three seconds or one or something.
-    			//TODO: Wrap the below in an if statement so I can have a setting that makes the countdown timer go or not. Just so I can enable it when I'm actually working on the countdown indicator code.
-    			//TODO: For some reason the progress bar only fills up a little bit of the way. it's probably based on counter value below.
-    			ActionListener listener = new ActionListener() {
-    				int counter = 20; // TODO: Set this as well as the setValue() above to a variable and make it be read from the same place that the connection subroutine reads it's connection time out from
-
-    				public void actionPerformed(ActionEvent ae) {
-    					counter--;
-    					progressBar.setValue(counter);
-    					//TODO Get rid of this loop/ActionListener() if the connection is successful.
-    					if (counter < 1) {
-    						//TODO: Figure out how to replace this showMessageDialog with one that cancels our attempt at a connection if it finishes.
-    						JOptionPane.showMessageDialog(null, "Kaboom!");
-    						timer.stop();
-    					}
-    				}
-    			};
-    			//TODO: Make this interval shorter for smoother flow. Note that if it's less than 1 sec we need to modify counter so that it's a multiple of the actual counter variable so that ultimately we end the counter when we time out and give up on the connection.
-    			timer = new Timer(1000, listener); //So 1000 here is the delay between times that we trigger the above Action Listener.
-    			timer.start();
-    			//TODO: add 'BUG:' to the todo filter for the tasks list. Or add a 'BUGS' list which is a tasks list with a different filter.
-    			//BUG: There's a bug in here somewhere that if you hit connect multiple times you can get into a state where the 'kaboom!' dialog just repeatedly pops up.
-    		}
-        	
+        	log.debug("Connect Event Detected."); 	
         	boolean successfullConnection = initializeConnection();
-        	//TODO: Tighten connections down so that there's only one place where I do this part. IE I should move the connection validation into the connect method.
-        	//TODO: Do a better check on the connection. Right now I'm just checking for a version and saying failed if i don't get it. I need to know if I'm getting an error from the device, etc.
-    		//TODO: Move this part, the setting of the progress bar and displaying of connection validity out of this section and maybe back into the listener. We should only be returning true/false here.
-    		if (successfullConnection == true) {
-            	// TODO: Make this a check rather than printing to the console
-    			log.info("Connected");
-            	lblStatusLabel.setText("Connected");
-            	resultsPanelNoticesBox.setText("Connection Verified");
-            	progressBar.setValue(100);
-            	connectionInitialized = true;
-    		} else {
-    			// scream, run and cry
-    			progressBar.setValue(0);
-    			log.error("Connection settings invalid");
-    			resultsPanelNoticesBox.setText("Connection Failed");
-    			lblStatusLabel.setText("Disconnected");
-    			connectionInitialized = false;
-    		}
-    		resultsPanelNoticesBox.setText("Connection Verified");
-//        } else if (actionCommand == "List Virtual Servers"){
-//        	//TODO: Make 'List Virtual Servers' actually populate the jtree on the side
-//        	//TODO: Populate the gui with info and buttons which have actions for the virtual like and enable/disable (only one should be there at a time.)
-//        	//TODO: Then add some actions like enable/disable
-//        	log.debug("List Virtuals Detected");
-//    		try {
-//    			String[] meVirtuals = getVirtualsList();
-//    		} catch (Exception f) {
-//    			log.error("Whoa, caught an error: " + f);
-//    		}
-//        } else if (actionCommand == "List iRules"){
-//        	//TODO: Make 'List iRules' actually populate the jtree on the side
-//        	log.debug("List iRules Detected");
-//        	resultsPanelNoticesBox.setText("");
-//    		try {
-//    			String[] meRules = getiRuleList();
-//    		} catch (Exception g) {
-//    			log.error("Whoa, caught an error: " + g);
-//    		}
         } else if (actionCommand == "New iRule"){
         	//TODO: This is working as far as creating a new text edior and letting you start typing but I still need to figure out how to add it to the list of rules
         	
@@ -854,7 +776,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	        String newiRulePartition = "/Common";
 	        
         	int result = JOptionPane.showConfirmDialog(null, newiRuleDialong.panel_1, 
-        			"Connection Preferences", JOptionPane.OK_CANCEL_OPTION);
+        			"New iRule", JOptionPane.OK_CANCEL_OPTION);
         	if (result == JOptionPane.OK_OPTION) { // Doesn't seem like we're actually triggering this
 		        newiRuleName = newiRuleDialong.txtNewiRuleName.getText();
 		        newiRulePartition = newiRuleDialong.txtNewiRulePartition.getText();
@@ -877,34 +799,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
             NjordiRuleList.add(newiRule);
             buildNavTree();
             nTextEditorPane.setText(newiRule.getRule_definition());
-//            //This doesn't work. I need a better way to add the new iRule to the list of iRules.
-//            // I need to throw up a dialog box to start the rule out with and then I need to rebuilt the whole left hand tree I think.
-//            DefaultMutableTreeNode addRule = new DefaultMutableTreeNode(newiRule);
-//    	    category.add(addRule);
-//        	
-//
-//    		JPanel resultsPanel = new JPanel();
-////    		splitPane.setRightComponent(resultsPanel);
-//
-//    		JScrollPane editPaneScrollPane1 = new javax.swing.JScrollPane();
-//            JEditorPane editPane = new javax.swing.JEditorPane();
-//    		
-//    		//Let's create an 'edit rule' action and replace the above with this:
-//            editPaneScrollPane1.setHorizontalScrollBar(null);
-//
-//            //TODO: WTH is wrong w/ someone to make the background grey? Fix this.
-//            editPane.setBackground(new java.awt.Color(233, 228, 242));
-//            editPane.setMargin(new java.awt.Insets(3, 20, 3, 20));
-//            editPaneScrollPane1.setViewportView(editPane);
-
-            //TODO: Figure out howo tmake this remove whatever is currently there instead of statically coding 'resultsPanel' There will be a point when it's not 'resultsPanel' Quite often in fact. Like when it's now editPanelScrolePane1
-            //I'm not sure if I need to do this but it seems like the right thing to do. Remove the existing contents of the right panel before setting a new one.
-//            splitPane.remove(resultsPanel);
-//            splitPane.setRightComponent(editPaneScrollPane1);
-            
-            //TODO: put nTextEditorPane into the results panel if it isn't already there
-//            resultsSPlitPane.remove(resultsPanel);
-//            resultsSPlitPane.setTopComponent(nTextEditorPane);
         } else if (actionCommand == "Save"){
         	//TODO: Apparently blank is a valid iRule as far as mcpd is concerned. Check to ensure the rule isn't completely blank and handle that.
         	//This will tell me what iRule is selected. Then I need to set the definition. tree.getLastSelectedPathComponent()
@@ -936,56 +830,15 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
                 }
 			} catch (RemoteException e1) {
 				//If we caught a remote exception the code was wrong. Let's report it to the user
-//				String errorContents = e1.getMessage(); //This gets the full message	
-//
-//				Pattern pattern = Pattern.compile(".*error_string         :.*error:", Pattern.DOTALL);
-//				Matcher matcher = pattern.matcher(errorContents);
-				//TODO: Modify the pattern and matcher so we get rid of this crap at the beginning as well.
-				//Error:  01070151:3: Rule [/Common/myIrulesOutputTest] error:
-				
-				//Uncomment if working on the regex. The commented code shows what we are matching.
-//				while (matcher.find()) {
-//					log.info("Start index: " + matcher.start());
-//					log.info(" End index: " + matcher.end() + " ");
-//					log.info(matcher.group());
-//					log.info("End matcher section ##############");
-//				}
-				
-				//TODO: Replace this println with something that either pops up an error or sets the contents of a status box in the main gui. I prefer the latter.
-//				String errorMessage = matcher.replaceAll("Error saving Rule: ");
-//				log.info("Error: " + errorMessage);
-//				
-//				//TODO: Figure out how to make the text box scrollable or resize it if the message is too large.
-////				editorNoticesBox.setText(errorMessage);
-//				resultsPanelNoticesBox.setText(errorMessage);
-				
 				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
 				exceptionHandler.processException();
 				return;
-				
-				//This is what getMessage returns. I need to pull out the last part error_string:
-//				Exception caught in LocalLB::urn:iControl:LocalLB/Rule::modify_rule()
-//				Exception: Common::OperationFailed
-//					primary_error_code   : 17236305 (0x01070151)
-//					secondary_error_code : 0
-//					error_string         : 01070151:3: Rule [/Common/http_responder] error: 
-//				line 15: [parse error: extra characters after close-brace] [ffff]
-				
+
 
 			} catch (Exception e1) {
 				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
 				exceptionHandler.processException();
 			}
-            
-            //TODO: Handle an exception here. This is how the BigIP will let you know if you screwed up.
-            //Here's a sample one.
-//            : Exception caught in LocalLB::urn:iControl:LocalLB/Rule::modify_rule()
-//            Exception: Common::OperationFailed
-//            	primary_error_code   : 17236305 (0x01070151)
-//            	secondary_error_code : 0
-//            	error_string         : 01070151:3: Rule [/Common/http_responder] error: 
-//            line 8: [parse error: extra characters after close-brace] [ggg]
-//            editorNoticesBox.setText("Save Successful");
             resultsPanelNoticesBox.setText("Save Successful");
         } else if (actionCommand == "Get iRules"){
         	//TODO: Apparently blank is a valid iRule as far as mcpd is concerned. Check to ensure the rule isn't completely blank and handle that.
@@ -995,80 +848,76 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         	if (connectionInitialized == true) {
         		buildNavTree();	
         	} else {
-        		//TODO: Check that initializeConnection() was successful before attempting to build the tree. There's a separate TODO to add a return type to initializeConnection()
         		boolean success = initializeConnection();
         		if (success) {
-//        			resultsPanelNoticesBox.setText("Connection Verified");
-        			connectionInitialized = true;
         			buildNavTree();
-        		} else {
-        			log.error("Connection failed");
-        			resultsPanelNoticesBox.setText("Connection to BIGIP Failed.");
-        		}
-        		
-        		//        		resultsPanelNoticesBox.setText("Please confirm connection information before attempting");
+        		} 
         	}
-        	
-        
-        	//This isn't working for some reason
-        
         } else  {
+        	//If we have entered this section we have screwed something up 
             statusText = "Unknown";
-        	log.debug("Un-Known Action Event Detected." 
+        	log.error("Un-Known Action Event Detected." 
                     + newline
                     + "    Event source: " + actionCommand
                     + " (an instance of " + getClassName(sourceClass) + ")");
            
         } 
 
-//        defaultResultsPanelTextPane.setText(s);
     }
+	
+	/**
+	 * A wrapper for initializeConnection() this part handles updating the notices box and stuff like that.
+	 */
+	private void connectToBigIP() {
+		//TODO: Get rid of this method
+		
+    	
+    	//jgruber syntax
+//    	ic = new iControl.BigIP(iIPAddress,iUserName,iPassword); 
+//    	ic.setIgnoreInvalidCert(true); // otherwise java will bail on the invalid cert
+    	
+    	boolean successfullConnection = initializeConnection();
+    	//TODO: Tighten connections down so that there's only one place where I do this part. IE I should move the connection validation into the connect method.
+    	//TODO: Do a better check on the connection. Right now I'm just checking for a version and saying failed if i don't get it. I need to know if I'm getting an error from the device, etc.
+
+		if (successfullConnection == true) {
+        	// TODO: Make this a check rather than printing to the console
+			log.info("Connected");
+//        	lblStatusLabel.setText("Connected");
+//        	resultsPanelNoticesBox.setText("Connection Verified");
+//        	progressBar.setValue(100);
+			//TODO: Replace the progress bar with a red/green indicator light
+        	connectionInitialized = true;
+		} else {
+			// scream, run and cry
+//			progressBar.setValue(0);
+//			log.error("Connection settings invalid");
+//			resultsPanelNoticesBox.setText("Connection Failed");
+			lblStatusLabel.setText("Disconnected");
+			connectionInitialized = false;
+		}
+		resultsPanelNoticesBox.setText("Connection Verified");
+	}
 	
 	/**
 	 * Runs the initialize method on the library which sets up the connection object. Then do a get version. If it works we've got good connection settings.
 	 * @return
 	 */
 	private boolean initializeConnection() {
+		lblStatusLabel.setText("Connecting");
+    	resultsPanelNoticesBox.setText("");
+    	
     	ic.initialize(iIPAddress, iPort, iUserName, iPassword); // Initialize the interface to the BigIP
 
 		String version = null;
 		try {
-			// This one doesn't work either. Probably there's too little time between the setting and the ic.Sys.... maybe a sleep of like 5ms?hrm..
-//        	progressBar.setValue(50);
-//        	lblStatusLabel.setText("Connecting");
-//			version = ic.SystemSystemInfo().get_version();
 			//TODO: There has to be a better way to do this
 			version = ic.getSystemSystemInfo().get_version();
 			Pattern versionPrefix = Pattern.compile("BIG-IP_v");
 			Matcher versionMatcher = versionPrefix.matcher(version);
 			bigIPVersion = versionMatcher.replaceAll(""); //Kinda redundant, I know.
-//			String versionForFloat = versionMatcher.replaceAll("");
-//			bigIPVersion = Float.valueOf(versionMatcher.replaceAll("")); // convert this to a float then stick it into bigIPVersion
-		} catch (RemoteException e1) {
-			//TODO: Move this stuff into f5ExceptionHandler
-//			String errorContents = e1.getMessage();
-//			
-//			Pattern pattern = Pattern.compile(".*error_string         :.*error:", Pattern.DOTALL);
-//			Matcher matcher = pattern.matcher(errorContents);
-//			//TODO: Modify the pattern and matcher so we get rid of this crap at the beginning as well.
-//			//Error:  01070151:3: Rule [/Common/myIrulesOutputTest] error:
-//			
-//			//Uncomment if working on the regex. The commented code shows what we are matching.
-//			while (matcher.find()) {
-//				log.info("Start index: " + matcher.start());
-//				log.info(" End index: " + matcher.end() + " ");
-//				log.info(matcher.group());
-//				log.info("End matcher section ##############");
-//			}
-//			
-//			//TODO: Replace this println with something that either pops up an error or sets the contents of a status box in the main gui. I prefer the latter.
-//			String errorMessage = matcher.replaceAll("");
-//			log.info("Error: " + errorMessage);
-//			
-//			//TODO: Figure out how to make the text box scrollable or resize it if the message is too large.
-////			editorNoticesBox.setText(errorMessage);
-//			resultsPanelNoticesBox.setText(errorMessage);
-//			
+
+		} catch (RemoteException e1) {	
 			//TODO: Add a return type so I can do a return here.
 			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
 			exceptionHandler.processException();
@@ -1082,11 +931,34 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		
 		//TODO: Move this part, the setting of the progress bar and displaying of connection validity out of this section and maybe back into the listener. We should only be returning true/false here.
 		if (version != null) {
-        	log.debug("My Big-IP is version:"+version);
-        	return true; //It worked
+        	log.debug("My Big-IP is version:" + bigIPVersion);
+        	if ( bigIPVersion.startsWith("10") ) {
+        		log.info("v" + bigIPVersion + ", success");
+        		resultsPanelNoticesBox.setText("Connected to BIG-IP version: " + bigIPVersion);
+        		connectionInitialized = true;
+        		return true; //It worked
+        	} else if (bigIPVersion.startsWith("11")) {
+        		log.info("v" + bigIPVersion + ", success");
+        		resultsPanelNoticesBox.setText("Connected to BIG-IP version: " + bigIPVersion);
+        		connectionInitialized = true;
+        		return true; //It worked;
+        	} else if (bigIPVersion.startsWith("9")) {
+        		log.info("v" + bigIPVersion + ", unclear");
+        		resultsPanelNoticesBox.setText("njord is currently untested on BIG-IP version 9 systems. Proceed at your own risk.");
+        		connectionInitialized = true;
+        		return true; 
+        	} else {
+        		log.info("v" + bigIPVersion + ", fail");
+        		resultsPanelNoticesBox.setText("BIG-IP version: " + bigIPVersion + "Is unsupported. You must connect to a BIG-IP version 9.4 or higher.");
+        		connectionInitialized = false;
+        		return false;
+        	}
+        	
 		} else {
 			// scream, run and cry
+			//TODO: Check the return code of the exception to see what the cause of failure is.
 			log.error("Connection settings invalid");
+			connectionInitialized = false;
 			return false; //We are failz
 		}
 	}
@@ -1140,9 +1012,9 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		//TODO: Handle exception here instead of elevating it.
 		String [] virtual_list = ic.getLocalLBVirtualServer().get_list(); // From Assembly
 //		String [] virtual_list = ic.LocalLBVirtualServer().get_list(); // From wsdl
-		System.out.println("Available Virtuals");
+		log.debug("Available Virtuals");
 		for (String string : virtual_list) {
-			System.out.println("   " + string);
+			log.debug("   " + string);
 		}
 		return virtual_list;
 	}
@@ -1155,9 +1027,9 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	 */
 	public String [] getiRuleList() throws Exception {
 		String [] rule_list = ic.getLocalLBRule().get_list();
-		System.out.println("Available Rules");
+		log.debug("Available Rules");
 		for (String string : rule_list) {
-			System.out.println("   " + string);
+			log.debug("   " + string);
 		}
 		return rule_list;
 	}
@@ -1173,9 +1045,9 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		LocalLBRuleRuleDefinition[] iRules = null;
 		try {
 			iRules = ic.getLocalLBRule().query_all_rules();
-			System.out.println("Available Rules");
+			log.debug("Available Rules");
 			for (LocalLBRuleRuleDefinition rule : iRules) {
-				System.out.println("   " + rule); //wonder if LocalLBRuleRuleDefinition has a toString() it should.
+				log.debug("   " + rule); //wonder if LocalLBRuleRuleDefinition has a toString() it should.
 			}
 		} catch (RemoteException e) {
 			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
@@ -1268,6 +1140,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
     	nTextEditorPane.setSyntaxEditingStyle("SYNTAX_STYLE_IRULES");
     	nTextEditorPane.setCodeFoldingEnabled(true);
     	nTextEditorPane.setAntiAliasingEnabled(true);
+    	//This isn't going to work since eventually I'll have a separate text editor for ever rule in order to have a separate undo history for each iRule but it's a start.
+    	nTextEditorPane.setName("editorPane");
     	
     	
 //    	nTextEditorPane.setSize(textPaneDimension);
@@ -1531,6 +1405,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 //		tree = new JTree(top); // Now that TOP exists let's initialize the tree.
 
 		tree = new f5JavaGuiTree(top);
+		ToolTipManager.sharedInstance().registerComponent(tree);
+		tree.setCellRenderer(new njordTreeRenderer());
 //	    category = new DefaultMutableTreeNode("iRules");
 //	    tree.add(category);
 	
@@ -1642,4 +1518,35 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		}
 		return true;
 	}
+	
+	// This is the code to animate the connection timer. It doesn't work and since it's pretty low priority I skipped it but I just don't want to loose the sample code.
+//	boolean animateCountdownTimer = false;
+//	
+//	if (animateCountdownTimer == true) {
+//		//TODO: I should probably pick some minimum length of time in between testing to see if we actually have a valid connection. Like three seconds or one or something.
+//		//TODO: Wrap the below in an if statement so I can have a setting that makes the countdown timer go or not. Just so I can enable it when I'm actually working on the countdown indicator code.
+//		//TODO: For some reason the progress bar only fills up a little bit of the way. it's probably based on counter value below.
+//		ActionListener listener = new ActionListener() {
+//			int counter = 20; // TODO: Set this as well as the setValue() above to a variable and make it be read from the same place that the connection subroutine reads it's connection time out from
+//
+//			public void actionPerformed(ActionEvent ae) {
+//				counter--;
+//				progressBar.setValue(counter);
+//				//TODO Get rid of this loop/ActionListener() if the connection is successful.
+//				if (counter < 1) {
+//					//TODO: Figure out how to replace this showMessageDialog with one that cancels our attempt at a connection if it finishes.
+//					JOptionPane.showMessageDialog(null, "Kaboom!");
+//					timer.stop();
+//				}
+//			}
+//		};
+//		//TODO: Make this interval shorter for smoother flow. Note that if it's less than 1 sec we need to modify counter so that it's a multiple of the actual counter variable so that ultimately we end the counter when we time out and give up on the connection.
+//		timer = new Timer(1000, listener); //So 1000 here is the delay between times that we trigger the above Action Listener.
+//		timer.start();
+//		//TODO: add 'BUG:' to the todo filter for the tasks list. Or add a 'BUGS' list which is a tasks list with a different filter.
+//		//BUG: There's a bug in here somewhere that if you hit connect multiple times you can get into a state where the 'kaboom!' dialog just repeatedly pops up.
+//	}
+	
+	
+	
 }

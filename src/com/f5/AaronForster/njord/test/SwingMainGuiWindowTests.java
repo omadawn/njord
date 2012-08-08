@@ -16,7 +16,7 @@ import com.f5.AaronForster.njord.MainGuiWindow;
 import com.f5.AaronForster.njord.NjordiRuleDefinition;
 import com.f5.AaronForster.njord.util.f5ExceptionHandler;
 
-public class MainGuiWindowTest {
+public class SwingMainGuiWindowTests {
 	
 	//TODO: Create a special BIGIP v11 virtual so that we can't screw up something I want to use elsewhere.
 	//TODO: Also create a special BIGIP v10 virtual so I can confirm V10 Functionality.
@@ -36,7 +36,7 @@ public class MainGuiWindowTest {
 	//Write some code to it and save it
 	// Confirm it is saved through the same methods as the modify iRule test.
 
-	static final Logger log = LoggerFactory.getLogger(MainGuiWindowTest.class);
+	static final Logger log = LoggerFactory.getLogger(SwingMainGuiWindowTests.class);
 
 	MainGuiWindow window = null;
 
@@ -88,16 +88,16 @@ public class MainGuiWindowTest {
 			window = new MainGuiWindow();
 			window.frame.setVisible(true);
 		} catch (ClassNotFoundException e) {
-			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
+			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
 			exceptionHandler.processException();
 		} catch (InstantiationException e) {
-			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
+			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
 			exceptionHandler.processException();
 		} catch (IllegalAccessException e) {
-			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
+			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
 			exceptionHandler.processException();
 		} catch (UnsupportedLookAndFeelException e) {
-			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
+			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
 			exceptionHandler.processException();
 		}
 		

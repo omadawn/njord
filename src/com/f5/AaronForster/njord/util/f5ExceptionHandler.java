@@ -9,10 +9,11 @@ import java.util.regex.Pattern;
 import javax.xml.rpc.ServiceException;
 
 import org.apache.axis.AxisFault;
+import org.hamcrest.core.IsNull;
 import org.slf4j.Logger;
 
 import com.f5.AaronForster.njord.MainGuiWindow;
-import com.f5.AaronForster.njord.test.MainGuiWindowTest;
+import com.f5.AaronForster.njord.test.SwingMainGuiWindowTests;
 import com.f5.AaronForster.njord.test.Uispec4jMainGuiWindowTest;
 
 public class f5ExceptionHandler {
@@ -21,9 +22,7 @@ public class f5ExceptionHandler {
 	//TODO: Decide how to handle provided messages. Do I want to replace my text with the provided text or do I want to append?
 	//TODO: Create a logger if one isn't provided to me.
 	//TODO: Fix this so I can have owner instead of needing both of these
-	private MainGuiWindow ownerAsMainGuiWindow; // Actually I think this should be something more Generic and then I should figure out what it is and set it to that type.
-	private MainGuiWindowTest ownerAsMainGuiWindowTest;
-	private Uispec4jMainGuiWindowTest ownerAsUispec4jMainGuiWindowTest;
+	private MainGuiWindow owner; // Actually I think this should be something more Generic and then I should figure out what it is and set it to that type.
 	private String message = "";
 	private Exception e;
 	private Logger log;
@@ -42,19 +41,7 @@ public class f5ExceptionHandler {
 	public f5ExceptionHandler(Exception e, MainGuiWindow owner, Logger log) {
 		this.e = e;
 		this.log = log;
-		this.ownerAsMainGuiWindow = owner;
-	}
-	
-	public f5ExceptionHandler(Exception e, MainGuiWindowTest owner, Logger log) {
-		this.e = e;
-		this.log = log;
-		this.ownerAsMainGuiWindowTest = owner;
-	}
-	
-	public f5ExceptionHandler(Exception e, Uispec4jMainGuiWindowTest owner, Logger log) {
-		this.e = e;
-		this.log = log;
-		this.ownerAsUispec4jMainGuiWindowTest = owner;
+		this.owner = owner;
 	}
 	
 	public f5ExceptionHandler(String Message, Exception e) {
@@ -71,13 +58,13 @@ public class f5ExceptionHandler {
 	//TODO: this shouldn't be Class it should be some other object type.
 	public f5ExceptionHandler(String Message, MainGuiWindow owner, Exception e) {
 		this.message = Message;
-		this.ownerAsMainGuiWindow = owner;
+		this.owner = owner;
 		this.e = e;
 	}
 	
 	public f5ExceptionHandler(String Message, MainGuiWindow owner, Exception e, Logger log) {
 		this.message = Message;
-		this.ownerAsMainGuiWindow = owner;
+		this.owner = owner;
 		this.e = e;
 		this.log = log;
 	}
@@ -130,9 +117,21 @@ public class f5ExceptionHandler {
 			log.info("Error: " + errorMessage);
 			
 //			editorNoticesBox.setText(errorMessage);
-			//This is going to break if I generate this exception from within my jUnit tests.
-			ownerAsMainGuiWindow.setNoticesText(errorMessage);
 			
+			//If the error is that we are trying to create a rule on top of an existing rule then it doesn't have the <stuff> Rule [<rule_name>] error: part
+			//This is what getMessage returns in the case of extra text. I need to pull out the last part error_string:
+//			Exception caught in LocalLB::urn:iControl:LocalLB/Rule::modify_rule()
+//			Exception: Common::OperationFailed
+//				primary_error_code   : 17236305 (0x01070151)
+//				secondary_error_code : 0
+//				error_string         : 01070151:3: Rule [/Common/http_responder] error: 
+//			line 15: [parse error: extra characters after close-brace] [ffff]
+			
+			
+			log.error(errorMessage);
+			if (owner != null) {
+				owner.setNoticesText(errorMessage);
+			} 
 			
 			if ( message != "" ) {
 			message = "RemoteException: " + message;
