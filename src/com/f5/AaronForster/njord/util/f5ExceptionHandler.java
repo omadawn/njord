@@ -17,6 +17,7 @@ import com.f5.AaronForster.njord.test.SwingMainGuiWindowTests;
 import com.f5.AaronForster.njord.test.Uispec4jMainGuiWindowTest;
 
 public class f5ExceptionHandler {
+	//TODO: This sounds a little silly but take all of the actual action out of the ifelse block that we're using to determine what exception type this is. Create a separate method for each exception type. It will make the code much cleaner, easier to read and easier to document.
 	//TODO: figure out how to log where the exception occured
 	//TODO: Figure out how to log properly in this code.
 	//TODO: Decide how to handle provided messages. Do I want to replace my text with the provided text or do I want to append?
@@ -74,7 +75,11 @@ public class f5ExceptionHandler {
 //	exceptionHandler.processException();
 	
 	public void processException() {
-		log.debug("Error is an instance of " + e.getClass().toString());
+		if (log != null) {
+			log.debug("Error is an instance of " + e.getClass().toString());
+		} else {
+			System.out.println("Error is an instance of " + e.getClass().toString());
+		}
 		if (e instanceof ServiceException) {
 			// Log ServiceException
 			// What is the difference between ServiceException and RemoteExeption?

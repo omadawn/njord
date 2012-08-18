@@ -8,6 +8,8 @@ import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
+import org.fife.ui.rsyntaxtextarea.TextEditorPane;
+
 import com.f5.AaronForster.njord.NjordiRuleDefinition;
 
 public class njordTreeRenderer extends DefaultTreeCellRenderer {
@@ -40,12 +42,14 @@ public class njordTreeRenderer extends DefaultTreeCellRenderer {
 	                        boolean leaf,
 	                        int row,
 	                        boolean hasFocus) {
-	    	NjordiRuleDefinition njordiRuleNode = null; 
-
+//	    	NjordiRuleDefinition njordiRuleNode = null; 
+	    	TextEditorPane njordiRuleNode = null; 
+	    	
 	        DefaultMutableTreeNode node =
 	                (DefaultMutableTreeNode)value;
 	        if ( node.isLeaf() ) {
-	        	njordiRuleNode = (NjordiRuleDefinition) node.getUserObject();
+//	        	njordiRuleNode = (NjordiRuleDefinition) node.getUserObject();
+	        	njordiRuleNode = (TextEditorPane) node.getUserObject();
 	        }
 	        
 	    	System.out.println("Row is " + row + " for selection");
@@ -53,13 +57,14 @@ public class njordTreeRenderer extends DefaultTreeCellRenderer {
 	                        tree, value, sel,
 	                        expanded, leaf, row,
 	                        hasFocus);
-	        if (leaf && isClean(njordiRuleNode)) {
+//	        if (leaf && isClean(njordiRuleNode)) {
+	        if (leaf && !njordiRuleNode.isDirty()) {
 	            setIcon(cleanIcon);
 	            setToolTipText("The rule is up to date on the server.");
 //	            setIconTextGap(10);
 	            setName(njordiRuleNode.getName());
 //	            setName(njordiRuleNode.getShortname()); //getShortName isn't currently implemented
-	        } else if (leaf && !isClean(njordiRuleNode)) {
+	        } else if (leaf && njordiRuleNode.isDirty()) {
 	        	setIcon(dirtyIcon);
 	            setToolTipText("The rule has been modified locally and must be saved");
 //	            setIconTextGap(20);
