@@ -45,7 +45,7 @@ public class NjordOutputStream extends OutputStream  {
 	 * Takes an input stream of bytes which we will write to the BIGIP
 	 */
 	@Override
-	public void write(int output) throws IOException {
+	public void write(int output) {
 		baos.write(output);
 	}
 	
@@ -74,6 +74,7 @@ public class NjordOutputStream extends OutputStream  {
 		} catch (Exception e1) {
 			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, owner, log);
 			exceptionHandler.processException();
+			throw new IOException();
 		}
 	}
 	

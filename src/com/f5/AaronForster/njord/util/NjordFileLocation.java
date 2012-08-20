@@ -36,12 +36,37 @@ public class NjordFileLocation extends FileLocation {
 		getRule(ruleName);
 	}
 	
-	public NjordFileLocation(MainGuiWindow mainWindow, String ruleName, iControl.Interfaces ic, boolean local) {
+	/**
+	 * FileLocation for an iRule on a BIGIP.
+	 * 
+	 * @param mainWindow
+	 * @param ruleName
+	 * @param ic
+	 */
+	public NjordFileLocation(MainGuiWindow mainWindow, String ruleName, iControl.Interfaces ic) {
 		owner = mainWindow;
 		this.ruleName = ruleName;
 		this.ic = ic;
-		this.local = local;
+		local = false;
 		getRule(ruleName);
+	}
+	
+	/**
+	 * FileLocation for a locally created (And thus not on a BIGIP iRule. Giving us a Rule Definition tells us to set the 
+	 * local variable which will cause us to create the iRule on the server when we save it instead of saving it.
+	 * 
+	 * @param mainWindow
+	 * @param ruleName
+	 * @param ic
+	 * @param ruleDefinition
+	 */
+	public NjordFileLocation(MainGuiWindow mainWindow, String ruleName, iControl.Interfaces ic, String ruleDefinition) {
+		owner = mainWindow;
+		this.ruleName = ruleName;
+		this.ic = ic;
+		local = true;
+//		getRule(ruleName);
+		this.ruleDefinition = ruleDefinition;
 	}
 
 	public void getRule(String ruleName) {
@@ -109,8 +134,7 @@ public class NjordFileLocation extends FileLocation {
 	 */
 	@Override
 	public boolean isLocal() {
-		// TODO Auto-generated method stub
-		return false;
+		return local;
 	}
 
 	/* (non-Javadoc)
@@ -118,13 +142,13 @@ public class NjordFileLocation extends FileLocation {
 	 */
 	@Override
 	public boolean isLocalAndExists() {
-		// TODO Auto-generated method stub
+		// Always return false because local only iRules will never exist.
 		return false;
 	}
 		
 	@Override
 	public boolean isRemote() {
-		return true;
+		return local;
 	}
 
 	public boolean save() {

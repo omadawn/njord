@@ -2,6 +2,8 @@ package com.f5.AaronForster.njord;
 
 import iControl.LocalLBRuleRuleDefinition;
 
+import org.fife.ui.rsyntaxtextarea.TextEditorPane;
+
 /**
  * This will hold the iRule object we've pulled in from the BigIP as well as some attributes that are specific to Njord
  * 
@@ -34,14 +36,23 @@ public class NjordiRuleDefinition extends NjordObject {
 //	private String myName;
 	
 	/**
-	 * The iRule we pulled in from the BigIP
+	 * Depricated: The iRule we pulled in from the BigIP
+	 * Depricated as of Njord 0.8 we are storing TextEditorPanes which contain the iRule now.
 	 */
 	private LocalLBRuleRuleDefinition iRule; 
 
 	/**
-	 * iRule definition text is stored in here.
+	 * Depricated: iRule definition text is stored in here.
+	 * Depricated as of Njord 0.8 we are storing TextEditorPanes which contain the iRule now.
 	 */
 	private String iRuleDefinition = null;
+	
+	/**
+	 * Store the TextEditorPane for this iRule. We're storing TextEditorPane instead of the iRule definition because having a 
+	 * separate editor pane for every rule will allow it to keep it's own clean/dirty status as well as it's own undo history 
+	 * and a number of other items.
+	 */
+	public TextEditorPane editorPane = null;
 
 	/*#################################################################################
 	 * CONSTRUCTORS
@@ -56,7 +67,9 @@ public class NjordiRuleDefinition extends NjordObject {
 	}
 	
 	/**
-	 * Create a new NjordiRuleDefinition specifying an iRule object to contain.
+	 * Depricated: Create a new NjordiRuleDefinition specifying an iRule object to contain.
+	 * Depricated as of Njord 0.8
+	 * 
 	 * @param iRule
 	 */
 	public NjordiRuleDefinition(LocalLBRuleRuleDefinition iRule) {
@@ -73,12 +86,20 @@ public class NjordiRuleDefinition extends NjordObject {
 	 * @param name
 	 */
 	public NjordiRuleDefinition(String name) {
-		isNew = true;
-		isModified = true;
+		isNew = true; //Depricated
+		isModified = true; //Depricated
 		myName = name; 
-		iRuleDefinition = "when CLIENT_ACCEPTED {\n\n\n}" ;
+		iRuleDefinition = "when CLIENT_ACCEPTED {\n\n\n}" ; //Make this be a temp thing I stuff into the TextEditorPane
 		iRule = new LocalLBRuleRuleDefinition(myName, iRuleDefinition);
 		//TODO: Check to ensure it's a full path.
+	}
+	
+	/**
+	 * Create a new NjordiRuleDefinition specifying a TextEditorPane for it to contain
+	 * @param iRule
+	 */
+	public NjordiRuleDefinition(TextEditorPane editorPane) {
+		this.editorPane = editorPane;
 	}
 	
 	/**
