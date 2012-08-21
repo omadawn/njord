@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.rmi.RemoteException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -32,6 +33,7 @@ import javax.swing.Box;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
@@ -55,7 +57,11 @@ import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
+import javax.swing.text.Position;
 import javax.swing.tree.DefaultMutableTreeNode;
+import javax.swing.tree.DefaultTreeModel;
+import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import javax.xml.rpc.ServiceException;
 
@@ -215,21 +221,21 @@ import com.f5.AaronForster.njord.util.njordTreeRenderer;
  * At minimum there will be functionality to enable/disable pool members and virtual servers and manage what virtual servers iRules are attached to.
  * 
  * @author Aaron Forster @date 20120601
- * @version 0.8
+ * @version 0.8.2
  */
 public class MainGuiWindow implements ActionListener, TreeSelectionListener, TreeExpansionListener {
 	private String logPrefix = "MainGuiWindow: ";
 	private String newline = "\n";
 	private boolean connectionInitialized = false;
-	private String njordVersion = "0.8";
+	private String njordVersion = "0.8.2";
 	public String bigIPVersion = "unknown"; // Version number has multiple dots in it so I can't do it as a number type.
 //	public float bigIPVersion = 0;
 
 	//Connection information stuff. Ultimately we get this from the preferences file. We set the defaults here and write this to the prefs if there isn't one otherwise we use that.
-	private String iIPAddress = "v11ltm1.localdomain";
-	long iPort = 443;
-	private String iUserName = "admin";
-	private String iPassword = "admin";
+	public String iIPAddress = "v11ltm1.localdomain";
+	public long iPort = 443;
+	public String iUserName = "admin";
+	public String iPassword = "admin";
 	
 	private String userHome = null; //Stores the user's home directory path. Will probably get rid of this when we switch to using the right java preferences module
 	
@@ -261,6 +267,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	public JMenuItem mntmConnect = null;
 	public JTextArea resultsPanelNoticesBox = new JTextArea();	//This is where we put messages
 	public JButton btnGetiRules = null;
+	public JButton btnNewiRule = null;
 	public DefaultMutableTreeNode top = null; //Top node in the jtree
 	public f5JavaGuiTree tree = null;
 	public JButton btnActionSave = null;
@@ -283,6 +290,22 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	private JLabel lblStatusLabel = new JLabel();
 	public PreferencesDialog preferencesDialog;
 	private iRuleDialog newiRuleDialong;
+	
+	//## Editor colors
+	//These are good enough for now.
+	//TODO: Figure out how to define the regex scheme so that it catches those.
+	public Color annotationColor = Color.decode("#646464");
+	public Color variableColor = Color.decode("#7F0055");
+//	public Color identifyerColor = Color.decode("#880080");
+	public Color commentColor = Color.decode("#3F7F5F"); // Leave this the same green for now but may override with this green from eclipse
+	public Color functionColor = Color.decode("#880080");
+	public Color regexColor = Color.decode("#2A00FF");
+	public Color reservedWordColor = Color.decode("#0033FF"); // TCL built in functions (not entirely accurate)
+	public Color reservedWord2Color = Color.decode("#000099"); // Irules stuff
+	public Color operatorColor = new Color(880080);
+	public Color doublequoteColor = Color.decode("#1a5a9a");
+	public Color backquoteColor = Color.decode("#4a2a3a");
+	public Color bracketColor = Color.decode("#990099");
     
 	//slf4j logger factory
 	final Logger log = LoggerFactory.getLogger(MainGuiWindow.class);
@@ -333,7 +356,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		//TODO: Change this to DO_NOTHING_ON_CLOSE and define a window close operation that saves the window state before closing. Or perhaps detect if the window is resized or moved then save then.
 		//DO_NOTHING_ON_CLOSE (defined in WindowConstants): Don't do anything; require the program to handle the operation in the windowClosing method of a registered WindowListener object. 
 		
-	
 		//TODO: This returns true/false. Deal with it and bail if it's false.
 		loadPreferences();
 
@@ -343,12 +365,10 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		
 		newiRuleDialong = new iRuleDialog(frame, this);
 		newiRuleDialong.pack();
-		
+		 
 		
 		// Create the editor panel. We will use it later
 		EditorPanel = createEditorPanel();
-		
-		
 		
 		// NavPanel starts here  ********************************************************************
 //		JPanel NavPanel = new JPanel();
@@ -382,11 +402,9 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		mntmEditSettings.setName("editSettingsBtn"); 
 		mnConnMenu.add(mntmEditSettings);
 		
-		
 		mntmConnect = new JMenuItem("Verify Connection");
 		mntmConnect.addActionListener(this);
 		mnConnMenu.add(mntmConnect);
-
 
 		//ActionBar components *********************************************				
 		btnGetiRules = new JButton("Get iRules");
@@ -397,10 +415,11 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		actionBar.add(btnGetiRules);
 		
 		//TODO: Hide this and make it show up only when we have an iRule list? Either that or figure out how to create 'offline iRules'
-		JButton btnNewiRule = new JButton("New iRule");
+		btnNewiRule = new JButton("New iRule");
 		btnNewiRule.setToolTipText("Create a new iRule.");
 		btnNewiRule.addActionListener(this);
 		btnNewiRule.setName("newiRuleButton");
+		btnNewiRule.setEnabled(false); //We will re-Enable this once we have built the iRUle nav tree.
 		actionBar.add(btnNewiRule);
 		
 		btnActionSave = new JButton("Save"); // Hide this until we are editing an iRule
@@ -489,11 +508,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		);
 		resultsPanel.setLayout(gl_resultsPanel);
 
-
 		resultsSPlitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, resultsPanel, resultsPanelNoticesBox);
-
 		splitPane.setRightComponent(resultsSPlitPane);
-
 
 		resultsSPlitPane.setResizeWeight(0.95); // This says that the bottom component will keep most of it's size when the split pane is automatically rezized. IE the botton will stay smaller.
 		resultsPanelNoticesBox.setPreferredSize(resultsPanelNoticesDimension);
@@ -537,13 +553,13 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		btnDeleteiRule = new JButton("Delete iRule");
 		btnDeleteiRule.setEnabled(false);
 		btnDeleteiRule.setName("DeleteiRuleButton");
+		btnDeleteiRule.addActionListener(this);
 		actionBar.add(btnDeleteiRule);
-		frame.getContentPane().setLayout(groupLayout);
-			
+		frame.getContentPane().setLayout(groupLayout);	
 	}
 	
 	/**
-	 * Build the nodes of the navigation tree. Takes the tree to add the nodes to as an argument.
+	 * Build the nodes of the iRule navigation tree. Takes the tree to add the nodes to as an argument.
 	 * @param tree
 	 */
 	private void createNodes(DefaultMutableTreeNode tree) {
@@ -555,53 +571,116 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	    //TODO: Create a generic getSomethingList?
 	    //TODO: Figure out how to handle the long path of the iRule's full name. IE do I pull off the path and just show the name, do I have expandable folders for the folders in the path? I like that idea but only if I automatically have 'common' be expanded.
 	    //TODO: If I do the above I will need a way to remember what folders have been openened if the client does so.
-	    
+	    for (Iterator<String> it = iRuleList.iterator() ; it.hasNext(); ) {
+	    	String thisRule = it.next();
 
-	    for (String thisRule : iRuleList ) {
 	    	if ( thisRule.matches("/Common/_sys_.*") ) { // V11 syntax
 	    		log.debug("Sys iRule, Skipping");
+	    		it.remove();
 	    		continue;
 	    	} else if ( thisRule.matches("_sys_.*") ) { // V10 and maybe V9
 	    		log.debug("Sys iRule, Skipping");
+	    		it.remove();
 	    		continue;
 	    	}
-	    	
-	    	NjordFileLocation ruleLocation = new NjordFileLocation(this, thisRule, ic); //rule is not local
-	    	TextEditorPane ruleEditor = null;
-			try {
-				ruleEditor = new TextEditorPane(0, true, ruleLocation);
-			} catch (IOException e) {
-				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
-				exceptionHandler.processException();
-			}
-	    	
-			ruleEditor.setName(thisRule);
-			ruleEditor.discardAllEdits(); //This prevents undo from 'undoing' the loading of the editor with an iRule
-			ruleEditor.getDocument().addDocumentListener(new NjordDocumentListener(this));
-			
-			//Syntax Highlighting items
-			ruleEditor.setSyntaxEditingStyle("SYNTAX_STYLE_IRULES");
-			ruleEditor.setCodeFoldingEnabled(true);
-			ruleEditor.setAntiAliasingEnabled(true);
 
+	    	NjordFileLocation ruleLocation = new NjordFileLocation(this, thisRule, ic); 
+	    	TextEditorPane ruleEditor = null;
+	    	try {
+	    		ruleEditor = new TextEditorPane(0, true, ruleLocation);
+	    	} catch (IOException e) {
+	    		f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+	    		exceptionHandler.processException();
+	    	}
+
+	    	ruleEditor.setName(thisRule);
+	    	ruleEditor.discardAllEdits(); //This prevents undo from 'undoing' the loading of the editor with an iRule
+	    	ruleEditor.getDocument().addDocumentListener(new NjordDocumentListener(this));
+
+	    	//Syntax Highlighting items
+	    	ruleEditor.setSyntaxEditingStyle("SYNTAX_STYLE_IRULES");
+	    	ruleEditor.setCodeFoldingEnabled(true);
+	    	ruleEditor.setAntiAliasingEnabled(true);
 	    	
-	    	//TODO: Update the color scheme. Figure out what items I will be using Function, reserved_word, etc for what components and how they should be colorized.
-	    	SyntaxScheme scheme = nTextEditorPane.getSyntaxScheme();
-//	        scheme.getStyle(Token.RESERVED_WORD).foreground = Color.pink;
-	        scheme.getStyle(Token.FUNCTION).foreground = Color.MAGENTA;
-	        Color operatorColor = new Color(880080);
-//	        scheme.getStyle(Token.OPERATOR).foreground = Color.GREEN;
-	        scheme.getStyle(Token.OPERATOR).foreground = operatorColor;
-	        
-//	        		purple(16 SVG) #800080
-			
-//			textField.getDocument().addDocumentListener(new MyDocumentListener());
+	    	//Colors pulled out of the eclipse gui
+//	    	Variables blue             00 00 192 0000C0
+//	    	keywords  purpleish        127 00 85  7F0055
+//	    	Operators solid black 	   00 00 00  000000
+//	    	Strings  also blue         42 00 255  2A00FF
+//	    	Annotations grey           100 100 100 646464   (I think this is stuff like @Test)
+//	    	comments greenish          63  127  95  3F7F5F
+//	    	todo tag blue grey         127 159 191  7F9FBF
 	    	
-	      	addRule = new DefaultMutableTreeNode(ruleEditor);
+	    	//Some of my own
+	    	// A couple of slightly different but good blues
+	    	//0000CC 0000FF    how about 000066 and  0033ff
+	    	//Some good purples
+	    	// 660066 990099
+	    	
+	    	SyntaxScheme scheme = ruleEditor.getSyntaxScheme();
+	    	scheme.getStyle(Token.ANNOTATION).foreground = annotationColor;
+	    	scheme.getStyle(Token.VARIABLE).foreground = variableColor;
+//	    	scheme.getStyle(Token.IDENTIFIER).foreground = identifyerColor; //I think 'identifyer' is all the other words.
+	    	scheme.getStyle(Token.FUNCTION).foreground = functionColor;
+	    	scheme.getStyle(Token.REGEX).foreground = regexColor;
+	    	scheme.getStyle(Token.COMMENT_EOL).foreground = commentColor;
+//	    	scheme.getStyle(Token.COMMENT_MULTILINE).foreground = commentColor; // I don't think there's a multi-line comment defined yet
+	    	scheme.getStyle(Token.RESERVED_WORD_2).foreground = reservedWord2Color;
+	    	scheme.getStyle(Token.RESERVED_WORD).foreground = reservedWordColor;
+	    	scheme.getStyle(Token.OPERATOR).foreground = operatorColor;
+//	    	scheme.getStyle(Token.LITERAL_STRING_DOUBLE_QUOTE).foreground = doublequoteColor;
+	    	scheme.getStyle(Token.LITERAL_BACKQUOTE).foreground = backquoteColor;
+	    	scheme.getStyle(Token.SEPARATOR).foreground = bracketColor;
+	    	 // A CompletionProvider is what knows of all possible completions, and
+	        // analyzes the contents of the text area at the caret position to
+	        // determine what completion choices should be presented. Most
+	        // instances of CompletionProvider (such as DefaultCompletionProvider)
+	        // are designed so that they can be shared among multiple text
+	        // components.
+	        CompletionProvider provider = createCompletionProvider();
+
+	        // An AutoCompletion acts as a "middle-man" between a text component
+	        // and a CompletionProvider. It manages any options associated with
+	        // the auto-completion (the popup trigger key, whether to display a
+	        // documentation window along with completion choices, etc.). Unlike
+	        // CompletionProviders, instances of AutoCompletion cannot be shared
+	        // among multiple text components.
+	        AutoCompletion ac = new AutoCompletion(provider);
+	        ac.install(ruleEditor);
 	    		    	
+	    	addRule = new DefaultMutableTreeNode(ruleEditor);
+
+
 	    	category.add(addRule);
 	    }
 	    
+	    if ( iRuleList.isEmpty() ) {
+	    	resultsPanelNoticesBox.setText("No valid iRules found on BIGIP.");
+	    	TextEditorPane ruleEditor = null;
+    	
+    		ruleEditor = new TextEditorPane();
+
+    		ruleEditor.setName("No iRules Found On BIGIP");
+    		ruleEditor.discardAllEdits(); //This prevents undo from 'undoing' the loading of the editor with an iRule
+    		ruleEditor.getDocument().addDocumentListener(new NjordDocumentListener(this));
+
+    		//Syntax Highlighting items
+    		ruleEditor.setSyntaxEditingStyle("SYNTAX_STYLE_IRULES");
+    		ruleEditor.setCodeFoldingEnabled(true);
+    		ruleEditor.setAntiAliasingEnabled(true);
+
+
+    		//TODO: Update the color scheme. Figure out what items I will be using Function, reserved_word, etc for what components and how they should be colorized.
+    		SyntaxScheme scheme = nTextEditorPane.getSyntaxScheme();
+    		//	        scheme.getStyle(Token.RESERVED_WORD).foreground = Color.pink;
+    		scheme.getStyle(Token.FUNCTION).foreground = Color.MAGENTA;
+    		Color operatorColor = new Color(880080);
+    		//	        scheme.getStyle(Token.OPERATOR).foreground = Color.GREEN;
+    		scheme.getStyle(Token.OPERATOR).foreground = operatorColor;
+
+    		addRule = new DefaultMutableTreeNode(ruleEditor);
+    		category.add(addRule);
+	    }
 	}
 	
 	//This is the tree selection listener method.
@@ -704,13 +783,32 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         if (actionCommand == "Edit Settings") {
         	log.debug("Edit Settings Event Detected.");
         	resultsPanelNoticesBox.setText("Editing Connection Settings");
-        	int result = JOptionPane.showConfirmDialog(null, preferencesDialog.panel_1, 
+        	
+        	final PreferencesDialog settingsPane = new PreferencesDialog(frame, this);
+        	settingsPane.ConnPreffsHostTextField.setText(iIPAddress);
+        	settingsPane.ConnPreffsPortTextField.setText(String.valueOf(iPort));
+        	settingsPane.ConnPreffsUserTextField.setText(iUserName);
+        	settingsPane.ConnPreffsPasswordTextField.setText(iPassword);
+//        	settingsPane.setEnabled(true);
+
+
+//        	final JDialog dialog = new JDialog(frame, 
+//                             "Connection Settings",
+//                             true);
+//        	dialog.setContentPane(settingsPane);
+//        	dialog.pack();
+//        	dialog.setVisible(true);
+
+
+//        	int value = ((Integer)settingsPane.getValue()).intValue();
+//          	int result = JOptionPane.showConfirmDialog(null, preferencesDialog.panel_1,
+        	int result = JOptionPane.showConfirmDialog(null, settingsPane.panel_1, 
         			"Connection Preferences", JOptionPane.OK_CANCEL_OPTION);
-        	if (result == JOptionPane.OK_OPTION) { // Doesn't seem like we're actually triggering this
-		        iIPAddress = preferencesDialog.ConnPreffsHostTextField.getText();
-		        iPort = Integer.parseInt( preferencesDialog.ConnPreffsPortTextField.getText());
-		        iUserName = preferencesDialog.ConnPreffsUserTextField.getText();
-		        iPassword = preferencesDialog.ConnPreffsPasswordTextField.getText();
+        	if (result == JOptionPane.OK_OPTION) { 
+		        iIPAddress = settingsPane.ConnPreffsHostTextField.getText();
+		        iPort = Integer.parseInt( settingsPane.ConnPreffsPortTextField.getText());
+		        iUserName = settingsPane.ConnPreffsUserTextField.getText();
+		        iPassword = settingsPane.ConnPreffsPasswordTextField.getText();
 		        log.debug("Host: " + iIPAddress);
 		        log.debug("Port: " + iPort);
 		        log.debug("User: " + iUserName);
@@ -733,7 +831,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         	log.debug("New Rule Detected");
         	resultsPanelNoticesBox.setText("New iRule functionality is still a tiny bit sketchy. It requires that you have a connection to a BIGIP and It's likely to only work on V11 systems. Sorry for the inconvenience.");
         	
-        	String newiRuleName = "New_rule";
+        	String newiRuleName = "new_rule";
 	        String newiRulePartition = "/Common";
 	        
 	        int result = JOptionPane.showConfirmDialog(null, newiRuleDialong.panel_1, 
@@ -746,9 +844,9 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 
 	        	if ( iRuleList.isEmpty() ) {
 	        		try {
-	        			resultsPanelNoticesBox.append("Fetching list of rules from the BIGIP");
+	        			resultsPanelNoticesBox.append("\nFetching list of rules from the BIGIP");
 	        			iRuleList = new ArrayList<String>(Arrays.asList(getiRuleList()));
-	        			resultsPanelNoticesBox.append("List fetched");
+	        			resultsPanelNoticesBox.append("\nList fetched");
 	        		} catch (Exception e1) {
 	        			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
 	        			exceptionHandler.processException();
@@ -756,30 +854,26 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	        		String[] myNameAsAList = { newiRuleFullName };
 	        		List<String> thisRuleAsList = new ArrayList<String>(Arrays.asList(myNameAsAList));
 	        		
-	        		if (iRuleList.contains(thisRuleAsList)) { // This isn't working
+	        		if (iRuleList.contains(newiRuleFullName)) { // This isn't working
 	        			//There is already a rule with this name
-	        			resultsPanelNoticesBox.append("Unable to create rule a rule with this name already exists on the BIGIP. Please choose another");
+	        			resultsPanelNoticesBox.setText("Unable to create rule a rule with this name already exists on the BIGIP. Please choose another");
 	        			return;
 	        		}
 	        		iRuleList.add(newiRuleFullName);
 	        		buildNavTree();
 	        	} else {
+	        		if (iRuleList.contains(newiRuleFullName)) { 
+	        			//There is already a rule with this name
+	        			resultsPanelNoticesBox.setText("Unable to create rule a rule with this name already exists on the BIGIP. Please choose another");
+	        			return;
+	        		}
 	        		iRuleList.add(newiRuleFullName);
 	        	}
 
-	        	String newRuleDefinition = "when CLIENT_ACCEPTED {\n\n\n}";
+	        	String newRuleDefinition = "when CLIENT_ACCEPTED {\n\t\n\t\n}";
 	        			
 	        	DefaultMutableTreeNode addRule = null;
 	        	
-//	        	NjordFileLocation ruleLocation = new NjordFileLocation(this, newiRuleFullName, ic, newRuleDefinition); 
-//	        	TextEditorPane ruleEditor = null;
-//	        	try {
-//	        		ruleEditor = new TextEditorPane(0, true, ruleLocation);
-//	        	} catch (IOException e1) {
-//	        		f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1);
-//	        		exceptionHandler.processException();
-//	        	}
-
 	        	TextEditorPane ruleEditor = new TextEditorPane();
 	        	ruleEditor.setName(newiRuleFullName);
 	        	ruleEditor.setText(newRuleDefinition);
@@ -791,26 +885,52 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	        	ruleEditor.setCodeFoldingEnabled(true);
 	        	ruleEditor.setAntiAliasingEnabled(true);
 
-	        	boolean thisIsLocal = ruleEditor.isLocal();
-
-	        	//TODO: Update the color scheme. Figure out what items I will be using Function, reserved_word, etc for what components and how they should be colorized.
-	        	SyntaxScheme scheme = nTextEditorPane.getSyntaxScheme();
-	        	//scheme.getStyle(Token.RESERVED_WORD).foreground = Color.pink;
-	        	scheme.getStyle(Token.FUNCTION).foreground = Color.MAGENTA;
-	        	Color operatorColor = new Color(880080);
-	        	//scheme.getStyle(Token.OPERATOR).foreground = Color.GREEN;
-	        	scheme.getStyle(Token.OPERATOR).foreground = operatorColor;
-
+		    	SyntaxScheme scheme = ruleEditor.getSyntaxScheme();
+		    	scheme.getStyle(Token.ANNOTATION).foreground = annotationColor;
+		    	scheme.getStyle(Token.VARIABLE).foreground = variableColor;
+//		    	scheme.getStyle(Token.IDENTIFIER).foreground = identifyerColor; //I think 'identifyer' is all the other words.
+		    	scheme.getStyle(Token.FUNCTION).foreground = functionColor;
+		    	scheme.getStyle(Token.REGEX).foreground = regexColor;
+		    	scheme.getStyle(Token.COMMENT_EOL).foreground = commentColor;
+//		    	scheme.getStyle(Token.COMMENT_MULTILINE).foreground = commentColor; // I don't think there's a multi-line comment defined yet
+		    	scheme.getStyle(Token.RESERVED_WORD_2).foreground = reservedWord2Color;
+		    	scheme.getStyle(Token.RESERVED_WORD).foreground = reservedWordColor;
+		    	scheme.getStyle(Token.OPERATOR).foreground = operatorColor;
+//		    	scheme.getStyle(Token.LITERAL_STRING_DOUBLE_QUOTE).foreground = doublequoteColor;
+		    	scheme.getStyle(Token.LITERAL_BACKQUOTE).foreground = backquoteColor;
+		    	scheme.getStyle(Token.SEPARATOR).foreground = bracketColor;
+		    	
 	        	// Not this but adding them by hand.
 	        	//	        	buildNavTree();
 	        	addRule = new DefaultMutableTreeNode(ruleEditor);
 
-	        	category.add(addRule);
-	        	
-	        	
-	        	tree.updateUI();
-	        	//For some reason this is causing the iRules portion of the tree to be duplicated. Uh... 
+		    	 // A CompletionProvider is what knows of all possible completions, and
+		        // analyzes the contents of the text area at the caret position to
+		        // determine what completion choices should be presented. Most
+		        // instances of CompletionProvider (such as DefaultCompletionProvider)
+		        // are designed so that they can be shared among multiple text
+		        // components.
+		        CompletionProvider provider = createCompletionProvider();
 
+		        // An AutoCompletion acts as a "middle-man" between a text component
+		        // and a CompletionProvider. It manages any options associated with
+		        // the auto-completion (the popup trigger key, whether to display a
+		        // documentation window along with completion choices, etc.). Unlike
+		        // CompletionProviders, instances of AutoCompletion cannot be shared
+		        // among multiple text components.
+		        AutoCompletion ac = new AutoCompletion(provider);
+		        ac.install(ruleEditor);
+		    		    	
+	        	DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+
+	        	// Find node to which new node is to be added
+	        	int startRow = 0;
+	        	String prefix = "iRules";
+	        	TreePath path = tree.getNextMatch(prefix, startRow, Position.Bias.Forward);
+	        	MutableTreeNode node = (MutableTreeNode)path.getLastPathComponent();
+
+	        	// Insert new node as last child of node
+	        	model.insertNodeInto(addRule, node, node.getChildCount());
 	        }
         } else if (actionCommand == "Save"){
         	//TODO: Apparently blank is a valid iRule as far as mcpd is concerned. Check to ensure the rule isn't completely blank and handle that.
@@ -828,19 +948,36 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
             if (node == null) return;
             
             TextEditorPane nodeInfo = (TextEditorPane) node.getUserObject();
-            
-            try {
-				nodeInfo.save();
-				if (resultsPanelNoticesBox.getText().startsWith("Saving")) {
-					//If the results panel still says "Saving..." then we were successfull. If it failed then the text will have an error in it now.
-					resultsPanelNoticesBox.setText("Save successful");
-				}
-				tree.repaint(); // Force the navigation tree to redraw itself. It will notice that the editor for this rule is now clean and display it properly.
-				btnActionSave.setEnabled(false); // Then disable the save button to show that we are saved on the server one more way.
-			} catch (IOException e2) {
-				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e2);
-				exceptionHandler.processException(); 
-			}
+
+            if (nodeInfo.isLocal()) {
+            	NjordFileLocation newLoc = new NjordFileLocation(this, nodeInfo.getName(), ic, nodeInfo.getText()); 
+            	try {
+            		nodeInfo.saveAs(newLoc);
+            		newLoc.isLocal(false);
+            		if (resultsPanelNoticesBox.getText().startsWith("Saving")) { //TODO: Check and see that these if blocks are even neccesary
+            			//If the results panel still says "Saving..." then we were successfull. If it failed then the text will have an error in it now.
+            			resultsPanelNoticesBox.setText("Save successful");
+            		}
+            		tree.repaint(); // Force the navigation tree to redraw itself. It will notice that the editor for this rule is now clean and display it properly.
+            		btnActionSave.setEnabled(false); // Then disable the save button to show that we are saved on the server one more way.
+            	} catch (IOException e1) {
+            		f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
+            		exceptionHandler.processException();
+            	}
+            } else {
+            	try {
+            		nodeInfo.save();	
+            		if (resultsPanelNoticesBox.getText().startsWith("Saving")) {
+            			//If the results panel still says "Saving..." then we were successfull. If it failed then the text will have an error in it now.
+            			resultsPanelNoticesBox.setText("Save successful");
+            		}
+            		tree.repaint(); // Force the navigation tree to redraw itself. It will notice that the editor for this rule is now clean and display it properly.
+            		btnActionSave.setEnabled(false); // Then disable the save button to show that we are saved on the server one more way.
+            	} catch (IOException e2) {
+            		f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e2);
+            		exceptionHandler.processException(); 
+            	}
+            }
         } else if (actionCommand == "Get iRules"){
         	//TODO: Apparently blank is a valid iRule as far as mcpd is concerned. Check to ensure the rule isn't completely blank and handle that.
         	//This will tell me what iRule is selected. Then I need to set the definition. tree.getLastSelectedPathComponent()
@@ -854,6 +991,50 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         			buildNavTree();
         		} 
         	}
+        } else if (actionCommand == "Delete iRule"){
+        	log.info("Delete iRule detected");
+        	String resultsText = "Deleting...";
+        	resultsPanelNoticesBox.setText(resultsText);
+
+        	DefaultMutableTreeNode node = (DefaultMutableTreeNode)
+    				tree.getLastSelectedPathComponent();
+    		if (node == null) return;
+
+    		TextEditorPane nodeInfo = (TextEditorPane) node.getUserObject();
+    		String ruleName = nodeInfo.getName();
+    		String[] ruleNames = { ruleName };
+        	//TODO: Change this so it shows the rule name.
+        	int result = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete the selected rule [" + ruleName + "] from the BIGIP?", 
+        			"Delete iRule", JOptionPane.OK_CANCEL_OPTION);
+
+        	if (result == JOptionPane.OK_OPTION) { 
+        		try {
+        			ic.getLocalLBRule().delete_rule(ruleNames);
+        			resultsPanelNoticesBox.setText("Rule [" + ruleName + "] successfully deleted.");
+//        			node.removeFromParent();
+//        			tree.updateUI(); // This does the duplicate thingy.
+        			
+        			DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+        			
+        			// Find node to remove
+//        			int startRow = 0;
+//        			String prefix = ruleName;
+//        			TreePath path = tree.getNextMatch(prefix, startRow, Position.Bias.Forward);
+//        			MutableTreeNode deleteNode = (MutableTreeNode)path.getLastPathComponent();
+
+        			// Remove node; if node has descendants, all descendants are removed as well
+//        			model.removeNodeFromParent(deleteNode);
+        			model.removeNodeFromParent(node);		
+        		} catch (RemoteException e1) {
+        			resultsPanelNoticesBox.setText("Delete failed"); // This is actually just a cheat to blank out the results panel. It's actual text will probably be set by the exception handler.
+        			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
+        			exceptionHandler.processException();
+        		} catch (Exception e1) {
+        			resultsPanelNoticesBox.setText("Delete failed"); // This is actually just a cheat to blank out the results panel. It's actual text will probably be set by the exception handler.
+        			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
+        			exceptionHandler.processException();
+        		}
+        	}        
         } else  {
         	//If we have entered this section we have screwed something up 
             statusText = "Unknown";
@@ -1397,17 +1578,12 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 			}
 		}
 		
-		
-//		if ( iRulesAsNjordObjects.isEmpty() ) {
-//			try {
-//				iRulesAsNjordObjects = buildiRuleListOfEditors(iRuleList);
-//			} catch (Exception e) {
-//				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
-//				exceptionHandler.processException();
-//			}
-//		}
-//		
 		top = new DefaultMutableTreeNode("BigIP");
+		
+		//Started this here because I was going to create a 'config' section and get the bigip.conf but w/ the "No iRules functionality it isn't Required. Putting this feature off to a later version.
+//		DefaultMutableTreeNode configCategory = new DefaultMutableTreeNode("Config");
+//	    top.add(configCategory);
+		
 		createNodes(top);
 
 		tree = new f5JavaGuiTree(top);
@@ -1424,6 +1600,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 
 	    NavPanel.add(tree);
 	    NavPanel.updateUI(); // Forces NavPanel to re-evaluate it's contents
+	    btnNewiRule.setEnabled(true); //Now that we have iRules we can create a new one.
 	}
 	
 	/**

@@ -64,6 +64,7 @@ public class NjordOutputStream extends OutputStream  {
 			if (local) {
 				//Rule doesn't exist on the server so create it instead of modifying it.
 				ic.getLocalLBRule().create(saveRules);
+				local = false; // Let's see if this works.
 			} else {
 				ic.getLocalLBRule().modify_rule(saveRules);
 			}

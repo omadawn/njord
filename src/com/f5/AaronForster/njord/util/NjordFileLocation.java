@@ -137,6 +137,11 @@ public class NjordFileLocation extends FileLocation {
 		return local;
 	}
 
+	public boolean isLocal(boolean local) {
+		this.local = local;
+		return this.local;
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.fife.ui.rsyntaxtextarea.FileLocation#isLocalAndExists()
 	 */

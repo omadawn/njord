@@ -100,17 +100,9 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
 //        myPanel.add(Box.createHorizontalStrut(15)); // a spacer
 //        myPanel.add(new JLabel("y:"));
 //        myPanel.add(yField);
-
-        
-        
-        
-        
+  
         ////////////////////////////////////              Panel Stuff
 
-        
-        
-        
-        
         frame = new JFrame();
 		frame.setBounds(100, 100, 450, 300);
 		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -160,8 +152,16 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
 		lblBigipAddress.setToolTipText("IP Address or DNS name");
 		panel.add(lblBigipAddress, "4, 4");
 		
+		
+//		iIPAddress 
+//        iPort 
+//        iUserName 
+//        iPassword
+        
+        
 		ConnPreffsHostTextField = new JTextField();
 		ConnPreffsHostTextField.setText("192.168.215.251");
+//		ConnPreffsHostTextField.setText(MainGuiWindow.iIPAddress);
 		panel.add(ConnPreffsHostTextField, "8, 4, fill, default");
 		ConnPreffsHostTextField.setColumns(10);
 		
