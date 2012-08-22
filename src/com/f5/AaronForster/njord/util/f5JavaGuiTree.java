@@ -15,6 +15,7 @@ import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 
+import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -105,8 +106,10 @@ public class f5JavaGuiTree extends JTree {
 		// neither instanceof nor getClass() have been very helpful.
 		//		if (value instanceof LocalLBRuleRuleDefinition) {
 //			LocalLBRuleRuleDefinition rule = (LocalLBRuleRuleDefinition) node.getUserObject();
-			NjordiRuleDefinition rule = (NjordiRuleDefinition) node.getUserObject();
-			return rule.getRule_name();
+//			NjordiRuleDefinition rule = (NjordiRuleDefinition) node.getUserObject();
+			TextEditorPane rule = (TextEditorPane) node.getUserObject();
+			return rule.getName();  
+//			return rule.getRule_name();
 		} else {
 			return super.convertValueToText(value, selected, expanded, leaf, row, hasFocus);
 		}

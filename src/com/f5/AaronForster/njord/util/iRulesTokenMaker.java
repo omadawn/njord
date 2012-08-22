@@ -20,26 +20,34 @@ public class iRulesTokenMaker extends TclTokenMaker {
 	String functionsFilePath = "resources/iRulesFunctionsUncategorized.txt"; // findstr, class and others
 	String commandsFilePath = "resources/iRulesCommandsUncategorized.txt"; // HTTP::return etc etc
 	
+	int operatorsClassification = Token.OPERATOR;
+	int statementsClassification = Token.RESERVED_WORD_2;
+	int functionsClassification = Token.FUNCTION;
+	int commandsClassification = Token.RESERVED_WORD_2;
 	
 	public iRulesTokenMaker() {
 		initializeTokens();
 
 		//TODO: I need to decide what to set my words to. I like the idea of setting the irules commands to FUNCTION and then just making function not be FECKING UGLY like it is in the default. Maybe I'll set it to purple.
+		myWordsToHighlight.put("ANNOTATION", Token.ANNOTATION);
+		myWordsToHighlight.put("VARIABLE", Token.VARIABLE);
+		myWordsToHighlight.put("OPERATOR", Token.OPERATOR);
+		myWordsToHighlight.put("IDENTIFIER", Token.IDENTIFIER);
+		myWordsToHighlight.put("FUNCTION", Token.FUNCTION);
+		myWordsToHighlight.put("REGEX", Token.REGEX);
+		myWordsToHighlight.put("COMMENT_KEYWORD", Token.COMMENT_KEYWORD);
+		myWordsToHighlight.put("COMMENT_MARKUP", Token.COMMENT_MARKUP);
+		myWordsToHighlight.put("COMMENT_MULTILINE", Token.COMMENT_MULTILINE);
+		myWordsToHighlight.put("COMMENT_EOL", Token.COMMENT_EOL);
+		myWordsToHighlight.put("RESERVED_WORD", Token.RESERVED_WORD);
+		myWordsToHighlight.put("RESERVED_WORD_2", Token.RESERVED_WORD_2);
+		
 		myWordsToHighlight.put("thisword", Token.IDENTIFIER);
 		myWordsToHighlight.put("thatword", Token.FUNCTION);
 		myWordsToHighlight.put("oneword", Token.RESERVED_WORD);
 		myWordsToHighlight.put("twoword", Token.RESERVED_WORD_2);
-		myWordsToHighlight.put("how-aboutthis", Token.RESERVED_WORD);
-		//TODO: For some reason all the stuff with :: in it doesn't get highlighted. Which sorta sucks. I've put in a comment to the thread.
-//		myWordsToHighlight.put("HTTP::respond", Token.FUNCTION);
-		//TODO: This doesn't work because HTTP : and respond are being fed to the syntax the tokenmaker comes out with in order to determine if they are key words. Somehow I have to get it to process the whole thing instead of splitting it up.
-		
-		String respondToken = "HTTP::respond";
-		myWordsToHighlight.put(respondToken, Token.FUNCTION);
-		myWordsToHighlight.put("this:that", Token.FUNCTION);
-		myWordsToHighlight.put("HTTP::path", Token.RESERVED_WORD_2);
-		myWordsToHighlight.put("HTTP::uri", Token.RESERVED_WORD);
-		
+		myWordsToHighlight.put("won_derline", Token.RESERVED_WORD);
+		myWordsToHighlight.put("two_derline", Token.RESERVED_WORD_2);
 	}
 	
 //	myWordsToHighlight.put("thisword", Token.IDENTIFIER);
@@ -83,7 +91,7 @@ public class iRulesTokenMaker extends TclTokenMaker {
 		    while ((str = in.readLine()) != null) {
 		        String[] words = str.split(","); // split on commas
 		        for (String word : words) {
-		        	myWordsToHighlight.put(word, Token.OPERATOR);
+		        	myWordsToHighlight.put(word, operatorsClassification);
 		        }
 		        
 		    }
@@ -108,7 +116,7 @@ public class iRulesTokenMaker extends TclTokenMaker {
 		    while ((str = in.readLine()) != null) {
 		        String[] words = str.split(","); // split on commas
 		        for (String word : words) {
-		        	myWordsToHighlight.put(word, Token.FUNCTION);
+		        	myWordsToHighlight.put(word, statementsClassification);
 		        }
 		        
 		    }
@@ -132,7 +140,7 @@ public class iRulesTokenMaker extends TclTokenMaker {
 		    while ((str = in.readLine()) != null) {
 		        String[] words = str.split(","); // split on commas
 		        for (String word : words) {
-		        	myWordsToHighlight.put(word, Token.RESERVED_WORD_2);
+		        	myWordsToHighlight.put(word, functionsClassification);
 		        }
 		        
 		    }
@@ -156,7 +164,7 @@ public class iRulesTokenMaker extends TclTokenMaker {
 		    while ((str = in.readLine()) != null) {
 		        String[] words = str.split(","); // split on commas
 		        for (String word : words) {
-		        	myWordsToHighlight.put(word, Token.RESERVED_WORD);
+		        	myWordsToHighlight.put(word, commandsClassification);
 		        }
 		        
 		    }

@@ -131,6 +131,7 @@ public class iRuleDialog extends JDialog implements ActionListener, PropertyChan
 		
 		txtNewiRuleName = new JTextField();
 		txtNewiRuleName.setText("new_rule");
+		txtNewiRuleName.setName("iRuleNameTextbox");
 		panel.add(txtNewiRuleName, "8, 8, fill, default");
 		txtNewiRuleName.setColumns(10);
 		
