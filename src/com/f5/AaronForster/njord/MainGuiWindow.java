@@ -117,7 +117,8 @@ import com.f5.AaronForster.njord.util.njordTreeRenderer;
 
 /*
  * NOTES SECTION
- * 
+ * Main iControl reference on DevCentral
+ * https://devcentral.f5.com/wiki/iControl.GlobalLB.ashx
  *  
  * TODO SECTION
  * 0.8
@@ -931,6 +932,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 
 	        	// Insert new node as last child of node
 	        	model.insertNodeInto(addRule, node, node.getChildCount());
+	        	resultsPanelNoticesBox.setText("New rule created locally. Save to create on the BIGIP");
 	        }
         } else if (actionCommand == "Save"){
         	//TODO: Apparently blank is a valid iRule as far as mcpd is concerned. Check to ensure the rule isn't completely blank and handle that.
