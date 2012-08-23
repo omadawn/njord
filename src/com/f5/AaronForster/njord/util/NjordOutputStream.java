@@ -26,6 +26,7 @@ public class NjordOutputStream extends OutputStream  {
 	public StringBuilder buffer;
 	public ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	public MainGuiWindow owner = null;
+	public boolean isInError = false; // This is a stupid hack to try and figure out why TextEditorPane isn't noticing that we're throwing an IOException.
 	final Logger log = LoggerFactory.getLogger(NjordOutputStream.class);
 	
 	
@@ -71,11 +72,11 @@ public class NjordOutputStream extends OutputStream  {
 		} catch (RemoteException e1) {
 			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, owner, log);
 			exceptionHandler.processException();
-			throw new IOException();
+			throw new java.io.IOException(e1.getMessage());
 		} catch (Exception e1) {
 			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, owner, log);
 			exceptionHandler.processException();
-			throw new IOException();
+			throw new java.io.IOException(e1.getMessage());
 		}
 	}
 	

@@ -226,13 +226,13 @@ import com.f5.AaronForster.njord.util.njordTreeRenderer;
  * At minimum there will be functionality to enable/disable pool members and virtual servers and manage what virtual servers iRules are attached to.
  * 
  * @author Aaron Forster @date 20120601
- * @version 0.8.2
+ * @version 0.8.3
  */
 public class MainGuiWindow implements ActionListener, TreeSelectionListener, TreeExpansionListener {
 	private String logPrefix = "MainGuiWindow: ";
 	private String newline = "\n";
 	private boolean connectionInitialized = false;
-	private String njordVersion = "0.8.2";
+	private String njordVersion = "0.8.3";
 	public String bigIPVersion = "unknown"; // Version number has multiple dots in it so I can't do it as a number type.
 //	public float bigIPVersion = 0;
 
@@ -826,15 +826,13 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         	log.debug("Connect Event Detected."); 	
         	boolean successfullConnection = initializeConnection();
         } else if (actionCommand == "New iRule"){
-        	//TODO: This is working as far as creating a new text edior and letting you start typing but I still need to figure out how to add it to the list of rules
-        	
-        	//TODO: For some reason this actually causes the jTree to get all screwed up. Make that not happen
         	//TODO: Make 'Edit Rule' Be the default action for a double click on an iRule in the list.
-        	//TODO: Create a 'New Rule' function. This will probably go hand in hand with:
         	//TODO: Figure out how to handle renaming of iRules.
         	//TODO: Figure out how to handle 'offline iRules' IE one you have created but isn't uploaded yet.
         	log.debug("New Rule Detected");
         	resultsPanelNoticesBox.setText("New iRule functionality is still a tiny bit sketchy. It requires that you have a connection to a BIGIP and It's likely to only work on V11 systems. Sorry for the inconvenience.");
+        	
+        	System.out.println("Stuff");
         	
         	String newiRuleName = "new_rule";
 	        String newiRulePartition = "/Common";
@@ -856,10 +854,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	        			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
 	        			exceptionHandler.processException();
 	        		}
-	        		String[] myNameAsAList = { newiRuleFullName };
-	        		List<String> thisRuleAsList = new ArrayList<String>(Arrays.asList(myNameAsAList));
 	        		
-	        		if (iRuleList.contains(newiRuleFullName)) { // This isn't working
+	        		if (iRuleList.contains(newiRuleFullName)) { 
 	        			//There is already a rule with this name
 	        			resultsPanelNoticesBox.setText("Unable to create rule a rule with this name already exists on the BIGIP. Please choose another");
 	        			return;
@@ -1475,9 +1471,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		String commandsFilePath = "resources/iRulesCommandsUncategorized.txt"; // HTTP::return etc etc
 		String tclCommandsFilePath = "resources/tclCommandsUncategorized.txt"; // Built in tcl commands
 
-		//		for (String filePath : (operatorsFilePath, statementsFilePath)) {
-		//			
-		//		}
 		provider.addCompletion(new BasicCompletion(provider, "abstract"));
 	    provider.addCompletion(new BasicCompletion(provider, "assert"));
 	      
@@ -1486,11 +1479,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 			String str;
 			while ((str = in.readLine()) != null) {
 				provider.addCompletion(new BasicCompletion(provider, str));
-//				String[] words = str.split(","); // split on commas
-//				for (String word : words) {
-//					provider.addCompletion(new BasicCompletion(provider, word));
-//				}
-
 			}
 			in.close();
 		} catch (IOException e) {
