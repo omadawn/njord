@@ -117,13 +117,11 @@ import com.f5.AaronForster.njord.util.njordTreeRenderer;
 
 /*
  * NOTES SECTION
-<<<<<<< HEAD
  * 
 =======
  * Main iControl reference on DevCentral
  * https://devcentral.f5.com/wiki/iControl.GlobalLB.ashx
  *  
->>>>>>> 0.8
  * TODO SECTION
  * 0.8
  * TODO: Get rid of 'DestkopBigIPManager and replace it with this as the base.
@@ -139,7 +137,6 @@ import com.f5.AaronForster.njord.util.njordTreeRenderer;
  * http://www.fitnesse.org/ a standalone wiki and testing framework. IE Jira Jr.
  * 
  * 0.9
- * TODO: Set the get irules button to disabled unless the connection is verified
  * TODO: Create a makeVerified (or something slightly different) Function as well as a makeUnVerified that does a number of things neccessary for that state. Such as disabling buttons/etc.
  * TODO: Working on syntax highlighting this is the java token scanner http://svn.fifesoft.com/viewvc-1.0.5/bin/cgi/viewvc.cgi/RSTALanguageSupport/trunk/src/org/fife/rsta/ac/common/TokenScanner.java?view=markup&revision=588&root=RSyntaxTextArea
  * 			I believe that's the part that pulls out tokens from the document which the syntax then decides if they should be highlighted or not. I can probably extend the TCL one.
@@ -151,7 +148,6 @@ import com.f5.AaronForster.njord.util.njordTreeRenderer;
  * TODO: Figure out how to get bounds. It's frame.getBounds(); figure out when to save them.
  * 
  * 1.0 
- *  * TODO: Figure out if there is a built in way to have the editor highlight variables that you've assigned.
  * TODO: Implement set tab width (built into ntextarea)
  * TODO: Build the nav tree but don't populate the iRules tree until it has been expanded.
  * TODO: Add some more reasonable sample templates
@@ -205,13 +201,6 @@ import com.f5.AaronForster.njord.util.njordTreeRenderer;
  * 
  * 
  * TODO: Peep this http://www.ibm.com/developerworks/opensource/tutorials/os-eclipse-code-templates/os-eclipse-code-templates-pdf.pdf for some in depth dialog on template customization.
- * 
- * 
- * 
- * GENERAL NOTES ON RSYNTAXTEXTAREA:
- * Example 3 covers how to customize what exists in the right click menu. http://fifesoft.com/rsyntaxtextarea/examples/example3.php
- * <whatevertokenmaker>.getLineCommentStartAndEnd() a handy way to figure out the languages comment chars and programatically insert a comment.
- * You can add a document listener which would get called when something is changed in the document. textArea.getDocument().addDocumentListener(new MyDocumentListener());   
  */
 
 
@@ -290,7 +279,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	private JScrollPane scrollPane;
 	private DefaultMutableTreeNode category = null; // This is part of the navigation tree and here from an initial attempt to decouple building the tree and connecting to the BIGIP. I will probably remove it.
 	private JPanel NavPanel = new JPanel(); // This is the main panel for the LHS navigation tree
-	private JScrollPane navScrollPane = new JScrollPane();
+	private JScrollPane navScrollPane = null; //new JScrollPane();
+//	private JScrollPane navScrollPane = new JScrollPane();
 
 	private JLabel lblStatusLabel = new JLabel();
 	public PreferencesDialog preferencesDialog;
@@ -441,9 +431,25 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		connectToBigIPButton.addActionListener(this);
 		NavPanel.setMinimumSize(navMinimumSize);
 		splitPane.setLeftComponent(NavPanel);
+//		splitPane.setResizeWeight(0.10); //This says that the right hand item should retain most of it's size. I'd rather set the width explicitely and have it stay the same.
 
 		//TODO Make this work and switch it so that building the nav tree updates navScrollPane not NavPanel
-		NavPanel.add(navScrollPane);
+//		navScrollPane = new JScrollPane();
+//		GroupLayout gl_NavPanel = new GroupLayout(NavPanel);
+//		gl_NavPanel.setHorizontalGroup(
+//			gl_NavPanel.createParallelGroup(Alignment.LEADING)
+//				.addGroup(gl_NavPanel.createSequentialGroup()
+//					.addContainerGap()
+//					.addComponent(navScrollPane, GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)
+//					.addContainerGap())
+//		);
+//		gl_NavPanel.setVerticalGroup(
+//			gl_NavPanel.createParallelGroup(Alignment.LEADING)
+//				.addGroup(gl_NavPanel.createSequentialGroup()
+//					.addGap(5)
+//					.addComponent(navScrollPane, GroupLayout.DEFAULT_SIZE, 616, Short.MAX_VALUE))
+//		);
+//		NavPanel.setLayout(gl_NavPanel);
 		
 		//DEFAULT RESULTS PANE CONTENT STARTS HERE		
 		JLabel lblDefaultResultspanelContent = new JLabel("Welcome to Njord");
@@ -1591,8 +1597,42 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	    tree.addTreeSelectionListener(this);
 	    //Listen for when non-leave nodes are expanded
 	    tree.addTreeExpansionListener(this);
+	    
+	    navScrollPane = new JScrollPane(tree);
+//	    navScrollPane.add(tree);
+	    
+		GroupLayout gl_NavPanel = new GroupLayout(NavPanel);
+		gl_NavPanel.setHorizontalGroup(
+			gl_NavPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_NavPanel.createSequentialGroup()
+					.addContainerGap()
+//					.addComponent(navScrollPane, GroupLayout.DEFAULT_SIZE, 180, Short.MAX_VALUE)
+					.addComponent(navScrollPane, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE)
+					.addContainerGap())
+		);
+		gl_NavPanel.setVerticalGroup(
+			gl_NavPanel.createParallelGroup(Alignment.LEADING)
+				.addGroup(gl_NavPanel.createSequentialGroup()
+					.addGap(5)
+//					.addComponent(navScrollPane, GroupLayout.DEFAULT_SIZE, 616, Short.MAX_VALUE))
+					.addComponent(navScrollPane, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE, Short.MAX_VALUE))
+		);
+		NavPanel.setLayout(gl_NavPanel);
+	    
+	    
+	    
+	    
+	    
+	    Dimension navScrollPanelMinSize = new Dimension(200,500);
+	    Dimension navScrollPanelPreferedSize = new Dimension(200,700);
+	    Dimension navScrollPanelMaxSize = new Dimension(200,1000);
+	    navScrollPane.setPreferredSize(navScrollPanelPreferedSize);
+	    navScrollPane.setMinimumSize(navScrollPanelMinSize);
+	    navScrollPane.setMaximumSize(navScrollPanelMaxSize);
 
-	    NavPanel.add(tree);
+	    
+	    
+	    NavPanel.add(navScrollPane);
 	    NavPanel.updateUI(); // Forces NavPanel to re-evaluate it's contents
 	    btnNewiRule.setEnabled(true); //Now that we have iRules we can create a new one.
 	}
