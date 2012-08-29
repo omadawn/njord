@@ -97,7 +97,7 @@ public class f5JavaGuiTree extends JTree {
 			boolean expanded, boolean leaf, int row, boolean hasFocus) {
 		
 		NjordTreeNode node = (NjordTreeNode) value;
-		System.out.println("Node has: " + node.toString());
+//		System.out.println("Node has: " + node.toString());
 		
 		if (node.getNodeType() == NjordConstants.NODE_TYPE_IRULE) {
 			TextEditorPane rule = (TextEditorPane) node.getUserObject();

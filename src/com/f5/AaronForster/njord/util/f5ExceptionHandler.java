@@ -175,7 +175,9 @@ public class f5ExceptionHandler {
 				message = "Un-known Exception of type: " + e.getClass() + " encountered sent message: " + e.getMessage();
 //				message = message + ": " + e.getMessage();
 			}
-			log.error(message);
+			System.out.println("Unknown exception caught of type " + e.getClass());
+			System.out.println(e.getStackTrace());
+//			log.error(message);
 			//log(message) //somehow
 		}
 		

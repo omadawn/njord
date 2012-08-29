@@ -23,6 +23,7 @@ public class NjordOutputStream extends OutputStream  {
 	public iControl.Interfaces ic = null;
 	public String iRuleName = "";
 	public boolean local = false; // True if the iRule does not exist on the server
+	public boolean exists = false;
 	public StringBuilder buffer;
 	public ByteArrayOutputStream baos = new ByteArrayOutputStream();
 	public MainGuiWindow owner = null;
@@ -35,7 +36,7 @@ public class NjordOutputStream extends OutputStream  {
 		this.ic = ic;
 	}
 	
-	public NjordOutputStream(MainGuiWindow owner, String iRuleName, iControl.Interfaces ic, boolean local) {
+	public NjordOutputStream(MainGuiWindow owner, String iRuleName, iControl.Interfaces ic, boolean local, boolean exists) {
 		this.owner = owner;
 		this.iRuleName = iRuleName;
 		this.ic = ic;
@@ -51,7 +52,9 @@ public class NjordOutputStream extends OutputStream  {
 	}
 	
 	public void flush() throws IOException {
-			write(baos.toString());
+		write(baos.toString());
+		//This did not solve it.
+//		write(baos.toString("ISO-8859-1")); //Western (ISO-8859-1)
 	}
 
 	public void write(String ruleDefinition) throws IOException{
@@ -62,10 +65,10 @@ public class NjordOutputStream extends OutputStream  {
 
 		try {
 			//          if (nodeInfo.isNew()) {
-			if (local) {
+			if (!exists) {
 				//Rule doesn't exist on the server so create it instead of modifying it.
 				ic.getLocalLBRule().create(saveRules);
-				local = false; // Let's see if this works.
+				exists = true;
 			} else {
 				ic.getLocalLBRule().modify_rule(saveRules);
 			}

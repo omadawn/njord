@@ -21,6 +21,7 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.rmi.RemoteException;
@@ -62,9 +63,7 @@ import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.event.TreeWillExpandListener;
 import javax.swing.filechooser.FileSystemView;
-import javax.swing.text.Position;
 import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.MutableTreeNode;
 import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import javax.xml.rpc.ServiceException;
@@ -193,13 +192,13 @@ import com.f5.AaronForster.njord.util.f5ExceptionHandler;
  * At minimum there will be functionality to enable/disable pool members and virtual servers and manage what virtual servers iRules are attached to.
  * 
  * @author Aaron Forster @date 20120601
- * @version 0.8.5
+ * @version 0.8.6
  */
 public class MainGuiWindow implements ActionListener, TreeSelectionListener, TreeExpansionListener, TreeWillExpandListener {
 	public String logPrefix = "MainGuiWindow: ";
 	public String newline = "\n";
 	public boolean connectionInitialized = false;
-	public String njordVersion = "0.8.5";
+	public String njordVersion = "0.8.6";
 	public String bigIPVersion = "unknown"; // Version number has multiple dots in it so I can't do it as a number type. I'm sure there's some other type I can use somwhere that I could do a >< compair against.
 
 	//Default connection information if the user doesn't have a preferences file
@@ -240,6 +239,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	public JButton btnNewiRule = null;
 	public JButton btnActionSave = null;
 	public JButton btnDeleteiRule = null;
+	public JButton btnDeployiRule = null;
 	
 	//Navigation Tree items
 	public f5JavaGuiTree tree = null;
@@ -289,8 +289,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	public Color backquoteColor = Color.decode("#4a2a3a");
 	public Color bracketColor = Color.decode("#990099");
 	
-	
-	
 	// Make Linkable items
 //	private static final String LABEL_TEXT = "For further information visit:";
 //	private static final String A_VALID_LINK = "http://stackoverflow.com";
@@ -300,8 +298,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	private static final String HTML = "<html>";
 	private static final String HTML_END = "</html>";
 
-	
-    
 	//slf4j logger factory
 	final Logger log = LoggerFactory.getLogger(MainGuiWindow.class);
     //TODO: Go to http://www.slf4j.org/manual.html and see what sort of config file I need to use to make this work.
@@ -551,7 +547,14 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		btnDeleteiRule.setName("DeleteiRuleButton");
 		btnDeleteiRule.addActionListener(this);
 		actionBar.add(btnDeleteiRule);
-		frame.getContentPane().setLayout(groupLayout);	
+		frame.getContentPane().setLayout(groupLayout);
+		
+		btnDeployiRule = new JButton("Deploy to BIGIP");
+		btnDeployiRule.setEnabled(false);
+		btnDeployiRule.setName("DeployiRuleButton");
+		btnDeployiRule.addActionListener(this);
+		actionBar.add(btnDeployiRule);
+		
 		buildNavTree();
 	}
 	
@@ -566,6 +569,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	    //TODO: Create a generic getSomethingList?
 	    //TODO: Figure out how to handle the long path of the iRule's full name. IE do I pull off the path and just show the name, do I have expandable folders for the folders in the path? I like that idea but only if I automatically have 'common' be expanded.
 	    //TODO: If I do the above I will need a way to remember what folders have been openened if the client does so.
+	   //Here's my no valid iRules list bug. I need to check my connection settings first.
 	    if ( iRuleList.isEmpty() ) {
 	    	resultsPanelNoticesBox.setText("No valid iRules found on BIGIP.");
 	    	TextEditorPane ruleEditor = getEditorForRule(null, "No iRules Found On BIGIP");
@@ -609,7 +613,11 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         
         if (node.getNodeType() == NjordConstants.NODE_TYPE_IRULE) {
         	TextEditorPane nodeInfo = (TextEditorPane) node.getUserObject();
-
+        	if (nodeInfo.isLocal()) {
+        		btnDeployiRule.setEnabled(true);
+        	} else {
+        		btnDeployiRule.setEnabled(false);
+        	}
             //TODO: Check currentSelectedRule and see if it is non-empty. If it is non empty update that rule with the contents of the editor before filling the editor with the new contents.
             //		Then set tree.getLastSelectedPathComponent() into currentSelectedRule.
         	//TODO: also mark the iRule as unsaved at the same time.
@@ -929,34 +937,60 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 
         	NjordTreeNode node = (NjordTreeNode)
     				tree.getLastSelectedPathComponent();
-    		if (node == null) return;
+        	if (node == null) return;
 
-    		TextEditorPane nodeInfo = (TextEditorPane) node.getUserObject();
-    		String ruleName = nodeInfo.getName();
-    		String[] ruleNames = { ruleName };
-        	//TODO: Change this so it shows the rule name.
-        	int result = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete the selected rule [" + ruleName + "] from the BIGIP?", 
-        			"Delete iRule", JOptionPane.OK_CANCEL_OPTION);
+        	TextEditorPane nodeInfo = (TextEditorPane) node.getUserObject();
 
-        	if (result == JOptionPane.OK_OPTION) { 
-        		try {
-        			ic.getLocalLBRule().delete_rule(ruleNames);
-        			resultsPanelNoticesBox.setText("Rule [" + ruleName + "] successfully deleted.");
-        			
-        			DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
-        			model.removeNodeFromParent(node);		
-        		} catch (RemoteException e1) {
-        			resultsPanelNoticesBox.setText("Delete failed"); // This is actually just a cheat to blank out the results panel. It's actual text will probably be set by the exception handler.
-        			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
-        			exceptionHandler.processException();
-        		} catch (Exception e1) {
-        			resultsPanelNoticesBox.setText("Delete failed"); // This is actually just a cheat to blank out the results panel. It's actual text will probably be set by the exception handler.
-        			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
-        			exceptionHandler.processException();
-        		}
+        	String ruleName = nodeInfo.getName();
+        	String[] ruleNames = { ruleName };
+        	String deleteMessage = "Are you sure you want to delete the selected rule [" + ruleName + "] ";
+        	if (nodeInfo.isLocal() ) {
+        		deleteMessage = deleteMessage + "From the local File System?";
+        	} else {
+        		deleteMessage = deleteMessage + "from the BIGIP?";
         	}
         	
-        } else  {
+        	int result = JOptionPane.showConfirmDialog(null, deleteMessage, 
+        			"Delete iRule", JOptionPane.OK_CANCEL_OPTION);
+
+        	if (result == JOptionPane.OK_OPTION) {
+        		if (nodeInfo.isLocal()) {
+        			//Local file remove from the file system
+        			String path = nodeInfo.getFileFullPath();
+        			log.info(logPrefix + "Deleting " + path);
+        			File deleteFile = new File(path);
+        			deleteFile.delete();
+    				resultsPanelNoticesBox.setText("Rule [" + ruleName + "] successfully deleted from the local file system.");
+    				DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+    				model.removeNodeFromParent(node);
+        			//This works now update notices pane and the nav tree
+        		} else {
+        			//Remote so remove it from the BIGIP
+        			
+        			try {
+        				ic.getLocalLBRule().delete_rule(ruleNames);
+        				resultsPanelNoticesBox.setText("Rule [" + ruleName + "] successfully deleted from BIGIP.");
+        				DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+        				model.removeNodeFromParent(node);		
+        			} catch (RemoteException e1) {
+        				resultsPanelNoticesBox.setText("Delete failed"); // This is actually just a cheat to blank out the results panel. It's actual text will probably be set by the exception handler.
+        				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
+        				exceptionHandler.processException();
+        			} catch (Exception e1) {
+        				resultsPanelNoticesBox.setText("Delete failed"); // This is actually just a cheat to blank out the results panel. It's actual text will probably be set by the exception handler.
+        				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
+        				exceptionHandler.processException();
+        			}
+        		}
+        	}
+        } else if (actionCommand == "Deploy to BIGIP"){
+        	//Local rule that needs to be created on the BIGIP.
+        	NjordTreeNode node = (NjordTreeNode)
+    				tree.getLastSelectedPathComponent();
+    		if (node == null) return;
+    		deployLocaliRuleToBigIP(node);
+//    		ffff
+        } else {
         	//If we have entered this section we have screwed something up 
         	log.error("Un-Known Action Event Detected." 
                     + newline
@@ -1252,91 +1286,124 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		// that is needed in the majority of cases.
 		DefaultCompletionProvider provider = new DefaultCompletionProvider();
 
-		java.net.URL operatorsURL = MainGuiWindow.class.getResource("/resources/iRulesOperatorsUncategorized.txt"); // contains, matches_glob, etc
-		java.net.URL statementsURL = MainGuiWindow.class.getResource("/resources/iRulesStatementsUncategorized.txt"); // drop, pool and more
-		java.net.URL functionsURL = MainGuiWindow.class.getResource("/resources/iRulesFunctionsUncategorized.txt"); // findstr, class and others
-		java.net.URL commandsURL = MainGuiWindow.class.getResource("/resources/iRulesCommandsUncategorized.txt"); // HTTP::return etc etc
-		java.net.URL tclCommandsURL = MainGuiWindow.class.getResource("/resources/tclCommandsUncategorized.txt"); // Built in tcl commands
-
+		String operatorsPath = "/resources/iRulesOperatorsUncategorized.txt";
+		String statementsPath = "/resources/iRulesStatementsUncategorized.txt"; // drop, pool and more
+		String functionsPath = "/resources/iRulesFunctionsUncategorized.txt"; // findstr, class and others
+		String commandsPath = "/resources/iRulesCommandsUncategorized.txt"; // HTTP::return etc etc
+		String tclCommandsPath = "/resources/tclCommandsUncategorized.txt"; // Built in tcl commands
+		
 		provider.addCompletion(new BasicCompletion(provider, "abstract"));
 	    provider.addCompletion(new BasicCompletion(provider, "assert"));
-	      
+	    BufferedReader reader = null;
+	    
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(operatorsURL.getPath()));
+			reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(operatorsPath)));
 			String str;
-			while ((str = in.readLine()) != null) {
+			while ((str = reader.readLine()) != null) {
 				provider.addCompletion(new BasicCompletion(provider, str));
 			}
-			in.close();
 		} catch (IOException e) {
 			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
 			exceptionHandler.processException();
+		} finally {
+			try {
+				if (reader !=null) { 
+					reader.close();  
+				}
+			} catch (IOException e) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+				exceptionHandler.processException();
+			}
 		}
 
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(statementsURL.getPath()));
+			reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(statementsPath)));;
 			String str;
-			while ((str = in.readLine()) != null) {
+			while ((str = reader.readLine()) != null) {
 				String[] words = str.split(","); // split on commas
 				for (String word : words) {
 					provider.addCompletion(new BasicCompletion(provider, word));
 				}
 
 			}
-			in.close();
 		} catch (IOException e) {
 			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
 			exceptionHandler.processException();
+		} finally {
+			try {
+				if (reader !=null) { 
+					reader.close();  
+				}
+			} catch (IOException e) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+				exceptionHandler.processException();
+			}
 		}
 
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(functionsURL.getPath()));
+			reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(functionsPath)));
 			String str;
-			while ((str = in.readLine()) != null) {
+			while ((str = reader.readLine()) != null) {
 				String[] words = str.split(","); // split on commas
 				for (String word : words) {
 					provider.addCompletion(new BasicCompletion(provider, word));
 				}
 
 			}
-			in.close();
 		} catch (IOException e) {
 			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
 			exceptionHandler.processException();
+		} finally {
+			try {
+				if (reader !=null) { 
+					reader.close();  
+				}
+			} catch (IOException e) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+				exceptionHandler.processException();
+			}
 		}
 
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(commandsURL.getPath()));
+			reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(commandsPath)));
 			String str;
-			while ((str = in.readLine()) != null) {
+			while ((str = reader.readLine()) != null) {
 				String[] words = str.split(","); // split on commas
 				for (String word : words) {
 					provider.addCompletion(new BasicCompletion(provider, word));
 				}
 
 			}
-			in.close();
 		} catch (IOException e) {
 			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
 			exceptionHandler.processException();
 		}
 		
 		try {
-			BufferedReader in = new BufferedReader(new FileReader(tclCommandsURL.getPath()));
+			reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(tclCommandsPath)));
 			String str;
-			while ((str = in.readLine()) != null) {
+			while ((str = reader.readLine()) != null) {
 				String[] words = str.split(","); // split on commas
 				for (String word : words) {
 					provider.addCompletion(new BasicCompletion(provider, word));
 				}
 
 			}
-			in.close();
 		} catch (IOException e) {
 			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
 			exceptionHandler.processException();
+		} finally {
+			try {
+				if (reader !=null) { 
+					reader.close();  
+				}
+			} catch (IOException e) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+				exceptionHandler.processException();
+			}
 		}
 		
+		//TODO: replace these with some iRules defaults.
 		// These are some sample completions. They are java but this can be used to do code templates for iRules
 		provider.addCompletion(new ShorthandCompletion(provider, "sysout",
 				"System.out.println(", "System.out.println("));
@@ -1365,19 +1432,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	    remoteiRulesCategory = new NjordTreeNode("iRules", NjordConstants.NODE_TYPE_CATEGORY);
 	    remoteTree.add(remoteiRulesCategory);
 		localiRulesCategory = new NjordTreeNode("iRules", NjordConstants.NODE_TYPE_CATEGORY);
-		
-		//Create the local tree
-//		String localRuleDefinition = "when CLIENT_ACCEPTED {\n\t\n\t\n}";
-//    	String localRuleName = "Bogus_local_rule";
-//    	
-//    	NjordFileLocation localRuleLocation = null;
-//		
-//		TextEditorPane localRuleEditor = getEditorForRule(localRuleLocation, localRuleName);
-//		localRuleEditor.setName(localRuleName);
-//    	
-//        NjordTreeNode addRule = new NjordTreeNode(localRuleEditor);
-//		
-//        localiRulesCategory.add(addRule);
 		
         localTree.add(localiRulesCategory);
         
@@ -1439,10 +1493,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	    btnNewiRule.setEnabled(true); //Now that we have iRules we can create a new one.
 	    
 	    buildLocalNodes(localiRulesCategory);
-	    
-	    //This is here until I can load the TextEditorPane with a new FileLocation.
-//		localRuleEditor.setText(localRuleDefinition);
-//		localRuleEditor.discardAllEdits(); //This prevents undo from 'undoing' the loading of the editor with an iRule
 	}
 	
 	
@@ -1477,6 +1527,37 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 			}
 		}
 	}
+	
+	public void deployLocaliRuleToBigIP(NjordTreeNode node) {
+		//TODO: COnfirm connection to BIGIP First
+		TextEditorPane editorPane = (TextEditorPane) node.getUserObject();
+		//Do I want to remove it locally when this happens?
+		NjordFileLocation remoteLocation = new NjordFileLocation(this, editorPane.getName(), ic, editorPane.getText());
+		
+		TextEditorPane newEditorPane = getEditorForRule(remoteLocation, editorPane.getName()); 
+				
+//				new TextEditorPane(0, true, remoteLocation);
+		
+		if (iRuleList.contains(editorPane.getName())) { 
+			//There is already a rule with this name
+			resultsPanelNoticesBox.setText("Unable to create rule a rule with this name already exists on the BIGIP. Please choose another");
+			return;
+		}
+		iRuleList.add(editorPane.getName());
+		newEditorPane.setText(editorPane.getText());
+//		createNodes(remoteiRulesCategory);
+		NjordTreeNode addRule = new NjordTreeNode(newEditorPane);
+//		remoteiRulesCategory.add(addRule);
+		
+		DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+    	model.insertNodeInto(addRule, remoteiRulesCategory, remoteiRulesCategory.getChildCount());
+    	resultsPanelNoticesBox.setText("Hit Save to complete creation on BIGIP.");
+    	tree.expandPath(remoteiRulesPath);
+		
+	}
+	
+	
+	
 	/**
 	 * Sets the contents of the notices box. For sub classes to be able to send back a message to us to set.
 	 * @param message

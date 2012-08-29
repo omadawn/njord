@@ -61,7 +61,7 @@ public class NjordTreeRenderer extends DefaultTreeCellRenderer {
 	        	njordiRuleNode = (TextEditorPane) node.getUserObject();
 	        }
 	        
-	    	System.out.println("Row is " + row + " for selection");
+//	    	System.out.println("Row is " + row + " for selection");
 	        super.getTreeCellRendererComponent(
 	                        tree, value, sel,
 	                        expanded, leaf, row,

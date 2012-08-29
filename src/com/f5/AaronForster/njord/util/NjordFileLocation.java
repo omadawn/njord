@@ -66,7 +66,8 @@ public class NjordFileLocation extends FileLocation {
 		owner = mainWindow;
 		this.ruleName = ruleName;
 		this.ic = ic;
-		local = true;
+		local = false;
+		exists = false;
 		this.ruleDefinition = ruleDefinition;
 	}
 
@@ -145,7 +146,9 @@ public class NjordFileLocation extends FileLocation {
 	@Override
 	public InputStream getInputStream() throws IOException {
 		if (!local) {
-			InputStream is = new ByteArrayInputStream( ruleDefinition.getBytes("UTF-8") );
+			//HEre is the only place I am specifying the encoding.
+			InputStream is = new ByteArrayInputStream( ruleDefinition.getBytes() );
+//			InputStream is = new ByteArrayInputStream( ruleDefinition.getBytes("ISO-8859-1") );
 			return is;
 		} else {
 			InputStream is = new BufferedInputStream(new FileInputStream(fileHandle));
@@ -160,7 +163,7 @@ public class NjordFileLocation extends FileLocation {
 	@Override
 	public OutputStream getOutputStream() throws IOException {
 		if (!local) {
-			OutputStream os = new NjordOutputStream(owner, ruleName, ic, local);
+			OutputStream os = new NjordOutputStream(owner, ruleName, ic, local, exists);
 			return os;			
 		} else {
 			if (!fileHandle.exists()) {
