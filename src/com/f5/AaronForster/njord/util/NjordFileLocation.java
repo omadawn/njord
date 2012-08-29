@@ -32,9 +32,10 @@ public class NjordFileLocation extends FileLocation {
 	public String ruleDefinition = null;
 	public iControl.Interfaces ic = null;
 	public LocalLBRuleRuleDefinition rule = null;
+	public boolean exists = false; // Used to determine if the file needs to be created. IE is this a new file we've created or one we have loaded.
 	public boolean local = false;
 	public MainGuiWindow owner = null;
-	public File fileHandle = null;
+	public File fileHandle = null;	
 	
 	/**
 	 * FileLocation for an iRule on a BIGIP.
@@ -81,6 +82,9 @@ public class NjordFileLocation extends FileLocation {
 		this.ruleName = ruleName;
 		local = true;
 		fileHandle = localPath;
+		if (fileHandle.exists()) {
+			this.exists = true;
+		}
 	}
 	
 	/**
@@ -119,7 +123,12 @@ public class NjordFileLocation extends FileLocation {
 	@Override
 	public String getFileFullPath() {
 		// TODO Auto-generated method stub
-		return null;
+		if (local) {
+			return fileHandle.getAbsolutePath();
+		} else {
+			//Do something better here for remote.
+			return null;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -134,7 +143,7 @@ public class NjordFileLocation extends FileLocation {
 	 * @see org.fife.ui.rsyntaxtextarea.FileLocation#getInputStream()
 	 */
 	@Override
-	protected InputStream getInputStream() throws IOException {
+	public InputStream getInputStream() throws IOException {
 		if (!local) {
 			InputStream is = new ByteArrayInputStream( ruleDefinition.getBytes("UTF-8") );
 			return is;
@@ -149,7 +158,7 @@ public class NjordFileLocation extends FileLocation {
 	 * @see org.fife.ui.rsyntaxtextarea.FileLocation#getOutputStream()
 	 */
 	@Override
-	protected OutputStream getOutputStream() throws IOException {
+	public OutputStream getOutputStream() throws IOException {
 		if (!local) {
 			OutputStream os = new NjordOutputStream(owner, ruleName, ic, local);
 			return os;			
@@ -169,7 +178,8 @@ public class NjordFileLocation extends FileLocation {
 	public boolean isLocal() {
 		return local;
 	}
-
+	
+	//TODO: I think I can get rid of this.
 	public boolean isLocal(boolean local) {
 		this.local = local;
 		return this.local;
@@ -180,16 +190,20 @@ public class NjordFileLocation extends FileLocation {
 	 */
 	@Override
 	public boolean isLocalAndExists() {
-		return false;
+		if (local && exists) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 		
 	@Override
 	public boolean isRemote() {
-		return local;
+		return !local;
 	}
-
-	public boolean save() {
-		
-		return false;
-	}
+//
+//	public boolean save() {
+//		
+//		return false;
+//	}
 }

@@ -193,13 +193,13 @@ import com.f5.AaronForster.njord.util.f5ExceptionHandler;
  * At minimum there will be functionality to enable/disable pool members and virtual servers and manage what virtual servers iRules are attached to.
  * 
  * @author Aaron Forster @date 20120601
- * @version 0.8.4
+ * @version 0.8.5
  */
 public class MainGuiWindow implements ActionListener, TreeSelectionListener, TreeExpansionListener, TreeWillExpandListener {
 	public String logPrefix = "MainGuiWindow: ";
 	public String newline = "\n";
 	public boolean connectionInitialized = false;
-	public String njordVersion = "0.8.4";
+	public String njordVersion = "0.8.5";
 	public String bigIPVersion = "unknown"; // Version number has multiple dots in it so I can't do it as a number type. I'm sure there's some other type I can use somwhere that I could do a >< compair against.
 
 	//Default connection information if the user doesn't have a preferences file
@@ -561,7 +561,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	 * @param tree The tree under which to create the nodes.
 	 */
 	private void createNodes(NjordTreeNode thisTree) {
-		log.info(logPrefix + "Running createNodes");
+		log.debug(logPrefix + "Running createNodes");
 	    NjordTreeNode addRule = null;
 	    //TODO: Create a generic getSomethingList?
 	    //TODO: Figure out how to handle the long path of the iRule's full name. IE do I pull off the path and just show the name, do I have expandable folders for the folders in the path? I like that idea but only if I automatically have 'common' be expanded.
@@ -1155,28 +1155,28 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		return NjordRules;
 	}
 	
+	//I can probably get rid of this method completely
 	private JPanel createEditorPanel() {
-		//TODO: Instead of creating a new text editor every time we select an iRule I should perhaps create one earlier or do a use if exists, create if doesn't. Then when someone clicks on an iRule I can just populate the text editor with the contents of said iRule. Perhaps even save the contents of said text editor and then populate it with the new iRule.
     	JPanel editorPanel = new JPanel();
 		AbstractTokenMakerFactory atmf = (AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance();
 		atmf.putMapping("SYNTAX_STYLE_IRULES", "com.f5.AaronForster.njord.util.iRulesTokenMaker");
 		TokenMakerFactory.setDefaultInstance(atmf); //Don't know if I need this line or not
     	
-		//This text editor pane is no longer in use but I'm leaving it here for reference.
-    	nTextEditorPane = new TextEditorPane();
-    	nTextEditorPane.setSyntaxEditingStyle("SYNTAX_STYLE_IRULES");
-    	nTextEditorPane.setCodeFoldingEnabled(true);
-    	nTextEditorPane.setAntiAliasingEnabled(true);
-    	nTextEditorPane.setName("editorPane");
-    	SyntaxScheme scheme = nTextEditorPane.getSyntaxScheme();
-        scheme.getStyle(Token.FUNCTION).foreground = Color.MAGENTA;
-        Color operatorColor = new Color(880080);
-        scheme.getStyle(Token.OPERATOR).foreground = operatorColor;
+//		//This text editor pane is no longer in use but I'm leaving it here for reference.
+//    	nTextEditorPane = new TextEditorPane();
+//    	nTextEditorPane.setSyntaxEditingStyle("SYNTAX_STYLE_IRULES");
+//    	nTextEditorPane.setCodeFoldingEnabled(true);
+//    	nTextEditorPane.setAntiAliasingEnabled(true);
+//    	nTextEditorPane.setName("editorPane");
+//    	SyntaxScheme scheme = nTextEditorPane.getSyntaxScheme();
+//        scheme.getStyle(Token.FUNCTION).foreground = Color.MAGENTA;
+//        Color operatorColor = new Color(880080);
+//        scheme.getStyle(Token.OPERATOR).foreground = operatorColor;
     	
     	//TODO: change the name of this scrollpane to something more intelligent.
     	codeEditorScrollPane = new JScrollPane();
     	//Let's try this with TextEditorPane;
-    	codeEditorScrollPane.setViewportView(nTextEditorPane);
+//    	codeEditorScrollPane.setViewportView(nTextEditorPane);
     	GridBagConstraints gbc_codeEditorScrollPane = new GridBagConstraints();
     	gbc_codeEditorScrollPane.fill = GridBagConstraints.BOTH;
     	gbc_codeEditorScrollPane.gridwidth = 8;
@@ -1217,23 +1217,23 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
             );
 
     	editorPanel.setLayout(gl_EditorPanel);
-
-    	// A CompletionProvider is what knows of all possible completions, and
-        // analyzes the contents of the text area at the caret position to
-        // determine what completion choices should be presented. Most
-        // instances of CompletionProvider (such as DefaultCompletionProvider)
-        // are designed so that they can be shared among multiple text
-        // components.
-        CompletionProvider provider = createCompletionProvider();
-
-        // An AutoCompletion acts as a "middle-man" between a text component
-        // and a CompletionProvider. It manages any options associated with
-        // the auto-completion (the popup trigger key, whether to display a
-        // documentation window along with completion choices, etc.). Unlike
-        // CompletionProviders, instances of AutoCompletion cannot be shared
-        // among multiple text components.
-        AutoCompletion ac = new AutoCompletion(provider);
-        ac.install(nTextEditorPane);
+//
+//    	// A CompletionProvider is what knows of all possible completions, and
+//        // analyzes the contents of the text area at the caret position to
+//        // determine what completion choices should be presented. Most
+//        // instances of CompletionProvider (such as DefaultCompletionProvider)
+//        // are designed so that they can be shared among multiple text
+//        // components.
+//        CompletionProvider provider = createCompletionProvider();
+//
+//        // An AutoCompletion acts as a "middle-man" between a text component
+//        // and a CompletionProvider. It manages any options associated with
+//        // the auto-completion (the popup trigger key, whether to display a
+//        // documentation window along with completion choices, etc.). Unlike
+//        // CompletionProviders, instances of AutoCompletion cannot be shared
+//        // among multiple text components.
+//        AutoCompletion ac = new AutoCompletion(provider);
+//        ac.install(nTextEditorPane);
     	
     	return editorPanel;
 	}
@@ -1438,11 +1438,45 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	    NavPanel.updateUI(); // Forces NavPanel to re-evaluate it's contents
 	    btnNewiRule.setEnabled(true); //Now that we have iRules we can create a new one.
 	    
+	    buildLocalNodes(localiRulesCategory);
+	    
 	    //This is here until I can load the TextEditorPane with a new FileLocation.
 //		localRuleEditor.setText(localRuleDefinition);
 //		localRuleEditor.discardAllEdits(); //This prevents undo from 'undoing' the loading of the editor with an iRule
 	}
 	
+	
+	/**
+	 * Builds the local side of the navigation tree. At some point it might be nice to have a single method for local and 
+	 * remote or to have them return something but this is separate for now to simplify development and troubleshooting.
+	 */
+	public void buildLocalNodes(NjordTreeNode tree) {
+		// check to see that the local folder exists. 
+		//If not return nuthin'
+		//if so get the list of the files and create editors for them the way that we do for remote but with a local path.
+		JFileChooser fc = new JFileChooser();  
+		FileSystemView fv = fc.getFileSystemView();  
+		File documentsDir = fv.getDefaultDirectory();//I should move this to something global so I'm not getting it all the time.
+
+		String localiRulesDirPath = documentsDir.getAbsolutePath() + "/Njord/Local/iRules/";
+		File localiRulesDir = new File(localiRulesDirPath);
+		
+		File[] localiRules = null;
+		if (localiRulesDir.exists()) {
+			localiRules = localiRulesDir.listFiles(); //or perhaps I should use listFiles(fileFilter[])
+			if (localiRules != null ) {
+				//There are rules in this list let's add them to the tree
+				for (File iRule : localiRules) {
+					// Interestingly editing and saving are working fine but loading from disk is not
+					String iRulename = iRule.getName();
+					NjordFileLocation ruleLocation = new NjordFileLocation(this, iRulename, iRule); 
+			    	TextEditorPane ruleEditor = getEditorForRule(ruleLocation, iRulename);
+			    	NjordTreeNode addRule = new NjordTreeNode(ruleEditor);
+			    	tree.add(addRule);
+				}
+			}
+		}
+	}
 	/**
 	 * Sets the contents of the notices box. For sub classes to be able to send back a message to us to set.
 	 * @param message

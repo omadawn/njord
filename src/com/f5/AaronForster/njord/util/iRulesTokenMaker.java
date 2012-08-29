@@ -1,27 +1,33 @@
 package com.f5.AaronForster.njord.util;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.net.MalformedURLException;
+import java.net.URL;
 
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMap;
 import org.fife.ui.rsyntaxtextarea.modes.TclTokenMaker;
 
 import com.f5.AaronForster.njord.MainGuiWindow;
-import com.f5.AaronForster.njord.NjordiRuleDefinition;
 
 //Here's the thread that I used to figure this stuff out http://fifesoft.com/forum/viewtopic.php?f=10&t=268&p=1749#p1749
 public class iRulesTokenMaker extends TclTokenMaker {
 //	org.fife.ui.rsyntaxtextarea.TokenMap
 	TokenMap myWordsToHighlight = new TokenMap();
-	java.net.URL operatorsURL = MainGuiWindow.class.getResource("/resources/iRulesOperatorsUncategorized.txt"); // contains, matches_glob, etc
-	java.net.URL statementsURL = MainGuiWindow.class.getResource("/resources/iRulesStatementsUncategorized.txt"); // drop, pool and more
-	java.net.URL functionsURL = MainGuiWindow.class.getResource("/resources/iRulesFunctionsUncategorized.txt"); // findstr, class and others
-	java.net.URL commandsURL = MainGuiWindow.class.getResource("/resources/iRulesCommandsUncategorized.txt"); // HTTP::return etc etc
-	java.net.URL tclCommandsURL = MainGuiWindow.class.getResource("/resources/tclCommandsUncategorized.txt"); // Built in tcl commands
-
+	
+	String operatorsPath = "/resources/iRulesOperatorsUncategorized.txt";
+	String statementsPath = "/resources/iRulesStatementsUncategorized.txt"; // drop, pool and more
+	String functionsPath = "/resources/iRulesFunctionsUncategorized.txt"; // findstr, class and others
+	String commandsPath = "/resources/iRulesCommandsUncategorized.txt"; // HTTP::return etc etc
+	String tclCommandsPath = "/resources/tclCommandsUncategorized.txt"; // Built in tcl commands
 	
 	int operatorsClassification = Token.OPERATOR;
 	int statementsClassification = Token.RESERVED_WORD_2;
@@ -29,8 +35,9 @@ public class iRulesTokenMaker extends TclTokenMaker {
 	int commandsClassification = Token.RESERVED_WORD_2;
 	
 	public iRulesTokenMaker() {
-		initializeTokens();
+		initializeTokens(); // Now for said files let's build our various lists of tokens.
 
+		// Then let's include a few hand coded others which are used primarily for testing and developing the syntax highlighting scheme.
 		//TODO: I need to decide what to set my words to. I like the idea of setting the irules commands to FUNCTION and then just making function not be FECKING UGLY like it is in the default. Maybe I'll set it to purple.
 		myWordsToHighlight.put("ANNOTATION", Token.ANNOTATION);
 		myWordsToHighlight.put("VARIABLE", Token.VARIABLE);
@@ -53,10 +60,7 @@ public class iRulesTokenMaker extends TclTokenMaker {
 		myWordsToHighlight.put("two_derline", Token.RESERVED_WORD_2);
 	}
 	
-//	myWordsToHighlight.put("thisword", Token.IDENTIFIER);
-	
 	public void addToken(char[] array, int start, int end, int tokenType, int startOffset) {
-//		updateTokenMap();
 		   if (tokenType==Token.IDENTIFIER) { // I might also want to use FUNCTION. I'll have to decide
 		      int value = myWordsToHighlight.get(array, start, end); 
 		      if (value != -1) {
@@ -80,18 +84,40 @@ public class iRulesTokenMaker extends TclTokenMaker {
 	}
 	
 	private void initializeOperators() {
+//		File functionsFile = new File(operatorsURL.getPath());
+//		System.out.println("Looking for " + operatorsURL.getPath());
+//		if ( !functionsFile.exists() ) {
+//			System.out.println("Operators file doesn't exist!");
+//			return;
+//		} else {
+////			System.out.println("Functions file exists");
+//		}
+		BufferedReader reader = null;
 		try {
-		    BufferedReader in = new BufferedReader(new FileReader(operatorsURL.getPath()));
+//			InputStream stream = MainGuiWindow.class.getResourceAsStream(operatorsPath);
+//			InputStreamReader fileReader = new InputStreamReader(stream);
+//			BufferedReader reader = new BufferedReader(fileReader);  
+       
+            reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(operatorsPath)));
 		    String str;
-		    while ((str = in.readLine()) != null) {
+
+		    while ((str = reader.readLine()) != null) {
 		        String[] words = str.split(","); // split on commas
 		        for (String word : words) {
 		        	myWordsToHighlight.put(word, operatorsClassification);
 		        }
 		        
 		    }
-		    in.close();
 		} catch (IOException e) {
+		} finally {
+			try {
+				if (reader !=null) { 
+					reader.close();  
+				}
+			} catch (IOException e) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+				exceptionHandler.processException();
+			}
 		}
 		
 	}
@@ -103,18 +129,31 @@ public class iRulesTokenMaker extends TclTokenMaker {
 //		} else {
 //			System.out.println("Settings file exists");
 //		}
+		BufferedReader reader = null;
 		try {
-		    BufferedReader in = new BufferedReader(new FileReader(statementsURL.getPath()));
+//			InputStream stream = MainGuiWindow.class.getResourceAsStream(statementsPath);
+//			InputStreamReader fileReader = new InputStreamReader(stream);
+//			reader = new BufferedReader(fileReader);  
+            
+            reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(statementsPath)));
 		    String str;
-		    while ((str = in.readLine()) != null) {
+		    while ((str = reader.readLine()) != null) {
 		        String[] words = str.split(","); // split on commas
 		        for (String word : words) {
 		        	myWordsToHighlight.put(word, statementsClassification);
 		        }
 		        
 		    }
-		    in.close();
 		} catch (IOException e) {
+		} finally {
+			try {
+				if (reader !=null) { 
+					reader.close();  
+				}
+			} catch (IOException e) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+				exceptionHandler.processException();
+			}
 		}
 	}
 	
@@ -127,34 +166,60 @@ public class iRulesTokenMaker extends TclTokenMaker {
 //		} else {
 ////			System.out.println("Functions file exists");
 //		}
+		BufferedReader reader = null;
 		try {
-		    BufferedReader in = new BufferedReader(new FileReader(functionsURL.getPath()));
+//			InputStream stream = MainGuiWindow.class.getResourceAsStream(functionsPath);
+//			InputStreamReader fileReader = new InputStreamReader(stream);
+//			reader = new BufferedReader(fileReader);
+			
+			reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(functionsPath)));
 		    String str;
-		    while ((str = in.readLine()) != null) {
+		    while ((str = reader.readLine()) != null) {
 		        String[] words = str.split(","); // split on commas
 		        for (String word : words) {
 		        	myWordsToHighlight.put(word, functionsClassification);
 		        }
 		        
 		    }
-		    in.close();
 		} catch (IOException e) {
+		} finally {
+			try {
+				if (reader !=null) { 
+					reader.close();  
+				}
+			} catch (IOException e) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+				exceptionHandler.processException();
+			}
 		}
 	}
 	
 	private void initializeCommands() {
+		BufferedReader reader = null;
 		try {
-		    BufferedReader in = new BufferedReader(new FileReader(commandsURL.getPath()));
+//			InputStream stream = MainGuiWindow.class.getResourceAsStream(commandsPath);
+//			InputStreamReader fileReader = new InputStreamReader(stream);
+//			reader = new BufferedReader(fileReader); 
+			
+			reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(commandsPath)));
 		    String str;
-		    while ((str = in.readLine()) != null) {
+		    while ((str = reader.readLine()) != null) {
 		        String[] words = str.split(","); // split on commas
 		        for (String word : words) {
 		        	myWordsToHighlight.put(word, commandsClassification);
 		        }
 		        
 		    }
-		    in.close();
 		} catch (IOException e) {
+		} finally {
+			try {
+				if (reader !=null) { 
+					reader.close();  
+				}
+			} catch (IOException e) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+				exceptionHandler.processException();
+			}
 		}
 	}
 }
