@@ -1,7 +1,7 @@
 /**
  * 
  */
-package com.f5.AaronForster.njord.util;
+package com.f5.AaronForster.njord.ui;
 
 
 //UNG, this is NASTY, I think it will be easier to override LocalLBRuleRuleDefinition
@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import com.f5.AaronForster.njord.MainGuiWindow;
 import com.f5.AaronForster.njord.NjordiRuleDefinition;
+import com.f5.AaronForster.njord.util.NjordConstants;
 
 /**
  * @author forster
@@ -86,30 +87,21 @@ public class f5JavaGuiTree extends JTree {
 		// TODO Auto-generated constructor stub
 	}
 
-//	Sometimes, it is not feasible to override toString; in such a scenario you can override the convertValueToText of JTree to map the object from the model into a string that gets displayed.
+	/**
+	 * Converts the value of a contained object to text.
+	 * convertValueToText() is what the tree renderer's use in order to determine what to name an object within a jTree.
+	 * 
+	 * @see javax.swing.JTree#convertValueToText(java.lang.Object, boolean, boolean, boolean, int, boolean)
+	 */
 	public String convertValueToText(Object value, boolean selected,
 			boolean expanded, boolean leaf, int row, boolean hasFocus) {
-		//Value seems to be the 'tree node' object which actually contains the object I care about.
 		
-//		System.out.println("Value has: " + value.toString());
-//		log.debug("Value has: " + value.toString());  
-
+		NjordTreeNode node = (NjordTreeNode) value;
+		System.out.println("Node has: " + node.toString());
 		
-		// At this point I can't think of a scenario where we won't be getting a defaultMutableTreeNode so I feel safe doing this. We'll see.
-		DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
-//		log.debug("Node has: " + node.toString());
-//		System.out.println("Node has: " + node.toString());
-		
-		// Only try and get the object as an LocalLBRuleRuleDefinition if it's a leaf node
-		// This might get tricky if I have more than one type of object. Like virtuals or iApps.
-		if (node.isLeaf()) {
-		// neither instanceof nor getClass() have been very helpful.
-		//		if (value instanceof LocalLBRuleRuleDefinition) {
-//			LocalLBRuleRuleDefinition rule = (LocalLBRuleRuleDefinition) node.getUserObject();
-//			NjordiRuleDefinition rule = (NjordiRuleDefinition) node.getUserObject();
+		if (node.getNodeType() == NjordConstants.NODE_TYPE_IRULE) {
 			TextEditorPane rule = (TextEditorPane) node.getUserObject();
 			return rule.getName();  
-//			return rule.getRule_name();
 		} else {
 			return super.convertValueToText(value, selected, expanded, leaf, row, hasFocus);
 		}

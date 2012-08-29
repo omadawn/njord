@@ -9,16 +9,19 @@ import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMap;
 import org.fife.ui.rsyntaxtextarea.modes.TclTokenMaker;
 
+import com.f5.AaronForster.njord.MainGuiWindow;
 import com.f5.AaronForster.njord.NjordiRuleDefinition;
 
 //Here's the thread that I used to figure this stuff out http://fifesoft.com/forum/viewtopic.php?f=10&t=268&p=1749#p1749
 public class iRulesTokenMaker extends TclTokenMaker {
 //	org.fife.ui.rsyntaxtextarea.TokenMap
 	TokenMap myWordsToHighlight = new TokenMap();
-	String operatorsFilePath = "resources/iRulesOperatorsUncategorized.txt"; // contains, matches_glob, etc
-	String statementsFilePath = "resources/iRulesStatementsUncategorized.txt"; // drop, pool and more
-	String functionsFilePath = "resources/iRulesFunctionsUncategorized.txt"; // findstr, class and others
-	String commandsFilePath = "resources/iRulesCommandsUncategorized.txt"; // HTTP::return etc etc
+	java.net.URL operatorsURL = MainGuiWindow.class.getResource("/resources/iRulesOperatorsUncategorized.txt"); // contains, matches_glob, etc
+	java.net.URL statementsURL = MainGuiWindow.class.getResource("/resources/iRulesStatementsUncategorized.txt"); // drop, pool and more
+	java.net.URL functionsURL = MainGuiWindow.class.getResource("/resources/iRulesFunctionsUncategorized.txt"); // findstr, class and others
+	java.net.URL commandsURL = MainGuiWindow.class.getResource("/resources/iRulesCommandsUncategorized.txt"); // HTTP::return etc etc
+	java.net.URL tclCommandsURL = MainGuiWindow.class.getResource("/resources/tclCommandsUncategorized.txt"); // Built in tcl commands
+
 	
 	int operatorsClassification = Token.OPERATOR;
 	int statementsClassification = Token.RESERVED_WORD_2;
@@ -77,16 +80,8 @@ public class iRulesTokenMaker extends TclTokenMaker {
 	}
 	
 	private void initializeOperators() {
-		File operatorsFile = new File(operatorsFilePath);
-
-//		if ( !operatorsFile.exists() ) {
-//			System.out.println("Operators file doesn't exist!");
-//			return;
-//		} else {
-////			System.out.println("Settings file exists");
-//		}
 		try {
-		    BufferedReader in = new BufferedReader(new FileReader(operatorsFilePath));
+		    BufferedReader in = new BufferedReader(new FileReader(operatorsURL.getPath()));
 		    String str;
 		    while ((str = in.readLine()) != null) {
 		        String[] words = str.split(","); // split on commas
@@ -102,8 +97,6 @@ public class iRulesTokenMaker extends TclTokenMaker {
 	}
 	
 	private void initializeStatements() {
-		File statementsFile = new File(statementsFilePath);
-
 //		if ( !statementsFile.exists() ) {
 //			System.out.println("Statements file doesn't exist!");
 //			return;
@@ -111,7 +104,7 @@ public class iRulesTokenMaker extends TclTokenMaker {
 //			System.out.println("Settings file exists");
 //		}
 		try {
-		    BufferedReader in = new BufferedReader(new FileReader(statementsFilePath));
+		    BufferedReader in = new BufferedReader(new FileReader(statementsURL.getPath()));
 		    String str;
 		    while ((str = in.readLine()) != null) {
 		        String[] words = str.split(","); // split on commas
@@ -126,7 +119,7 @@ public class iRulesTokenMaker extends TclTokenMaker {
 	}
 	
 	private void initializeFunctions() {
-		File functionsFile = new File(functionsFilePath);
+//		File functionsFile = new File(functionsFilePath);
 
 //		if ( !functionsFile.exists() ) {
 //			System.out.println("Functions file doesn't exist!");
@@ -135,7 +128,7 @@ public class iRulesTokenMaker extends TclTokenMaker {
 ////			System.out.println("Functions file exists");
 //		}
 		try {
-		    BufferedReader in = new BufferedReader(new FileReader(functionsFilePath));
+		    BufferedReader in = new BufferedReader(new FileReader(functionsURL.getPath()));
 		    String str;
 		    while ((str = in.readLine()) != null) {
 		        String[] words = str.split(","); // split on commas
@@ -150,16 +143,8 @@ public class iRulesTokenMaker extends TclTokenMaker {
 	}
 	
 	private void initializeCommands() {
-		File commandsFile = new File(commandsFilePath);
-
-		if ( !commandsFile.exists() ) {
-			System.out.println("Commands file doesn't exist!");
-			return;
-		} else {
-//			System.out.println("Commands file exists");
-		}
 		try {
-		    BufferedReader in = new BufferedReader(new FileReader(commandsFilePath));
+		    BufferedReader in = new BufferedReader(new FileReader(commandsURL.getPath()));
 		    String str;
 		    while ((str = in.readLine()) != null) {
 		        String[] words = str.split(","); // split on commas

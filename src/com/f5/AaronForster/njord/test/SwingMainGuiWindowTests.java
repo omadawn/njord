@@ -178,7 +178,7 @@ public class SwingMainGuiWindowTests {
 	public void testListiRules() {
 		window.btnGetiRules.doClick();
         DefaultMutableTreeNode node = (DefaultMutableTreeNode)
-        		window.top.getLastLeaf(); 
+        		window.remoteTree.getLastLeaf(); 
         NjordiRuleDefinition nodeInfo = (NjordiRuleDefinition) node.getUserObject();
         //I might be able to get away with stopping here and this will fail if we haven't gotten an object of type NjordiRuleDefinition
         //TODO: this will fail on V10 machines. Gotta make sure this test runs against a v11 box.
@@ -193,12 +193,12 @@ public class SwingMainGuiWindowTests {
 	@Test
 	public void testModifyExistingiRule() {
 		window.btnGetiRules.doClick();
-		int numrules = window.top.getChildCount();
+		int numrules = window.remoteTree.getChildCount();
 		for(int i=1; i<numrules +1; i++){
 			
 			log.info("Count is: " + i);
 			DefaultMutableTreeNode node = (DefaultMutableTreeNode)
-					window.top.getChildAt(i); // This is the branch node "iRules" //TODO: Fix it so I'm actually getting leaf nodes.
+					window.remoteTree.getChildAt(i); // This is the branch node "iRules" //TODO: Fix it so I'm actually getting leaf nodes.
 	        NjordiRuleDefinition nodeInfo = (NjordiRuleDefinition) node.getUserObject();
 	        log.info("Log name is: " + nodeInfo.getName());
 	        if (nodeInfo.getName() == "/Common/junit_test_irule") {

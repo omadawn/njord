@@ -1,4 +1,4 @@
-package com.f5.AaronForster.njord.util;
+package com.f5.AaronForster.njord.ui;
 
 import java.awt.Component;
 import java.awt.event.ActionEvent;

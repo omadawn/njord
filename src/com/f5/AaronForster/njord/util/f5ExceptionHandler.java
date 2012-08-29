@@ -195,23 +195,14 @@ public class f5ExceptionHandler {
 //	    }
 
 		
-		
-//		// Change this
-//	} catch (RemoteException e) {
-//		// TODO Auto-generated catch block
-//		e.printStackTrace();
-//	} catch (ServiceException e) {
-//		// TODO Auto-generated catch block
-//		e.printStackTrace();
-//	}
-//	// to this (Not Real Code)
-//	} catch (RemoteException e) {
-//		log.stuff("Caught RemoteException " + e + " at " whereExceptionCaught);)
-//	} catch (ServiceException e) {
-//		log.stuff("Caught RemoteException " + e + " at " whereExceptionCaught);)
-//	}
-	
-	
+		//TODO: create processRemoteException(RemoteException e) here is it's javaDoc
+		/*
+		 * RemoteException is so common I wrote a whole separate method to deal with it. RemoteException is what all response messages 
+		 * from the BIGIP will come back as such as errors that the object you are trying to create already exists or that the syntax 
+		 * of the iRule you are trying to save is incorrect.
+		 *  
+		 * @param e A RemoteException
+		 */
 	
 		
 	}

@@ -24,6 +24,9 @@ import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import java.awt.Insets;
 
 // Currently this code will produce a bunch of different dialogs. I need to add one that will produce the prefs dialog I am going for.
 
@@ -40,9 +43,12 @@ public class iRuleDialog extends JDialog implements ActionListener, PropertyChan
     private String btnString2 = "Cancel";
 
 	public JFrame frame;
+	public JPanel panel = null;
 	public JTextField txtNewiRuleName;
 	public JTextField txtNewiRulePartition;
 	public JPanel panel_1;
+	
+	public JLabel lblPartition = null;
     
     //TODO: Get rid of this method.
     /**
@@ -87,71 +93,67 @@ public class iRuleDialog extends JDialog implements ActionListener, PropertyChan
 		frame.getContentPane().add(panel_1);
 		panel_1.setLayout(new BorderLayout(10, 10));
 		
-		Component verticalStrut = Box.createVerticalStrut(20);
-		panel_1.add(verticalStrut, BorderLayout.NORTH);
-		
-		Component horizontalStrut = Box.createHorizontalStrut(20);
-		panel_1.add(horizontalStrut, BorderLayout.WEST);
-		
-		JPanel panel = new JPanel();
+		panel = new JPanel();
 		panel_1.add(panel);
-		panel.setLayout(new FormLayout(new ColumnSpec[] {
-				FormFactory.RELATED_GAP_COLSPEC,
-				FormFactory.DEFAULT_COLSPEC,
-				FormFactory.RELATED_GAP_COLSPEC,
-				ColumnSpec.decode("default:grow"),
-				FormFactory.RELATED_GAP_COLSPEC,
-				FormFactory.DEFAULT_COLSPEC,
-				FormFactory.RELATED_GAP_COLSPEC,
-				ColumnSpec.decode("default:grow"),},
-				new RowSpec[] {
-				FormFactory.RELATED_GAP_ROWSPEC,
-				FormFactory.DEFAULT_ROWSPEC,
-				FormFactory.RELATED_GAP_ROWSPEC,
-				FormFactory.DEFAULT_ROWSPEC,
-				FormFactory.RELATED_GAP_ROWSPEC,
-				FormFactory.DEFAULT_ROWSPEC,
-				FormFactory.RELATED_GAP_ROWSPEC,
-				FormFactory.DEFAULT_ROWSPEC,
-				FormFactory.RELATED_GAP_ROWSPEC,
-				FormFactory.DEFAULT_ROWSPEC,
-				FormFactory.RELATED_GAP_ROWSPEC,
-				FormFactory.DEFAULT_ROWSPEC,
-				FormFactory.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),
-				FormFactory.RELATED_GAP_ROWSPEC,
-				RowSpec.decode("default:grow"),}));
+		GridBagLayout gbl_panel = new GridBagLayout();
+		gbl_panel.columnWidths = new int[]{31, 152, 31, 160, 0};
+		gbl_panel.rowHeights = new int[]{31, 14, 31, 20, 20, 0};
+		gbl_panel.columnWeights = new double[]{0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		gbl_panel.rowWeights = new double[]{0.0, 0.0, 0.0, 0.0, 0.0, Double.MIN_VALUE};
+		panel.setLayout(gbl_panel);
 		
-		JLabel lblNewiRule = new JLabel("New iRule");
-		panel.add(lblNewiRule, "4, 4, 5, 1");
+//		JLabel lblNewiRule = new JLabel("New iRule");
+//		GridBagConstraints gbc_lblNewiRule = new GridBagConstraints();
+//		gbc_lblNewiRule.anchor = GridBagConstraints.NORTH;
+//		gbc_lblNewiRule.fill = GridBagConstraints.HORIZONTAL;
+//		gbc_lblNewiRule.insets = new Insets(0, 0, 5, 0);
+//		gbc_lblNewiRule.gridwidth = 3;
+//		gbc_lblNewiRule.gridx = 1;
+//		gbc_lblNewiRule.gridy = 1;
+//		panel.add(lblNewiRule, gbc_lblNewiRule);
 		
 		JLabel lblRuleName = new JLabel("New iRule Name");
 		lblRuleName.setToolTipText("The short name of the iRule");
-		panel.add(lblRuleName, "4, 8");
+		GridBagConstraints gbc_lblRuleName = new GridBagConstraints();
+		gbc_lblRuleName.fill = GridBagConstraints.HORIZONTAL;
+		gbc_lblRuleName.insets = new Insets(0, 0, 5, 5);
+		gbc_lblRuleName.gridx = 1;
+		gbc_lblRuleName.gridy = 3;
+		panel.add(lblRuleName, gbc_lblRuleName);
 		
 		txtNewiRuleName = new JTextField();
 		txtNewiRuleName.setText("new_rule");
 		txtNewiRuleName.setName("iRuleNameTextbox");
-		panel.add(txtNewiRuleName, "8, 8, fill, default");
+		GridBagConstraints gbc_txtNewiRuleName = new GridBagConstraints();
+		gbc_txtNewiRuleName.anchor = GridBagConstraints.NORTH;
+		gbc_txtNewiRuleName.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtNewiRuleName.insets = new Insets(0, 0, 5, 0);
+		gbc_txtNewiRuleName.gridx = 3;
+		gbc_txtNewiRuleName.gridy = 3;
+		panel.add(txtNewiRuleName, gbc_txtNewiRuleName);
 		txtNewiRuleName.setColumns(10);
 		
 		//TODO: Make this contain asterisks
 		//TODO: Potentially add a shoulder surfing replace display text as you type with asterisks.
 		//TODO: Make sure not to write asterisks to the password variable stored in preferences
-		JLabel lblPartition = new JLabel("Partition");
+		lblPartition = new JLabel("Partition");
 		lblPartition.setToolTipText("The administrative partition  to place in. We assume /Common");
-		panel.add(lblPartition, "4, 10");
+		GridBagConstraints gbc_lblPartition = new GridBagConstraints();
+		gbc_lblPartition.fill = GridBagConstraints.HORIZONTAL;
+		gbc_lblPartition.insets = new Insets(0, 0, 0, 5);
+		gbc_lblPartition.gridx = 1;
+		gbc_lblPartition.gridy = 4;
+		panel.add(lblPartition, gbc_lblPartition);
 		
 		txtNewiRulePartition = new JTextField();
 		txtNewiRulePartition.setText("/Common");
-		panel.add(txtNewiRulePartition, "8, 10, fill, default");
+		GridBagConstraints gbc_txtNewiRulePartition = new GridBagConstraints();
+		gbc_txtNewiRulePartition.anchor = GridBagConstraints.NORTH;
+		gbc_txtNewiRulePartition.fill = GridBagConstraints.HORIZONTAL;
+		gbc_txtNewiRulePartition.gridx = 3;
+		gbc_txtNewiRulePartition.gridy = 4;
+		panel.add(txtNewiRulePartition, gbc_txtNewiRulePartition);
 		txtNewiRulePartition.setColumns(10);
-		
-		Component horizontalStrut_1 = Box.createHorizontalStrut(20);
-		panel_1.add(horizontalStrut_1, BorderLayout.EAST);
-		
-		Component verticalStrut_1 = Box.createVerticalStrut(20);
-		panel_1.add(verticalStrut_1, BorderLayout.SOUTH);
         
         optionPane = new JOptionPane(array1,
                                     JOptionPane.QUESTION_MESSAGE,

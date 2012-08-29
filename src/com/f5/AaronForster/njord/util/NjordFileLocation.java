@@ -5,12 +5,19 @@ package com.f5.AaronForster.njord.util;
 
 import iControl.LocalLBRuleRuleDefinition;
 
+import java.io.BufferedInputStream;
+import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.rmi.RemoteException;
 
+import org.eclipse.osgi.framework.adaptor.FilePath;
 import org.fife.ui.rsyntaxtextarea.FileLocation;
 import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 
@@ -27,49 +34,61 @@ public class NjordFileLocation extends FileLocation {
 	public LocalLBRuleRuleDefinition rule = null;
 	public boolean local = false;
 	public MainGuiWindow owner = null;
-	
-	public NjordFileLocation(String ruleName, iControl.Interfaces ic) {
-//		ruleName = rule; //.getName();
-//		ruleDefinition = rule.getRule_definition();
-		this.ruleName = ruleName;
-		this.ic = ic;
-		getRule(ruleName);
-	}
+	public File fileHandle = null;
 	
 	/**
 	 * FileLocation for an iRule on a BIGIP.
 	 * 
-	 * @param mainWindow
-	 * @param ruleName
-	 * @param ic
+	 * @param mainWindow A handle for the main window in case we need to send notices/etc.
+	 * @param ruleName The name of the iRule.
+	 * @param ic An initialized iControl object to fetch rules/etc.
 	 */
 	public NjordFileLocation(MainGuiWindow mainWindow, String ruleName, iControl.Interfaces ic) {
 		owner = mainWindow;
 		this.ruleName = ruleName;
 		this.ic = ic;
 		local = false;
-		getRule(ruleName);
+		getRuleFromBIGIP(ruleName);
 	}
 	
 	/**
+	 * Soon to be deprecated
 	 * FileLocation for a locally created (And thus not on a BIGIP iRule. Giving us a Rule Definition tells us to set the 
 	 * local variable which will cause us to create the iRule on the server when we save it instead of saving it.
 	 * 
-	 * @param mainWindow
-	 * @param ruleName
-	 * @param ic
-	 * @param ruleDefinition
+	 * @param mainWindow A handle for the main window in case we need to send notices/etc.
+	 * @param ruleName The name of the iRule.
+	 * @param ic An initialized iControl object to fetch rules/etc.
+	 * @param ruleDefinition The text of the iRule.
 	 */
 	public NjordFileLocation(MainGuiWindow mainWindow, String ruleName, iControl.Interfaces ic, String ruleDefinition) {
 		owner = mainWindow;
 		this.ruleName = ruleName;
 		this.ic = ic;
 		local = true;
-//		getRule(ruleName);
 		this.ruleDefinition = ruleDefinition;
 	}
 
-	public void getRule(String ruleName) {
+	/**
+	 * A constructor for creating local iRules which will be saved on the local file system instead of the BIGIP.
+	 * 
+	 * @param mainWindow A handle for the main window in case we need to send notices/etc.
+	 * @param ruleName The name of the iRule.
+	 * @param localPath A java IO file.
+	 */
+	public NjordFileLocation(MainGuiWindow mainWindow, String ruleName, File localPath) {
+		owner = mainWindow;
+		this.ruleName = ruleName;
+		local = true;
+		fileHandle = localPath;
+	}
+	
+	/**
+	 * Fetches the actual rule content from the BIGIP.
+	 * 
+	 * @param ruleName
+	 */
+	public void getRuleFromBIGIP(String ruleName) {
 		String[] ruleNames = { ruleName };
 		
 		try {
@@ -85,12 +104,13 @@ public class NjordFileLocation extends FileLocation {
 		ruleDefinition = rule.getRule_definition();
 		
 	}
+	
 	/* (non-Javadoc)
 	 * @see org.fife.ui.rsyntaxtextarea.FileLocation#getActualLastModified()
 	 */
 	@Override
 	protected long getActualLastModified() {
-		return  TextEditorPane.LAST_MODIFIED_UNKNOWN;
+		return TextEditorPane.LAST_MODIFIED_UNKNOWN;
 	}
 
 	/* (non-Javadoc)
@@ -115,8 +135,14 @@ public class NjordFileLocation extends FileLocation {
 	 */
 	@Override
 	protected InputStream getInputStream() throws IOException {
-		InputStream is = new ByteArrayInputStream( ruleDefinition.getBytes("UTF-8") );
-		return is;
+		if (!local) {
+			InputStream is = new ByteArrayInputStream( ruleDefinition.getBytes("UTF-8") );
+			return is;
+		} else {
+			InputStream is = new BufferedInputStream(new FileInputStream(fileHandle));
+			return is;
+		}
+		
 	}
 
 	/* (non-Javadoc)
@@ -124,9 +150,16 @@ public class NjordFileLocation extends FileLocation {
 	 */
 	@Override
 	protected OutputStream getOutputStream() throws IOException {
-//		OutputStream os = new ByteArrayOutputStream();
-		OutputStream os = new NjordOutputStream(owner, ruleName, ic, local);
-		return os;
+		if (!local) {
+			OutputStream os = new NjordOutputStream(owner, ruleName, ic, local);
+			return os;			
+		} else {
+			if (!fileHandle.exists()) {
+				fileHandle.createNewFile();
+			}
+			OutputStream os = new FileOutputStream(fileHandle);
+			return os;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -147,7 +180,6 @@ public class NjordFileLocation extends FileLocation {
 	 */
 	@Override
 	public boolean isLocalAndExists() {
-		// Always return false because local only iRules will never exist.
 		return false;
 	}
 		
