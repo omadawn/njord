@@ -195,85 +195,247 @@ import com.f5.AaronForster.njord.util.f5ExceptionHandler;
  * @version 0.8.6
  */
 public class MainGuiWindow implements ActionListener, TreeSelectionListener, TreeExpansionListener, TreeWillExpandListener {
+	/**
+	 * Prepended to log messages to show what portion of code is currently logging.
+	 */
 	public String logPrefix = "MainGuiWindow: ";
-	public String newline = "\n";
+	/**
+	 * Holds the line separator string for the os we're running on.
+	 */
+	public String nl = System.getProperty("line.separator");
+	/**
+	 * Tells us if our connection to the BIGIP has been successfully initialized and validated.
+	 */
 	public boolean connectionInitialized = false;
+	/**
+	 * The version of Njord that we are.
+	 */
 	public String njordVersion = "0.8.6";
+	/**
+	 * Holds the version of TMOS running on the BIGIP that we have connected to.
+	 */
 	public String bigIPVersion = "unknown"; // Version number has multiple dots in it so I can't do it as a number type. I'm sure there's some other type I can use somwhere that I could do a >< compair against.
-
+	
+	//Initial default settings which may get overridden later.
 	//Default connection information if the user doesn't have a preferences file
+	/**
+	 * The initial default IP address that will be populated in the connections dialog if a user preference file does not already exist. This is the default for a BIGIP.
+	 */
 	public String iIPAddress = "192.168.1.245";
+	/**
+	 * The initial default port number that will be populated in the connections dialog if a user preference file does not already exist. This is the default for a BIGIP.
+	 */
 	public long iPort = 443;
+	/**
+	 * The initial default administrative account that will be populated in the connections dialog if a user preference file does not already exist. This is the default for a BIGIP.
+	 */
 	public String iUserName = "admin";
+	/**
+	 * The initial default administrative password that will be populated in the connections dialog if a user preference file does not already exist. This is the default for a BIGIP.
+	 */
 	public String iPassword = "admin";
 	
-	public String userHome = null; //Stores the user's home directory path. Will probably get rid of this when we switch to using the right java preferences module
-	
-    // Let's not initialize it yet.
-	public iControl.Interfaces ic = new iControl.Interfaces(); //From Assembly
-	
-	//iControl.BigIP from the maven wsdl thingy is reasonably equivalent to iControl.Interfaces from the iControl 
-	//	'Assembly' available on DevCentral.
-    
-	public String initialNotificationsBoxText = "Welcome to Njord the java iRules editor.\r\n\r\nNjord currently will only edit LTM iRules. Apologies, this will be resolved soon.\r\n\r\nPlease be forgiving as this is still a beta product.\r\n\r\nUse the Get iRules button to fetch your iRules from the server. Please note that Njord is not an official F5 product it is just written by someone who happens to work there. It comes with no warranty or guarantee. Any comments or questions about Njord can be directed to it's author Aaron Forster a.forster@f5.com.\r\n\r\nConnections settings will be saved to ${home}/.f5/njord/settings.properties you can edit this file or change your settings with the connections menu.\r\n\r\nIf autocompletion and syntax highlighting don't seem to be working properly ensure that the resources directory is in the same directory as the njord jar file.";
+	/**
+	 * This populates the 'splash screen' notices box on startup that a user sees.
+	 */
+	public String initialNotificationsBoxText = "Welcome to Njord the java iRules editor." + nl + nl + "Njord currently will only " +
+			"edit LTM iRules. Apologies, this will be resolved soon." + nl + nl + "Please be forgiving as this is still a beta " + 
+			"product." + nl + nl + "Use the Get iRules button to fetch your iRules from the server. Please note that Njord is not an " +
+					"official F5 product it is just written by someone who happens to work there. It comes with no warranty or guarantee." +
+					" Any comments or questions about Njord can be directed to it's author Aaron Forster a.forster@f5.com." + nl + nl + 
+					"Connections settings will be saved to ${home}/.f5/njord/settings.properties you can change your settings with the " +
+					"connections menu.";
+	/**
+	 * The initial text in the notices box. The notices box is where Njord Communicates back to the end user.
+	 */
 	public String initialNoticesTextboxText = "Welcome to Njord v" + njordVersion;
 	
+	//Environment items
+	/**
+	 * The user's default home directory path.
+	 */
+	public String userHome = null;
+	
+    /**
+     * The icontrol interface object for interacting with a BIGIP.
+     */
+	public iControl.Interfaces ic = new iControl.Interfaces();
+    
+	//iRule Items.
+	/**
+	 * A temporary holder for the iRule that is currently selected and being edited.
+	 */
 	public TextEditorPane currentSelectedRule = null;
+	/**
+	 * A text list of the iRules found on the BIGIP.
+	 */
 	public List<String> iRuleList = new ArrayList<String>();	
 	
-	//ALL THE SWING ITEMS SHOULD GO IN HERE:
+	//ALL THE SWING ITEMS SHOULD BE HERE
 	public JFrame frame;
 	//private For the progress bar
-	public JProgressBar progressBar;
-	
+	/**
+	 * The progress bar at the bottom of the screen. This will be removed in future versions.
+	 */
+	public JProgressBar progressBar; // Get rid of this
+	/**
+	 * The primary menu bar which holds the connections menu and more.
+	 */
 	public JMenuBar menuBar = null;
+	/**
+	 * The swing component that represents the 'Edit Connection Settings' Menu.
+	 */
 	public JMenuItem mntmEditSettings = null;
-	public JToolBar actionBar = new JToolBar(); // Will hold buttons for things like save
-	public JTextPane defaultResultsDevCentralURLTextPane = null;
-	public JLabel defaultResultsDevCentralURLLabel = null;
-	public JTextPane txtNotificationsTextBox = new JTextPane();
-	public JButton defaultTextPaneConnectButton = null;
+	/**
+	 * The Connect button with the connections menu.
+	 */
 	public JMenuItem mntmConnect = null;
+	/**
+	 * The action bar which holds buttons for common tasks. 'Get iRules,' 'Save,' etc.
+	 */
+	public JToolBar actionBar = new JToolBar(); // Will hold buttons for things like save
+	/**
+	 * Above the notifications text box is a link to DevCentral.
+	 */
+	public JTextPane defaultResultsDevCentralURLTextPane = null;
+	/**
+	 * A label which sits above the DevCentral URL link.
+	 */
+	public JLabel defaultResultsDevCentralURLLabel = null;
+	/**
+	 * The Notifications box holds messages from the developer to users of Njord.
+	 */
+	public JTextPane txtNotificationsTextBox = new JTextPane();
+	/**
+	 * The connection button on the initial spash screen.
+	 */
+	public JButton defaultTextPaneConnectButton = null;
+	/**
+	 * The notices text box is how Njord comminicates back to the end user.
+	 */
 	public JTextArea resultsPanelNoticesBox = new JTextArea();	//This is where we put messages
+	/**
+	 * The 'Get iRUles' button.
+	 */
 	public JButton btnGetiRules = null;
+	/**
+	 * The 'New iRule' button.
+	 */
 	public JButton btnNewiRule = null;
+	/**
+	 * The 'Save' button.
+	 */
 	public JButton btnActionSave = null;
+	/**
+	 * The 'Delete iRule' button.
+	 */
 	public JButton btnDeleteiRule = null;
+	/**
+	 * The 'Deploy to BIGIP' button.
+	 */
 	public JButton btnDeployiRule = null;
 	
 	//Navigation Tree items
-	public f5JavaGuiTree tree = null;
-	public NjordTreeNode top = null; //The true top of the nav tree which actually will be hidden.
-	public NjordTreeNode remoteTree = null; //Will hold the remote portion of the Jtree
-	public NjordTreeNode localTree = null; //Will hold the local files portion of the navigation jtree.
-	public NjordTreeNode remoteiRulesCategory = null; // This is part of the navigation tree and here from an initial attempt to decouple building the tree and connecting to the BIGIP. I will probably remove it.
+	/**
+	 * navigationTree is the JTree that holds the list of iRules and all that which we are going to work on.
+	 */
+	public f5JavaGuiTree navigationTree = null;
+	/**
+	 * The true top of the navigation tree which allows us to appear to have two separate trees without screwing up the gui.
+	 */
+	public NjordTreeNode top = null;
+	/**
+	 * Holds top of the portion of the JTree derived from the BIGIP.
+	 */
+	public NjordTreeNode remoteTree = null;
+	/**
+	 * Holds top of the portion of the JTree derived from local resources.
+	 */
+	public NjordTreeNode localTree = null;
+	/**
+	 * Holds the 'iRules' directory which contains remote iRules.
+	 */
+	public NjordTreeNode remoteiRulesCategory = null;
+	/**
+	 * Holds the 'iRules' directory which contains local iRules if there are any.
+	 */
 	public NjordTreeNode localiRulesCategory = null;
+	/**
+	 * This is a tree path which corresponds to the remote iRules directory. This is needed due to difficulties figuring out the syntax 
+	 * to identify a given JTree node.
+	 */
 	public TreePath remoteiRulesPath = null;
+	/**
+	 * This is a tree path which corresponds to the local iRules directory. This is needed due to difficulties figuring out the syntax 
+	 * to identify a given JTree node.
+	 */
 	public TreePath localiRulesPath = null;
-	public NjordTreeNode dummyParent = null;
-	public JPanel NavPanel = new JPanel(); // This is the main panel for the LHS navigation tree
+	/**
+	 * A JPanel which occupies the main LHS of the application. Currently only the navScrollPane will really ever get stuck in there but
+	 * it gives us the ability to swap out some other navigation items without destroying the gui.
+	 */
+	public JPanel NavPanel = new JPanel();
+	/**
+	 * A JScrollPane which contains the navigation tree. This allows us to automatically add scroll bars if the conent of the navigation 
+	 * tree becomes either longer or wider than the current size of the pane.
+	 */
 	public JScrollPane navScrollPane = null; //new JScrollPane();
-	
+	/**
+	 * The primary user interaction pane for the appliation. Could contain the initial notifications pane or an editor of some sort.
+	 */
 	public JPanel resultsPanel = null;
+	/**
+	 * The primary split pane which gives us the LHS/RHS of the application.
+	 */
 	public JSplitPane splitPane = new JSplitPane();
+	/**
+	 * The results split pane is the primary RHS of the application which is split top to bottom giving us the primary results panel 
+	 * above and the notices pane below.
+	 */
 	public JSplitPane resultsSPlitPane = new JSplitPane();
+	/**
+	 * A deprecated RSTA TextEditorPane from when we were only creating one and swapping out the text from within.
+	 */
 	public TextEditorPane nTextEditorPane = null;
-	
+	/**
+	 * EditorPanel takes over the top of the resutlts split pane. It will contain a scrol panel which will be the actual contaner for our
+	 * editor panes.
+	 */
 	public JPanel EditorPanel = null;
+	/**
+	 * A scroll panel which is where we will swap our editors in and out of to give us
+	 * the ability to edit more than one iRule at a time without loosing our undo buffer, clean/dirty status or more.
+	 */
 	public JScrollPane codeEditorScrollPane = null;
 	
 	//Unclear what these are used for
+	/**
+	 * I have no idea what this is for.
+	 */
 	public JTextArea output;
+	/**
+	 * I have no idea what this is for.
+	 */
 	public JScrollPane scrollPane;
 //	private JScrollPane navScrollPane = new JScrollPane();
-
+	/**
+	 * A small label in the bottom RHS of the application which should reflect our connected/disconnected status.
+	 */
 	public JLabel lblStatusLabel = new JLabel();
 	
 	//Dialog popups
+	/**
+	 * Will hold the Connections preferences dialog box. This should be renamed to reflect that it is for connections since there 
+	 * will be other application preferences in the future.
+	 */
 	public PreferencesDialog preferencesDialog;
+	/**
+	 * The new irule dialog pop up window.
+	 */
 	public iRuleDialog newiRuleDialog;
 	
 	//## Editor colors
+	//TODO: These should all be moved to the constants class.
 	//These are good enough for now.
 	//TODO: Figure out how to define the regex scheme so that it catches those.
 	public Color annotationColor = Color.decode("#646464");
@@ -290,22 +452,35 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	public Color bracketColor = Color.decode("#990099");
 	
 	// Make Linkable items
-//	private static final String LABEL_TEXT = "For further information visit:";
-//	private static final String A_VALID_LINK = "http://stackoverflow.com";
+	/**
+	 * The beginning of an HTML link. <a href="
+	 */
 	private static final String A_HREF = "<a href=\"";
+	/**
+	 * The first closing bracked of an HTML link. \>.
+	 */
 	private static final String HREF_CLOSED = "\">";
+	/**
+	 * The closing item for an HTML link. </a>.
+	 */
 	private static final String HREF_END = "</a>";
+	/**
+	 * An hpen HTML tag.
+	 */
 	private static final String HTML = "<html>";
+	/**
+	 * The closing HTML tag.
+	 */
 	private static final String HTML_END = "</html>";
 
 	//slf4j logger factory
+	/**
+	 * Holds our logger factory for SLF4J.
+	 */
 	final Logger log = LoggerFactory.getLogger(MainGuiWindow.class);
     //TODO: Go to http://www.slf4j.org/manual.html and see what sort of config file I need to use to make this work.
 	
-	// This would be how I would configure log4j to use a properties file for configuration but I'm not sure how I should do it with the whole slf4j thing.
-//	PropertyConfigurator.configure(args[0]);
-	
-	/*
+	/**
 	 * Launch the application.
 	 */
 	public static void main(String[] args) {
@@ -329,17 +504,17 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		});
 	}
 
-	/*
+	/**
 	 * The default constructor just runs initialize() which builds most of the GUI.
 	 */
 	public MainGuiWindow() {
-		initialize();
+		buildMainGUI();
 	}
 
 	/**
-	 * Initialize the contents of the frame. It seems a little poorly named. We're actually building the whole gui in here.
+	 * Builds the bulk of the GUI and triggers some other important events.
 	 */
-	private void initialize() {
+	private void buildMainGUI() {
 		log.info(logPrefix + "Starting Up");
 		frame = new JFrame();
 		frame.setBounds(100, 100, 1118, 710);
@@ -348,28 +523,22 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		//DO_NOTHING_ON_CLOSE (defined in WindowConstants): Don't do anything; require the program to handle the operation in the windowClosing method of a registered WindowListener object. 
 		
 		//TODO: This returns true/false. Deal with it and bail if it's false.
-		loadPreferences();
+		loadPreferences(); //Load our preferences from the preferences file or create the prefs file if it does not exist.
 
-		// Preferences Dialog stuff
+		// Setup the preference dialog ahead of time.
 		preferencesDialog = new PreferencesDialog(frame, this);
 		preferencesDialog.pack();
 		
+		// Setup the new iRule dialog ahead of time. 
 		newiRuleDialog = new iRuleDialog(frame, this);
 		newiRuleDialog.pack();
 		 
-		
-		// Create the editor panel. We will use it later
+		// Creates the editor panel not the actual textEditors themselves.
 		EditorPanel = createEditorPanel();
-		
-		// NavPanel starts here  ********************************************************************
-		Dimension navMinimumSize = new Dimension(200, 30);
-		Dimension resultsPanelNoticesDimension = new Dimension(500,20);
-		Dimension resultsPanelDimension = new Dimension(500,500);
-		
-		JButton btnSave1 = new JButton("Save");
-		btnSave1.setToolTipText("Save the currently selected Object.");
-    	btnSave1.addActionListener(this);
-		
+
+		/*
+		 * ############### Menu bar section
+		 */
 		// The menu definition	
 		menuBar = new JMenuBar();
 		menuBar.setName("menuBar");
@@ -405,22 +574,41 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		btnNewiRule.setName("newiRuleButton");
 		btnNewiRule.setEnabled(false); //We will re-Enable this once we have built the iRUle nav tree.
 		actionBar.add(btnNewiRule);
-		
+
 		btnActionSave = new JButton("Save"); // Hide this until we are editing an iRule
 		btnActionSave.setEnabled(false);
 		btnActionSave.addActionListener(this);
 		actionBar.add(btnActionSave);
 		
-		//DEFAULT RESULTS PANE CONTENT ENDS HERE
-
+		btnDeleteiRule = new JButton("Delete iRule");
+		btnDeleteiRule.setEnabled(false);
+		btnDeleteiRule.setName("DeleteiRuleButton");
+		btnDeleteiRule.addActionListener(this);
+		actionBar.add(btnDeleteiRule);
+		
+		btnDeployiRule = new JButton("Deploy to BIGIP");
+		btnDeployiRule.setEnabled(false);
+		btnDeployiRule.setName("DeployiRuleButton");
+		btnDeployiRule.addActionListener(this);
+		actionBar.add(btnDeployiRule);
+		
+		/*
+		 * ############### End menu bar section.
+		 */
+		
 		JToolBar toolBar = new JToolBar();  //TODO: Figure out what this is used for and rename it to something more descriptive
 		JButton connectToBigIPButton = new JButton("Connect");
 		toolBar.add(connectToBigIPButton);
 		connectToBigIPButton.addActionListener(this);
+		
+		// NavPanel starts here  ********************************************************************
+		Dimension navMinimumSize = new Dimension(200, 30);
+		Dimension resultsPanelNoticesDimension = new Dimension(500,20);
+		Dimension resultsPanelDimension = new Dimension(500,500);
 		NavPanel.setMinimumSize(navMinimumSize);
 		splitPane.setLeftComponent(NavPanel);
+		// NavPanel ends here  ********************************************************************
 		
-		//DEFAULT RESULTS PANE CONTENT STARTS HERE		
 		JLabel lblDefaultResultspanelContent = new JLabel("Welcome to Njord");
 		lblDefaultResultspanelContent.setVerticalAlignment(SwingConstants.TOP);
 		
@@ -509,7 +697,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		resultsPanelNoticesBox.setMaximumSize(resultsPanelNoticesDimension);
 		resultsPanelNoticesBox.setMinimumSize(resultsPanelNoticesDimension);
 		resultsPanel.setMinimumSize(resultsPanelDimension);
-
+		
+		//I should get rid of this progress bar
 		progressBar = new JProgressBar();
 		toolBar.add(progressBar);
 
@@ -542,18 +731,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 					.addGap(5)
 					.addComponent(toolBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 		);
-		btnDeleteiRule = new JButton("Delete iRule");
-		btnDeleteiRule.setEnabled(false);
-		btnDeleteiRule.setName("DeleteiRuleButton");
-		btnDeleteiRule.addActionListener(this);
-		actionBar.add(btnDeleteiRule);
-		frame.getContentPane().setLayout(groupLayout);
 		
-		btnDeployiRule = new JButton("Deploy to BIGIP");
-		btnDeployiRule.setEnabled(false);
-		btnDeployiRule.setName("DeployiRuleButton");
-		btnDeployiRule.addActionListener(this);
-		actionBar.add(btnDeployiRule);
+		frame.getContentPane().setLayout(groupLayout);
 		
 		buildNavTree();
 	}
@@ -605,7 +784,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		// Perhaps I will make valueChanged(TreeSelectionEvent do some minimal work assigning a node and such and then call some OTHER method and that will be one I can write a JUnit test for?
 		// Perhaps my best bet would be to spend some time on the oracle looking for recommendations on writing junit tests for swing code.
         NjordTreeNode node = (NjordTreeNode)
-                           tree.getLastSelectedPathComponent();
+        		navigationTree.getLastSelectedPathComponent();
         log.info("Node " + node + " Selected");
         
         if (node == null) return;
@@ -846,7 +1025,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	        	ruleEditor.setText(newRuleDefinition);
 	        	ruleEditor.discardAllEdits(); //This prevents undo from 'undoing' the loading of the editor with an iRule
 	        	NjordTreeNode addRule = new NjordTreeNode(ruleEditor);
-	        	DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+	        	DefaultTreeModel model = (DefaultTreeModel)navigationTree.getModel();
 	        	
 //	        	// Find node to which new node is to be added
 //	        	int startRow = 0;
@@ -857,11 +1036,11 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	        	if (connectionInitialized) {
 	        		model.insertNodeInto(addRule, remoteiRulesCategory, remoteiRulesCategory.getChildCount());
 	        		resultsPanelNoticesBox.setText("New rule created locally. Save to create on the BIGIP");
-	        		tree.expandPath(remoteiRulesPath);
+	        		navigationTree.expandPath(remoteiRulesPath);
 	        	} else {
 	        		model.insertNodeInto(addRule, localiRulesCategory, localiRulesCategory.getChildCount());
 	        		resultsPanelNoticesBox.setText("New local rule");
-	        		tree.expandPath(localiRulesPath);
+	        		navigationTree.expandPath(localiRulesPath);
 	        	}
 	        	
 	        	// Insert new node as last child of node
@@ -878,7 +1057,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         	String resultsText = "Saving...";
         	resultsPanelNoticesBox.setText(resultsText);
             NjordTreeNode node = (NjordTreeNode)
-                    tree.getLastSelectedPathComponent();
+            		navigationTree.getLastSelectedPathComponent();
             if (node == null) return;
             
             TextEditorPane nodeInfo = (TextEditorPane) node.getUserObject();
@@ -893,7 +1072,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
             			//If the results panel still says "Saving..." then we were successfull. If it failed then the text will have an error in it now.
             			resultsPanelNoticesBox.setText("Save successful");
             		}
-            		tree.repaint(); // Force the navigation tree to redraw itself. It will notice that the editor for this rule is now clean and display it properly.
+            		navigationTree.repaint(); // Force the navigation tree to redraw itself. It will notice that the editor for this rule is now clean and display it properly.
             		btnActionSave.setEnabled(false); // Then disable the save button to show that we are saved on the server one more way.
             	} catch (IOException e1) {
             		f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
@@ -906,7 +1085,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
             			//If the results panel still says "Saving..." then we were successfull. If it failed then the text will have an error in it now.
             			resultsPanelNoticesBox.setText("Save successful");
             		}
-            		tree.repaint(); // Force the navigation tree to redraw itself. It will notice that the editor for this rule is now clean and display it properly.
+            		navigationTree.repaint(); // Force the navigation tree to redraw itself. It will notice that the editor for this rule is now clean and display it properly.
             		btnActionSave.setEnabled(false); // Then disable the save button to show that we are saved on the server one more way.
             	} catch (IOException e2) {
             		f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e2);
@@ -928,7 +1107,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
     			}
     		}
     		createNodes(remoteiRulesCategory);
-    		tree.expandPath(remoteiRulesPath);
+    		navigationTree.expandPath(remoteiRulesPath);
     		
         } else if (actionCommand == "Delete iRule"){
         	log.info("Delete iRule detected");
@@ -936,7 +1115,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         	resultsPanelNoticesBox.setText(resultsText);
 
         	NjordTreeNode node = (NjordTreeNode)
-    				tree.getLastSelectedPathComponent();
+        			navigationTree.getLastSelectedPathComponent();
         	if (node == null) return;
 
         	TextEditorPane nodeInfo = (TextEditorPane) node.getUserObject();
@@ -961,7 +1140,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         			File deleteFile = new File(path);
         			deleteFile.delete();
     				resultsPanelNoticesBox.setText("Rule [" + ruleName + "] successfully deleted from the local file system.");
-    				DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+    				DefaultTreeModel model = (DefaultTreeModel)navigationTree.getModel();
     				model.removeNodeFromParent(node);
         			//This works now update notices pane and the nav tree
         		} else {
@@ -970,7 +1149,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         			try {
         				ic.getLocalLBRule().delete_rule(ruleNames);
         				resultsPanelNoticesBox.setText("Rule [" + ruleName + "] successfully deleted from BIGIP.");
-        				DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+        				DefaultTreeModel model = (DefaultTreeModel)navigationTree.getModel();
         				model.removeNodeFromParent(node);		
         			} catch (RemoteException e1) {
         				resultsPanelNoticesBox.setText("Delete failed"); // This is actually just a cheat to blank out the results panel. It's actual text will probably be set by the exception handler.
@@ -986,14 +1165,14 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         } else if (actionCommand == "Deploy to BIGIP"){
         	//Local rule that needs to be created on the BIGIP.
         	NjordTreeNode node = (NjordTreeNode)
-    				tree.getLastSelectedPathComponent();
+        			navigationTree.getLastSelectedPathComponent();
     		if (node == null) return;
     		deployLocaliRuleToBigIP(node);
 //    		ffff
         } else {
         	//If we have entered this section we have screwed something up 
         	log.error("Un-Known Action Event Detected." 
-                    + newline
+                    + nl
                     + "    Event source: " + actionCommand
                     + " (an instance of " + getClassName(sourceClass) + ")");
         } 
@@ -1421,7 +1600,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	private void buildNavTree() {
 		int navScrollPaneComponentsCount = NavPanel.getComponentCount();
 		if ( navScrollPaneComponentsCount > 1) {
-			NavPanel.remove(tree); 
+			NavPanel.remove(navigationTree); 
 		}
 		
 		top = new NjordTreeNode("top", NjordConstants.NODE_TYPE_TOP);
@@ -1437,33 +1616,31 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         
         //End create local tree portion
         
-		tree = new f5JavaGuiTree(top);
-		tree.setRootVisible(false); //Hides the top node
+        navigationTree = new f5JavaGuiTree(top);
+        navigationTree.setRootVisible(false); //Hides the top node
 		
-		ToolTipManager.sharedInstance().registerComponent(tree);
-		tree.setCellRenderer(new NjordTreeRenderer());
+		ToolTipManager.sharedInstance().registerComponent(navigationTree);
+		navigationTree.setCellRenderer(new NjordTreeRenderer());
 		
-	    tree.getSelectionModel().setSelectionMode
+		navigationTree.getSelectionModel().setSelectionMode
 	            (TreeSelectionModel.SINGLE_TREE_SELECTION);
 	    
 	    //Listen for when the selection changes.
-	    tree.addTreeSelectionListener(this);
+		navigationTree.addTreeSelectionListener(this);
 	    //Listen for when non-leave nodes are expanded
-	    tree.addTreeExpansionListener(this);
+		navigationTree.addTreeExpansionListener(this);
 	    //Not doing this _yet_
 //	    tree.addTreeWillExpandListener(this);
 	    
-	    navScrollPane = new JScrollPane(tree);
-	    
-        dummyParent = remoteiRulesCategory;
+	    navScrollPane = new JScrollPane(navigationTree);
         
         //Let's see if we can get it's path this way.
         remoteiRulesPath = new TreePath(remoteiRulesCategory.getPath());
         localiRulesPath = new TreePath(localiRulesCategory.getPath());
         log.info(logPrefix + "Paths are remote [" + remoteiRulesPath + "] and local [" + localiRulesPath + "]");  
         
-        tree.expandPath(new TreePath(remoteTree.getPath()));
-        tree.expandPath(new TreePath(localTree.getPath()));
+        navigationTree.expandPath(new TreePath(remoteTree.getPath()));
+        navigationTree.expandPath(new TreePath(localTree.getPath()));
         
 		GroupLayout gl_NavPanel = new GroupLayout(NavPanel);
 		gl_NavPanel.setHorizontalGroup(
@@ -1549,10 +1726,10 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		NjordTreeNode addRule = new NjordTreeNode(newEditorPane);
 //		remoteiRulesCategory.add(addRule);
 		
-		DefaultTreeModel model = (DefaultTreeModel)tree.getModel();
+		DefaultTreeModel model = (DefaultTreeModel)navigationTree.getModel();
     	model.insertNodeInto(addRule, remoteiRulesCategory, remoteiRulesCategory.getChildCount());
     	resultsPanelNoticesBox.setText("Hit Save to complete creation on BIGIP.");
-    	tree.expandPath(remoteiRulesPath);
+    	navigationTree.expandPath(remoteiRulesPath);
 		
 	}
 	
