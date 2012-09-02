@@ -4,8 +4,8 @@ import static org.junit.Assert.assertTrue;
 
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.tree.DefaultMutableTreeNode;
 
+import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
@@ -13,14 +13,10 @@ import org.slf4j.LoggerFactory;
 import org.uispec4j.UISpec4J;
 
 import com.f5.AaronForster.njord.MainGuiWindow;
-import com.f5.AaronForster.njord.NjordiRuleDefinition;
+import com.f5.AaronForster.njord.ui.NjordTreeNode;
 import com.f5.AaronForster.njord.util.f5ExceptionHandler;
 
 public class SwingMainGuiWindowTests {
-	
-	//TODO: Create a special BIGIP v11 virtual so that we can't screw up something I want to use elsewhere.
-	//TODO: Also create a special BIGIP v10 virtual so I can confirm V10 Functionality.
-	//TODO: Figure out how to start and stop virtual servers for the tests.
 	//Some tests to write
 	//Start app confirm that the app is started by checking the contents of the main notices window.
 	//Open the preferences dialog and make a change. Confirm that change took place in the file.
@@ -36,46 +32,23 @@ public class SwingMainGuiWindowTests {
 	//Write some code to it and save it
 	// Confirm it is saved through the same methods as the modify iRule test.
 
+	/**
+	 * SLF4J logger factory for logging.
+	 */
 	static final Logger log = LoggerFactory.getLogger(SwingMainGuiWindowTests.class);
-
+	/**
+	 * Holds the app itself
+	 */
 	MainGuiWindow window = null;
-
-	//Hopefully BeforeClass is run at the beginning of the test only. 
-//	@BeforeClass
-//	public static void setUpBeforeClass() throws Exception {
-//		//TODO: This might need to be moved. I'm not sure all of the tests will need it. Oooh if I want to do anything that doesn't need the app I can put it in a different test class.
-//		//Start the app
-//		try {
-//			UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-//			MainGuiWindow window = new MainGuiWindow();
-//			window.frame.setVisible(true);
-//		} catch (ClassNotFoundException e) {
-//			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, log);
-//			exceptionHandler.processException();
-//		} catch (InstantiationException e) {
-//			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, log);
-//			exceptionHandler.processException();
-//		} catch (IllegalAccessException e) {
-//			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, log);
-//			exceptionHandler.processException();
-//		} catch (UnsupportedLookAndFeelException e) {
-//			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, log);
-//			exceptionHandler.processException();
-//		}
-//	}
-
-//	@AfterClass
-//	public static void tearDownAfterClass() throws Exception {
-//	}
-
+	/**
+	 * A static version of the default constructor which initializes the UISpec4j framework.
+	 */
 	static {
 		UISpec4J.init();
 	}
 	
-	
-	
-	
 	/**
+	 * Runs at the beginning of each test.
 	 * @throws java.lang.Exception
 	 */
 	@Before
@@ -177,13 +150,13 @@ public class SwingMainGuiWindowTests {
 	@Test
 	public void testListiRules() {
 		window.btnGetiRules.doClick();
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode)
+        NjordTreeNode node = (NjordTreeNode)
         		window.remoteTree.getLastLeaf(); 
-        NjordiRuleDefinition nodeInfo = (NjordiRuleDefinition) node.getUserObject();
-        //I might be able to get away with stopping here and this will fail if we haven't gotten an object of type NjordiRuleDefinition
+        TextEditorPane nodeInfo = (TextEditorPane) node.getUserObject();
+        //I might be able to get away with stopping here and this will fail if we haven't gotten an object of type TextEditorPane
         //TODO: this will fail on V10 machines. Gotta make sure this test runs against a v11 box.
         assertTrue(nodeInfo.getName().matches("/Common.*"));
-        log.debug("Last rule is: " + nodeInfo.getRule_name());
+        log.debug("Last rule is: " + nodeInfo.getName());
 	}
 	
 	// LATER click on branch nodes to ensure they do whatever branch nodes are supposed to do.
@@ -197,9 +170,9 @@ public class SwingMainGuiWindowTests {
 		for(int i=1; i<numrules +1; i++){
 			
 			log.info("Count is: " + i);
-			DefaultMutableTreeNode node = (DefaultMutableTreeNode)
+			NjordTreeNode node = (NjordTreeNode)
 					window.remoteTree.getChildAt(i); // This is the branch node "iRules" //TODO: Fix it so I'm actually getting leaf nodes.
-	        NjordiRuleDefinition nodeInfo = (NjordiRuleDefinition) node.getUserObject();
+	        TextEditorPane nodeInfo = (TextEditorPane) node.getUserObject();
 	        log.info("Log name is: " + nodeInfo.getName());
 	        if (nodeInfo.getName() == "/Common/junit_test_irule") {
 	        	//Do stuff
@@ -214,7 +187,7 @@ public class SwingMainGuiWindowTests {
        }
 		
         
-        //I might be able to get away with stopping here and this will fail if we haven't gotten an object of type NjordiRuleDefinition
+        //I might be able to get away with stopping here and this will fail if we haven't gotten an object of type TextEditorPane
         //TODO: this will fail on V10 machines. Gotta make sure this test runs against a v11 box.
 	}
 

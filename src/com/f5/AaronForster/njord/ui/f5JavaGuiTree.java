@@ -5,13 +5,10 @@ package com.f5.AaronForster.njord.ui;
 
 
 //UNG, this is NASTY, I think it will be easier to override LocalLBRuleRuleDefinition
-import iControl.LocalLBRuleRuleDefinition;
-
 import java.util.Hashtable;
 import java.util.Vector;
 
 import javax.swing.JTree;
-import javax.swing.tree.DefaultMutableTreeNode;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 
@@ -19,8 +16,6 @@ import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.f5.AaronForster.njord.MainGuiWindow;
-import com.f5.AaronForster.njord.NjordiRuleDefinition;
 import com.f5.AaronForster.njord.util.NjordConstants;
 
 /**

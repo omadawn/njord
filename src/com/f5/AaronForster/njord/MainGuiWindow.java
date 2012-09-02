@@ -192,9 +192,13 @@ import com.f5.AaronForster.njord.util.f5ExceptionHandler;
  * At minimum there will be functionality to enable/disable pool members and virtual servers and manage what virtual servers iRules are attached to.
  * 
  * @author Aaron Forster @date 20120601
- * @version 0.8.6
+ * @version 0.9.0
  */
 public class MainGuiWindow implements ActionListener, TreeSelectionListener, TreeExpansionListener, TreeWillExpandListener {
+	/**
+	 * The version of Njord that we are.
+	 */
+	public String njordVersion = "0.9.0";
 	/**
 	 * Prepended to log messages to show what portion of code is currently logging.
 	 */
@@ -207,10 +211,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	 * Tells us if our connection to the BIGIP has been successfully initialized and validated.
 	 */
 	public boolean connectionInitialized = false;
-	/**
-	 * The version of Njord that we are.
-	 */
-	public String njordVersion = "0.8.6";
 	/**
 	 * Holds the version of TMOS running on the BIGIP that we have connected to.
 	 */
@@ -1337,36 +1337,37 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	}
     
 	/**
-	 * Get the iRules from the BigIP and create a list of NjordRules for them. 
+	 * Depricated, Get the iRules from the BigIP and create a list of NjordRules for them. This was originally intended to store
+	 * things like clean/dirty local/remote but that's being handled either by the editor or by the filelocation at this point. 
 	 * 
 	 * 
 	 * @return
 	 */
-	public NjordiRuleDefinition[] getNjordiRules() {
-		LocalLBRuleRuleDefinition[] iRules = null;
-		NjordiRuleDefinition[] NjordRules = null;
-		try {
-			iRules = ic.getLocalLBRule().query_all_rules();
-			log.debug("Available Rules");
-			NjordRules = new NjordiRuleDefinition[iRules.length];
-			for (int i = 0; i < iRules.length ; i++) {
-//			for (LocalLBRuleRuleDefinition rule : iRules) {
-				NjordRules[i] = new NjordiRuleDefinition(iRules[i]);
-				log.debug("   " + iRules[i]); //wonder if LocalLBRuleRuleDefinition has a toString() it should.
-			}
-		} catch (RemoteException e) {
-			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
-			exceptionHandler.processException();
-			//Not:
-			//e.printStackTrace();
-		} catch (Exception e) {
-			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
-			exceptionHandler.processException();
-			//Not:
-			//e.printStackTrace();
-		}
-		return NjordRules;
-	}
+//	public NjordiRuleDefinition[] getNjordiRules() {
+//		LocalLBRuleRuleDefinition[] iRules = null;
+//		NjordiRuleDefinition[] NjordRules = null;
+//		try {
+//			iRules = ic.getLocalLBRule().query_all_rules();
+//			log.debug("Available Rules");
+//			NjordRules = new NjordiRuleDefinition[iRules.length];
+//			for (int i = 0; i < iRules.length ; i++) {
+////			for (LocalLBRuleRuleDefinition rule : iRules) {
+//				NjordRules[i] = new NjordiRuleDefinition(iRules[i]);
+//				log.debug("   " + iRules[i]); //wonder if LocalLBRuleRuleDefinition has a toString() it should.
+//			}
+//		} catch (RemoteException e) {
+//			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
+//			exceptionHandler.processException();
+//			//Not:
+//			//e.printStackTrace();
+//		} catch (Exception e) {
+//			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
+//			exceptionHandler.processException();
+//			//Not:
+//			//e.printStackTrace();
+//		}
+//		return NjordRules;
+//	}
 	
 	//I can probably get rid of this method completely
 	private JPanel createEditorPanel() {
@@ -1853,7 +1854,12 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
     	//Some good purples
     	// 660066 990099
     	
+    	
     	SyntaxScheme scheme = ruleEditor.getSyntaxScheme();
+    	
+
+    	log.debug(logPrefix + "Vars currently have " + scheme.getStyle(Token.VARIABLE).foreground);
+    	
     	scheme.getStyle(Token.ANNOTATION).foreground = annotationColor;
     	scheme.getStyle(Token.VARIABLE).foreground = variableColor;
 //    	scheme.getStyle(Token.IDENTIFIER).foreground = identifyerColor; //I think 'identifyer' is all the other words.
@@ -1867,7 +1873,12 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 //    	scheme.getStyle(Token.LITERAL_STRING_DOUBLE_QUOTE).foreground = doublequoteColor;
     	scheme.getStyle(Token.LITERAL_BACKQUOTE).foreground = backquoteColor;
     	scheme.getStyle(Token.SEPARATOR).foreground = bracketColor;
-    	 // A CompletionProvider is what knows of all possible completions, and
+    	
+    	
+    	//Let's try and make variables work.
+    	
+    	
+    	// A CompletionProvider is what knows of all possible completions, and
         // analyzes the contents of the text area at the caret position to
         // determine what completion choices should be presented. Most
         // instances of CompletionProvider (such as DefaultCompletionProvider)

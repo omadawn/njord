@@ -9,60 +9,106 @@ import java.util.regex.Pattern;
 import javax.xml.rpc.ServiceException;
 
 import org.apache.axis.AxisFault;
-import org.hamcrest.core.IsNull;
 import org.slf4j.Logger;
 
 import com.f5.AaronForster.njord.MainGuiWindow;
-import com.f5.AaronForster.njord.test.SwingMainGuiWindowTests;
-import com.f5.AaronForster.njord.test.Uispec4jMainGuiWindowTest;
 
 public class f5ExceptionHandler {
-	//TODO: This sounds a little silly but take all of the actual action out of the ifelse block that we're using to determine what exception type this is. Create a separate method for each exception type. It will make the code much cleaner, easier to read and easier to document.
-	//TODO: figure out how to log where the exception occured
-	//TODO: Figure out how to log properly in this code.
-	//TODO: Decide how to handle provided messages. Do I want to replace my text with the provided text or do I want to append?
-	//TODO: Create a logger if one isn't provided to me.
-	//TODO: Fix this so I can have owner instead of needing both of these
-	private MainGuiWindow owner; // Actually I think this should be something more Generic and then I should figure out what it is and set it to that type.
+	/**
+	 * The main window so that we can send log messages back. Actually I think this should be something more Generic and then I 
+	 * should figure out what it is and set it to that type.
+	 */
+	private MainGuiWindow owner;
+	/**
+	 * An optional message to combine with the exception's message.
+	 */
 	private String message = "";
+	/**
+	 * The exception itself.
+	 */
 	private Exception e;
+	/**
+	 * A handle to the logger subsystem. Currently not working.
+	 */
 	private Logger log;
 	
-	//I think I might either need to have multiple constructors, one for each exception type.
-	// Or b use getClass() or whatever it is instead of instanceOf. I think that everything is going to be of type Exception because of the constructor casting it.
+	/**
+	 * The shortest form of constructor. Call us with only an exception.
+	 * 
+	 * @param e
+	 */
 	public f5ExceptionHandler(Exception e) {
 		this.e = e;
 	}
 	
+	/**
+	 * Unused to the best of my knowledge. This should probably go away.
+	 * 
+	 * @param e
+	 * @param log
+	 */
 	public f5ExceptionHandler(Exception e, Logger log) {
 		this.e = e;
 		this.log = log;
 	}
 	
+	/**
+	 * The default way to create an f5ExceptionHandler. MainGuiWindow is needed in order to update the end user.
+	 * 
+	 * @param e
+	 * @param owner
+	 * @param log
+	 */
 	public f5ExceptionHandler(Exception e, MainGuiWindow owner, Logger log) {
 		this.e = e;
 		this.log = log;
 		this.owner = owner;
 	}
 	
+	/**
+	 * Create us with an exception and an additional text message.
+	 * 
+	 * @param Message
+	 * @param e
+	 */
 	public f5ExceptionHandler(String Message, Exception e) {
 		this.message = Message;
 		this.e = e;
 	}
 	
+	/**
+	 * Deprecated, delete this.
+	 * @param Message
+	 * @param e
+	 * @param log
+	 */
 	public f5ExceptionHandler(String Message, Exception e, Logger log) {
 		this.message = Message;
 		this.e = e;
 		this.log = log;
 	}
 	
-	//TODO: this shouldn't be Class it should be some other object type.
+	/**
+	 * Yet another constructor.
+	 * 
+	 * @param Message
+	 * @param owner
+	 * @param e
+	 */
 	public f5ExceptionHandler(String Message, MainGuiWindow owner, Exception e) {
 		this.message = Message;
 		this.owner = owner;
 		this.e = e;
 	}
 	
+	/**
+	 * I would love to use this one if I could get slf4j working in this class.
+	 * 
+	 * @param Message
+	 * @param owner
+	 * @param e
+	 * @param log
+	 */
 	public f5ExceptionHandler(String Message, MainGuiWindow owner, Exception e, Logger log) {
 		this.message = Message;
 		this.owner = owner;
@@ -70,10 +116,11 @@ public class f5ExceptionHandler {
 		this.log = log;
 	}
 	
-	//Use this when you throw an exception
-//	f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
-//	exceptionHandler.processException();
-	
+	/**
+	 * The main action of f5ExceptionHandler. This is what actually reads the exception and decides how to handle it.
+	 * Currently a bit minimal in it's execution. This needs to be expanded.
+	 * 
+	 */
 	public void processException() {
 		if (log != null) {
 			log.debug("Error is an instance of " + e.getClass().toString());
