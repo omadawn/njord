@@ -50,6 +50,6 @@
 			<attribute name="javadoc_location" value="jar:file:/D:/Devel/JavaStuff/uispec4j/uispec4j-2.4-javadoc.jar!/"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="D:/Devel/JavaStuff/rsta_2.0.4_TCL_Customized.jar" sourcepath="/RSTA Source"/>
+	<classpathentry kind="lib" path="D:/Devel/JavaStuff/rsta_2.0.4_TCL_Customized_2.jar" sourcepath="/RSTA Source"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

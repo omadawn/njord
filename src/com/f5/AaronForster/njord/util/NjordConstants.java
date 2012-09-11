@@ -39,6 +39,20 @@ public interface NjordConstants {
 	 * For iRules themselves.
 	 */
 	public static final int NODE_TYPE_IRULE					= 53;
+	
+	//###################################################################
+	//                 iRule types
+	//###################################################################
+	
+	/**
+	 * Local Traffic iRule type
+	 */
+	public static final int IRULE_TYPE_LTM					= 101;
+	
+	/**
+	 * Global Traffic iRule type
+	 */
+	public static final int IRULE_TYPE_GTM					= 102;
 
 }
 //Constants that define the different programming languages understood by

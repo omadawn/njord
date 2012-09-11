@@ -3,21 +3,20 @@
  */
 package com.f5.AaronForster.njord.util;
 
+import iControl.GlobalLBRule;
+import iControl.GlobalLBRuleRuleDefinition;
 import iControl.LocalLBRuleRuleDefinition;
 
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.rmi.RemoteException;
 
-import org.eclipse.osgi.framework.adaptor.FilePath;
 import org.fife.ui.rsyntaxtextarea.FileLocation;
 import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 
@@ -31,11 +30,13 @@ public class NjordFileLocation extends FileLocation {
 	public String ruleName = null;
 	public String ruleDefinition = null;
 	public iControl.Interfaces ic = null;
-	public LocalLBRuleRuleDefinition rule = null;
+	public Object rule = null; //This is totally hackish
+//	public LocalLBRuleRuleDefinition rule = null;
 	public boolean exists = false; // Used to determine if the file needs to be created. IE is this a new file we've created or one we have loaded.
 	public boolean local = false;
 	public MainGuiWindow owner = null;
-	public File fileHandle = null;	
+	public File fileHandle = null;
+	public int iRuleType = 0;
 	
 	/**
 	 * FileLocation for an iRule on a BIGIP.
@@ -44,12 +45,14 @@ public class NjordFileLocation extends FileLocation {
 	 * @param ruleName The name of the iRule.
 	 * @param ic An initialized iControl object to fetch rules/etc.
 	 */
-	public NjordFileLocation(MainGuiWindow mainWindow, String ruleName, iControl.Interfaces ic) {
+	public NjordFileLocation(MainGuiWindow mainWindow, String ruleName, int ruleType, iControl.Interfaces ic) {
 		owner = mainWindow;
 		this.ruleName = ruleName;
 		this.ic = ic;
-		local = false;
-		getRuleFromBIGIP(ruleName);
+		this.local = false;
+		this.exists = true;
+		this.iRuleType = ruleType;
+		getRuleFromBIGIP(ruleName, iRuleType);
 	}
 	
 	/**
@@ -89,15 +92,37 @@ public class NjordFileLocation extends FileLocation {
 	}
 	
 	/**
+	 * A wrapper for getRuleFromBIGIP(String ruleName, int ruleType) which assumes iRule is of type LTM
+	 * @param ruleName
+	 */
+	public void getRuleFromBIGIP(String ruleName) {
+		getRuleFromBIGIP(ruleName, NjordConstants.IRULE_TYPE_LTM);
+	}
+	
+	/**
 	 * Fetches the actual rule content from the BIGIP.
 	 * 
 	 * @param ruleName
 	 */
-	public void getRuleFromBIGIP(String ruleName) {
+	public void getRuleFromBIGIP(String ruleName, int ruleType) {
 		String[] ruleNames = { ruleName };
+		LocalLBRuleRuleDefinition LTMRule = null;
+		GlobalLBRuleRuleDefinition GTMRule = null;
 		
 		try {
-			rule = ic.getLocalLBRule().query_rule(ruleNames)[0];
+			switch (ruleType) {
+				case NjordConstants.IRULE_TYPE_GTM: {
+					rule = ic.getGlobalLBRule().query_rule(ruleNames)[0];
+					GTMRule = (GlobalLBRuleRuleDefinition)rule;
+					ruleDefinition = GTMRule.getRule_definition();  //getRule_definition();
+				}
+				case NjordConstants.IRULE_TYPE_LTM:
+				default: {
+					rule = ic.getLocalLBRule().query_rule(ruleNames)[0];
+					LTMRule = (LocalLBRuleRuleDefinition)rule;
+					ruleDefinition = LTMRule.getRule_definition();
+				}
+			}
 		} catch (RemoteException e) {
 			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
 			exceptionHandler.processException();
@@ -106,7 +131,7 @@ public class NjordFileLocation extends FileLocation {
 			exceptionHandler.processException();
 		}
 		
-		ruleDefinition = rule.getRule_definition();
+		
 		
 	}
 	
@@ -163,7 +188,7 @@ public class NjordFileLocation extends FileLocation {
 	@Override
 	public OutputStream getOutputStream() throws IOException {
 		if (!local) {
-			OutputStream os = new NjordOutputStream(owner, ruleName, ic, local, exists);
+			OutputStream os = new NjordOutputStream(owner, ruleName, ic, local, exists, iRuleType);
 			return os;			
 		} else {
 			if (!fileHandle.exists()) {

@@ -1,5 +1,6 @@
 package com.f5.AaronForster.njord;
 
+import iControl.CommonTMOSModule;
 import iControl.LocalLBRuleRuleDefinition;
 
 import java.awt.Color;
@@ -11,14 +12,16 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -47,6 +50,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JProgressBar;
 import javax.swing.JScrollPane;
+import javax.swing.JSeparator;
 import javax.swing.JSplitPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
@@ -57,6 +61,8 @@ import javax.swing.SwingConstants;
 import javax.swing.ToolTipManager;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
+import javax.swing.event.HyperlinkEvent;
+import javax.swing.event.HyperlinkListener;
 import javax.swing.event.TreeExpansionEvent;
 import javax.swing.event.TreeExpansionListener;
 import javax.swing.event.TreeSelectionEvent;
@@ -71,23 +77,28 @@ import javax.xml.rpc.ServiceException;
 import org.fife.ui.autocomplete.AutoCompletion;
 import org.fife.ui.autocomplete.BasicCompletion;
 import org.fife.ui.autocomplete.CompletionProvider;
-import org.fife.ui.autocomplete.DefaultCompletionProvider;
 import org.fife.ui.autocomplete.ShorthandCompletion;
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
+import org.fife.ui.rsyntaxtextarea.CodeTemplateManager;
 import org.fife.ui.rsyntaxtextarea.FileLocation;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
+import org.fife.ui.rsyntaxtextarea.templates.CodeTemplate;
+import org.fife.ui.rsyntaxtextarea.templates.StaticCodeTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.f5.AaronForster.njord.ui.NjordTreeNode;
 import com.f5.AaronForster.njord.ui.NjordTreeRenderer;
 import com.f5.AaronForster.njord.ui.f5JavaGuiTree;
+import com.f5.AaronForster.njord.util.NjordCompletionProvider;
 import com.f5.AaronForster.njord.util.NjordConstants;
 import com.f5.AaronForster.njord.util.NjordDocumentListener;
 import com.f5.AaronForster.njord.util.NjordFileLocation;
+import com.f5.AaronForster.njord.util.NjordParser;
 import com.f5.AaronForster.njord.util.f5ExceptionHandler;
 
 // https://github.com/jgruber/iControlExamples/tree/master/src/main/java/com/f5se/examples
@@ -194,7 +205,7 @@ import com.f5.AaronForster.njord.util.f5ExceptionHandler;
  * @author Aaron Forster @date 20120601
  * @version 0.9.0
  */
-public class MainGuiWindow implements ActionListener, TreeSelectionListener, TreeExpansionListener, TreeWillExpandListener {
+public class MainGuiWindow implements ActionListener, TreeSelectionListener, TreeExpansionListener, TreeWillExpandListener, WindowListener, HyperlinkListener {
 	/**
 	 * The version of Njord that we are.
 	 */
@@ -211,6 +222,11 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	 * Tells us if our connection to the BIGIP has been successfully initialized and validated.
 	 */
 	public boolean connectionInitialized = false;
+	/**
+	 * Tells us if we have built the remote iRules tree or not. This will be used to determine if "Get iRules" will clear the iRules 
+	 * tree before populating it.
+	 */
+	public boolean remoteTreeBuilt = false;
 	/**
 	 * Holds the version of TMOS running on the BIGIP that we have connected to.
 	 */
@@ -238,8 +254,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	/**
 	 * This populates the 'splash screen' notices box on startup that a user sees.
 	 */
-	public String initialNotificationsBoxText = "Welcome to Njord the java iRules editor." + nl + nl + "Njord currently will only " +
-			"edit LTM iRules. Apologies, this will be resolved soon." + nl + nl + "Please be forgiving as this is still a beta " + 
+	public String initialNotificationsBoxText = "Welcome to Njord the java iRules editor." + nl + nl + 
+			"Njord currently only supports \"Local\" type iRules. I apologize for the inconvinience." + nl + nl + "Please be forgiving as this is still a beta " + 
 			"product." + nl + nl + "Use the Get iRules button to fetch your iRules from the server. Please note that Njord is not an " +
 					"official F5 product it is just written by someone who happens to work there. It comes with no warranty or guarantee." +
 					" Any comments or questions about Njord can be directed to it's author Aaron Forster a.forster@f5.com." + nl + nl + 
@@ -267,6 +283,10 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	 */
 	public TextEditorPane currentSelectedRule = null;
 	/**
+	 * A list of modules licenced on the BIGIP. Currently not used. In the future perhaps We will use this to know what types of rules to fetch.
+	 */
+	public CommonTMOSModule[] provisionedModulesList = null; //new ArrayList<Integer>();
+	/**
 	 * A text list of the iRules found on the BIGIP.
 	 */
 	public List<String> iRuleList = new ArrayList<String>();	
@@ -283,9 +303,15 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	 */
 	public JMenuBar menuBar = null;
 	/**
-	 * The swing component that represents the 'Edit Connection Settings' Menu.
+	 * The swing component that represents the 'Edit Settings' Menu. "Settings" are generic settings for Njord which differs from 
+	 * "Connection Settings" Which are, obviously, the connection settings.
 	 */
 	public JMenuItem mntmEditSettings = null;
+	/**
+	 * The swing component that represents the 'Edit Connection Settings' Menu. "Connection Settings" are the connection settings 
+	 * which differs from "Settings" Which areare generic settings for Njord.
+	 */
+	private JMenuItem mntmEditConnectionSettings;
 	/**
 	 * The Connect button with the connections menu.
 	 */
@@ -428,30 +454,70 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	 * Will hold the Connections preferences dialog box. This should be renamed to reflect that it is for connections since there 
 	 * will be other application preferences in the future.
 	 */
-	public PreferencesDialog preferencesDialog;
+	public ConnectionsSettingsDialog preferencesDialog;
 	/**
 	 * The new irule dialog pop up window.
 	 */
 	public iRuleDialog newiRuleDialog;
 	
-	//## Editor colors
-	//TODO: These should all be moved to the constants class.
+	/* 
+	 * #######################################################################
+	 * Editor colors
+	 * #######################################################################
+	 */
+	
 	//These are good enough for now.
-	//TODO: Figure out how to define the regex scheme so that it catches those.
+	/**
+	 * The color to use for highlighting annotations
+	 */
 	public Color annotationColor = Color.decode("#646464");
-	public Color variableColor = Color.decode("#7F0055");
+	/**
+	 * The color to use for highlighting variables
+	 */
+	public Color variableColor = Color.decode("#0000C0");
 //	public Color identifyerColor = Color.decode("#880080");
+	/**
+	 * The color to use for highlighting comments
+	 */
 	public Color commentColor = Color.decode("#3F7F5F"); // Leave this the same green for now but may override with this green from eclipse
+	/**
+	 * The color to use for highlighting functions
+	 */
 	public Color functionColor = Color.decode("#880080");
+	/**
+	 * The color to use for highlighting regular expressions
+	 */
 	public Color regexColor = Color.decode("#2A00FF");
+	/**
+	 * The color to use for highlighting tcl built in commands
+	 */
 	public Color reservedWordColor = Color.decode("#0033FF"); // TCL built in functions (not entirely accurate)
+	/**
+	 * The color to use for highlighting iRules added commands
+	 */
 	public Color reservedWord2Color = Color.decode("#000099"); // Irules stuff
+	/**
+	 * The color to use for highlighting operators
+	 */
 	public Color operatorColor = new Color(880080);
+	/**
+	 * The color to use for highlighting quoted text
+	 */
 	public Color doublequoteColor = Color.decode("#1a5a9a");
+	/**
+	 * The color to use for highlighting backquoted text
+	 */
 	public Color backquoteColor = Color.decode("#4a2a3a");
+	/**
+	 * The color to use for highlighting brackets
+	 */
 	public Color bracketColor = Color.decode("#990099");
 	
 	// Make Linkable items
+	/**
+	 * The user's desktop environment
+	 */
+	public Desktop desktop = java.awt.Desktop.getDesktop();
 	/**
 	 * The beginning of an HTML link. <a href="
 	 */
@@ -465,7 +531,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	 */
 	private static final String HREF_END = "</a>";
 	/**
-	 * An hpen HTML tag.
+	 * An open HTML tag.
 	 */
 	private static final String HTML = "<html>";
 	/**
@@ -491,19 +557,22 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 					MainGuiWindow window = new MainGuiWindow();
 					window.frame.setVisible(true);
 				} catch (UnsupportedLookAndFeelException e) {
-					//TODO: handle exception
+    				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+    				exceptionHandler.processException();
 				} catch (ClassNotFoundException e) {
-					//TODO:  handle exception
+    				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+    				exceptionHandler.processException();
 				} catch (InstantiationException e) {
-					//TODO:  handle exception
+    				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+    				exceptionHandler.processException();
 				} catch (IllegalAccessException e) {
-					//TODO:  handle exception
-				}			
-
+    				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+    				exceptionHandler.processException();
+				}
 			}
 		});
 	}
-
+	
 	/**
 	 * The default constructor just runs initialize() which builds most of the GUI.
 	 */
@@ -518,15 +587,18 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		log.info(logPrefix + "Starting Up");
 		frame = new JFrame();
 		frame.setBounds(100, 100, 1118, 710);
-		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		frame.addWindowListener(this);
 		//TODO: Change this to DO_NOTHING_ON_CLOSE and define a window close operation that saves the window state before closing. Or perhaps detect if the window is resized or moved then save then.
 		//DO_NOTHING_ON_CLOSE (defined in WindowConstants): Don't do anything; require the program to handle the operation in the windowClosing method of a registered WindowListener object. 
-		
+		//DISPOSE_ON_CLOSE is supposedly preferred to EXIT_ON_CLOSE which will close windows but if there are still running threads then the app won't actually quit.
+		// I have VERY much run into that problem.
 		//TODO: This returns true/false. Deal with it and bail if it's false.
 		loadPreferences(); //Load our preferences from the preferences file or create the prefs file if it does not exist.
 
 		// Setup the preference dialog ahead of time.
-		preferencesDialog = new PreferencesDialog(frame, this);
+		preferencesDialog = new ConnectionsSettingsDialog(frame, this);
 		preferencesDialog.pack();
 		
 		// Setup the new iRule dialog ahead of time. 
@@ -543,21 +615,27 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		menuBar = new JMenuBar();
 		menuBar.setName("menuBar");
 		
-		JMenu mnConnMenu = new JMenu("Connection");
+		JMenu mnConnMenu = new JMenu("File");
 		mnConnMenu.setName("ConnectionMenu");
 		menuBar.add(mnConnMenu);
 		
 		// This one might be my template for how to set action menu items. It also includes keyboard shortcut settings
-		mntmEditSettings = new JMenuItem("Edit Settings");
-		mntmEditSettings.setAccelerator(KeyStroke.getKeyStroke(
+		mntmEditConnectionSettings = new JMenuItem("Edit Connection Settings");
+		mntmEditConnectionSettings.setAccelerator(KeyStroke.getKeyStroke(
                 KeyEvent.VK_2, ActionEvent.ALT_MASK)); // I think this is the part that adds the hotkey
-		mntmEditSettings.addActionListener(this); // This adds an action listener so if you click this it will trigger actionListener() method defined below
-		mntmEditSettings.setName("editSettingsBtn"); 
-		mnConnMenu.add(mntmEditSettings);
+		mntmEditConnectionSettings.addActionListener(this); // This adds an action listener so if you click this it will trigger actionListener() method defined below
+		mntmEditConnectionSettings.setName("editSettingsBtn"); 
+		mnConnMenu.add(mntmEditConnectionSettings);
 		
-		mntmConnect = new JMenuItem("Verify Connection");
+		mntmConnect = new JMenuItem("Connect");
 		mntmConnect.addActionListener(this);
 		mnConnMenu.add(mntmConnect);
+		
+		JSeparator separator = new JSeparator();
+		mnConnMenu.add(separator);
+		
+		JMenuItem mntmEditPreferences = new JMenuItem("Edit Preferences");
+		mnConnMenu.add(mntmEditPreferences);
 
 		//ActionBar components *********************************************				
 		btnGetiRules = new JButton("Get iRules");
@@ -611,16 +689,12 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		
 		JLabel lblDefaultResultspanelContent = new JLabel("Welcome to Njord");
 		lblDefaultResultspanelContent.setVerticalAlignment(SwingConstants.TOP);
-		
 		defaultResultsDevCentralURLLabel = new JLabel();
 		defaultResultsDevCentralURLLabel.setName("DevCentralURLLabel");
 		defaultResultsDevCentralURLLabel.setText("Stuck on an iRule? Visit Deventral's iRules Wiki");
 		defaultResultsDevCentralURLLabel.setToolTipText("https://devcentral.f5.com/wiki/iRules.HomePage.ashx");
 		
 		if (isBrowsingSupported()) {
-//			defaultResultsDevCentralURLLabel.setText(htmlIfy(linkIfy("Stuck on an iRule? Visit Deventral's iRules Wiki", "https://devcentral.f5.com/wiki/iRules.HomePage.ashx")));
-//			defaultResultsDevCentralURLLabel.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-//			defaultResultsDevCentralURLLabel.addMouseListener(new LinkMouseListener());
 			makeLinkable(defaultResultsDevCentralURLLabel, new LinkMouseListener());
 		} else {
 			defaultResultsDevCentralURLLabel.setText(defaultResultsDevCentralURLLabel.getText() + ": " + defaultResultsDevCentralURLLabel.getToolTipText());
@@ -628,12 +702,11 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 
 		txtNotificationsTextBox.setEditable(false);
 		txtNotificationsTextBox.setText(initialNotificationsBoxText);
-		
 		Component horizontalStrut_1 = Box.createHorizontalStrut(20);
 		
 		//Figure out where this is used and rename it to something helpful
 		JPanel panel = new JPanel();		
-		defaultTextPaneConnectButton = new JButton("Verify Connection");
+		defaultTextPaneConnectButton = new JButton("Connect");
 		defaultTextPaneConnectButton.addActionListener(this);
 		defaultTextPaneConnectButton.setName("defaultTxtPnConnectButton");
 		
@@ -652,7 +725,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 					.addGap(40, 388, 900))
 				.addGroup(gl_resultsPanel.createSequentialGroup()
 					.addGap(40, 300, 900)
-//					.addComponent(defaultResultsDevCentralURLLabel, GroupLayout.PREFERRED_SIZE, 813, Short.MAX_VALUE)
 					.addComponent(defaultResultsDevCentralURLLabel, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE,  Short.MAX_VALUE)
 					.addGap(40, 300, 900))
 				.addGroup(gl_resultsPanel.createSequentialGroup()
@@ -706,8 +778,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		//        progressBar.setValue(20); 
 		// This turns out to be a percentage. For progress bar flow we probably want to start it at zero, jump it to ten when we hit 'connect' and then move it up instead of down as the timer progresses then jump it to 100% once connected.
 		progressBar.setValue(0);
-
-		//		JLabel lblStatusLabel = new JLabel("Status Info ");
 		lblStatusLabel.setText("Unverified");
 		toolBar.add(lblStatusLabel);
 		
@@ -716,7 +786,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 			groupLayout.createParallelGroup(Alignment.LEADING)
 				.addComponent(menuBar, javax.swing.GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 1102, Short.MAX_VALUE)
 				.addComponent(actionBar, javax.swing.GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 1102, Short.MAX_VALUE)
-//				actionBar
 				.addComponent(splitPane, javax.swing.GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 1102, Short.MAX_VALUE)
 				.addComponent(toolBar, javax.swing.GroupLayout.Alignment.TRAILING, GroupLayout.PREFERRED_SIZE, 1102, Short.MAX_VALUE)
 		);
@@ -731,9 +800,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 					.addGap(5)
 					.addComponent(toolBar, GroupLayout.PREFERRED_SIZE, GroupLayout.DEFAULT_SIZE, GroupLayout.PREFERRED_SIZE))
 		);
-		
 		frame.getContentPane().setLayout(groupLayout);
-		
 		buildNavTree();
 	}
 	
@@ -748,8 +815,9 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	    //TODO: Create a generic getSomethingList?
 	    //TODO: Figure out how to handle the long path of the iRule's full name. IE do I pull off the path and just show the name, do I have expandable folders for the folders in the path? I like that idea but only if I automatically have 'common' be expanded.
 	    //TODO: If I do the above I will need a way to remember what folders have been openened if the client does so.
-	   //Here's my no valid iRules list bug. I need to check my connection settings first.
+	    //Here's my no valid iRules list bug. I need to check my connection settings first.
 	    if ( iRuleList.isEmpty() ) {
+//	    if ( LTMiRuleList.isEmpty() && GTMiRuleList.isEmpty() ) {	
 	    	resultsPanelNoticesBox.setText("No valid iRules found on BIGIP.");
 	    	TextEditorPane ruleEditor = getEditorForRule(null, "No iRules Found On BIGIP");
     		addRule = new NjordTreeNode(ruleEditor);
@@ -768,21 +836,28 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	    		it.remove();
 	    		continue;
 	    	}
-
-	    	NjordFileLocation ruleLocation = new NjordFileLocation(this, thisRule, ic); 
+	    	//This is crap but until I get the time to work out a better way to do the GTM iRules as well we're still assuming LTM only.
+	    	NjordFileLocation ruleLocation = new NjordFileLocation(this, thisRule, NjordConstants.IRULE_TYPE_LTM, ic); 
 	    	TextEditorPane ruleEditor = getEditorForRule(ruleLocation, thisRule);
 	    	addRule = new NjordTreeNode(ruleEditor);
 	    	thisTree.add(addRule);
-	    	
+	    	    
 	    }
 	}
 	
-	//This is the tree selection listener method.
+	/**
+	 * valueChanged(TreeSelectionEvent) is triggered whenever someone clicks on an element in the navigation tree.
+	 */
 	public void valueChanged(TreeSelectionEvent e) {
-		//Hrm... on the one hand I could try and define node and then call valueChanged(TreeSelectionEvent) But on the other I'd have to figure out how to create a TreeSelectionEvent.
-		//		And honestly once I figure out how to create that I will probalby have selected a node in the tree. Hrm...
-		// Perhaps I will make valueChanged(TreeSelectionEvent do some minimal work assigning a node and such and then call some OTHER method and that will be one I can write a JUnit test for?
-		// Perhaps my best bet would be to spend some time on the oracle looking for recommendations on writing junit tests for swing code.
+		/*
+		 * Hrm... on the one hand I could try and define node and then call valueChanged(TreeSelectionEvent) But on the other I'd have 
+		 * to figure out how to create a TreeSelectionEvent. And honestly once I figure out how to create that I will probalby have 
+		 * selected a node in the tree. Hrm... 
+		 * Perhaps I will make valueChanged(TreeSelectionEvent do some minimal work assigning a node and such and then call some OTHER 
+		 * 		method and that will be one I can write a JUnit test for?
+		 * Perhaps my best bet would be to spend some time on the oracle looking for recommendations on writing junit tests for swing 
+		 * code.
+		 */
         NjordTreeNode node = (NjordTreeNode)
         		navigationTree.getLastSelectedPathComponent();
         log.info("Node " + node + " Selected");
@@ -797,13 +872,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         	} else {
         		btnDeployiRule.setEnabled(false);
         	}
-            //TODO: Check currentSelectedRule and see if it is non-empty. If it is non empty update that rule with the contents of the editor before filling the editor with the new contents.
-            //		Then set tree.getLastSelectedPathComponent() into currentSelectedRule.
-        	//TODO: also mark the iRule as unsaved at the same time.
-        	
-//        	if ( currentSelectedRule != null ) {
-//        		currentSelectedRule.setRule_definition(nTextEditorPane.getText());
-//        	}
         	
         	currentSelectedRule = nodeInfo;
         	btnDeleteiRule.setEnabled(true);
@@ -813,52 +881,41 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         	} else {
         		btnActionSave.setEnabled(false);
         	}
-//        	rSyntaxTextArea.setText(nodeInfo.getRule_definition());
-//        	nTextEditorPane.setText(currentSelectedRule.getRule_definition());
-            
-        	Dimension editorPanelDimension = new Dimension(500,500);
-        	EditorPanel.setMinimumSize(editorPanelDimension);
-//        	EditorPanel.setPreferredSize(editorPanelDimension);
-            //TODO: Figure out howo tmake this remove whatever is currently there instead of statically coding 'resultsPanel' There will be a point when it's not 'resultsPanel' Quite often in fact. Like when it's now editPanelScrolePane1
-            //I'm not sure if I need to do this but it seems like the right thing to do. Remove the existing contents of the right panel before setting a new one.
-//            splitPane.remove(resultsPanel);
-//            splitPane.setRightComponent(EditorPanel);
         	
+        	Dimension editorPanelDimension = new Dimension(500,500);
+        	EditorPanel.setMinimumSize(editorPanelDimension);	
         	//TODO: This seems like a very inneficient way to do this.
-//        	codeEditorScrollPane.remove(nTextEditorPane);
-//        	codeEditorScrollPane.add(currentSelectedRule);
         	codeEditorScrollPane.setViewportView(currentSelectedRule);
             resultsSPlitPane.remove(resultsPanel);
-//            resultsSPlitPane.setTopComponent(EditorPanel);
-//            resultsSPlitPane.setTopComponent(currentSelectedRule);
             resultsSPlitPane.setTopComponent(codeEditorScrollPane);
         } else {
-//            displayURL(helpURL);
         	btnDeleteiRule.setEnabled(false);
         	btnActionSave.setEnabled(false);
         }
     }
 	
 	/**
+	 * treeCollapsed(TreeExpansionEvent) is triggered whenever someone closes a branch node's widget.
 	 * @see javax.swing.event.TreeExpansionListener#treeCollapsed(javax.swing.event.TreeExpansionEvent)
 	 */
 	@Override
-	public void treeCollapsed(TreeExpansionEvent arg0) {
-		//TODO: Get the iRule list.
+	public void treeCollapsed(TreeExpansionEvent te) {
 		//Don't forget to add TreeExpansionListener  to the interfaces implemented
 		//Do stuff	
 	}
 
 	/**
+	 * treeExpanded(TreeExpansionEvent) is triggered whenever someone opens a branch node's widget.
 	 * @see javax.swing.event.TreeExpansionListener#treeExpanded(javax.swing.event.TreeExpansionEvent)
 	 */
 	@Override
-	public void treeExpanded(TreeExpansionEvent arg0) {
+	public void treeExpanded(TreeExpansionEvent te) {
 		log.debug("Tree Expansion Event");
 //		createNodes(remoteTree);
 	}
 
 	/**
+	 * treeWillExpand(TreeExpansionEvent) is called when the tree is expanded and you have added a treeWillExpandListener for lazy node expansion.
 	 * @see javax.swing.event.TreeWillExpandListener#treeWillExpand(javax.swing.event.TreeExpansionEvent)
 	 * @param tel
 	 */
@@ -883,17 +940,19 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	
 	/**
 	 * actionPerformed is the method that listens for events like clicking a button or a menu item.
+	 * @see java.awt.event.ActionListener#actionPerformed(java.awt.event.ActionEvent)
+	 * @param e The ActionEvent triggered.
 	 */
 	public void actionPerformed(ActionEvent e) {
         String actionCommand = e.getActionCommand(); //This will get me the text of the source action without having to instantiate the source
         Class sourceClass = e.getSource().getClass(); //This would allow me to identify the class first before getting it with e.getSource() if I needed to instantiate the whole class for something.
-
+        
         //TODO: Can I use a switch here or is java where switch is numbers only? Ahh... there would be a reason to use id or to set a name or something on all buttons/menu items/etc.
-        if (actionCommand == "Edit Settings") {
-        	log.debug("Edit Settings Event Detected.");
+        if (actionCommand == "Edit Connection Settings") {
+        	log.debug("Edit Connection Settings Event Detected.");
         	resultsPanelNoticesBox.setText("Editing Connection Settings");
         	
-        	final PreferencesDialog settingsPane = new PreferencesDialog(frame, this);
+        	final ConnectionsSettingsDialog settingsPane = new ConnectionsSettingsDialog(frame, this);
         	settingsPane.ConnPreffsHostTextField.setText(iIPAddress);
         	settingsPane.ConnPreffsPortTextField.setText(String.valueOf(iPort));
         	settingsPane.ConnPreffsUserTextField.setText(iUserName);
@@ -921,7 +980,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         	//TODO: Make 'Edit Rule' Be the default action for a double click on an iRule in the list.
         	//TODO: Figure out how to handle renaming of iRules.
         	log.debug("New Rule Detected");
-        	resultsPanelNoticesBox.setText("New iRule functionality is still a tiny bit sketchy. It requires that you have a connection to a BIGIP. Sorry for the inconvenience.");
+        	resultsPanelNoticesBox.setText("New iRule functionality is still a tiny bit sketchy. It will create a rule on the server if you have an initialized connection and locally if you do not.");
         	log.debug("Version is " + bigIPVersion);
         	
          	String newiRuleName = "new_rule";
@@ -952,6 +1011,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	        	newiRuleName = newiRuleDialog.txtNewiRuleName.getText();
 	        	String newiRuleFullName = "";//Start w/ blank.
 	        	NjordFileLocation iRuleLocation = null;
+	        	String newRuleDefinition = "when CLIENT_ACCEPTED {\n\t\n\t\n}";
 	        	
 	        	if (connectionInitialized) {
 	        		newiRulePartition = newiRuleDialog.txtNewiRulePartition.getText();
@@ -990,7 +1050,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	        				resultsPanelNoticesBox.setText("Unable to create rule a rule with this name already exists on the BIGIP. Please choose another");
 	        				return;
 	        			}
-	        			iRuleList.add(newiRuleFullName);
 	        			createNodes(remoteiRulesCategory);
 	        		} else {
 	        			if (iRuleList.contains(newiRuleFullName)) { 
@@ -998,9 +1057,12 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	        				resultsPanelNoticesBox.setText("Unable to create rule a rule with this name already exists on the BIGIP. Please choose another");
 	        				return;
 	        			}
+	        			// Whis is this an if with a return instead of an if/else?
 	        			iRuleList.add(newiRuleFullName);
 	        		}
-	        		iRuleLocation = null;
+//	        		This is where it's broken. I need to use public NjordFileLocation(MainGuiWindow mainWindow, String ruleName, iControl.Interfaces ic, String ruleDefinition)
+//	        		iRuleLocation = null;
+	        		iRuleLocation = new NjordFileLocation(this,  newiRuleFullName, ic, newRuleDefinition);
 	        	} else {
 	        		//Create a local only rule
 	        		JFileChooser fc = new JFileChooser();  
@@ -1019,19 +1081,12 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	        		iRuleLocation = new NjordFileLocation(this, newiRuleFullName, localFile);
 	        	}
 	        	
-	        	String newRuleDefinition = "when CLIENT_ACCEPTED {\n\t\n\t\n}";
-	        	
 	        	TextEditorPane ruleEditor = getEditorForRule(iRuleLocation, newiRuleFullName);
-	        	ruleEditor.setText(newRuleDefinition);
+	        	ruleEditor.setText(ruleEditor.getText()); //This is a dirty hack in order to mark the editor as dirty and still create it with a rule location. Will use this until a later release of RSTE when I can use isDirty(boolean dirty)
 	        	ruleEditor.discardAllEdits(); //This prevents undo from 'undoing' the loading of the editor with an iRule
+	        	
 	        	NjordTreeNode addRule = new NjordTreeNode(ruleEditor);
 	        	DefaultTreeModel model = (DefaultTreeModel)navigationTree.getModel();
-	        	
-//	        	// Find node to which new node is to be added
-//	        	int startRow = 0;
-//	        	String prefix = "iRules";
-//	        	TreePath path = tree.getNextMatch(prefix, startRow, Position.Bias.Forward);
-//	        	MutableTreeNode node = (MutableTreeNode)path.getLastPathComponent();
 	        	
 	        	if (connectionInitialized) {
 	        		model.insertNodeInto(addRule, remoteiRulesCategory, remoteiRulesCategory.getChildCount());
@@ -1042,10 +1097,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	        		resultsPanelNoticesBox.setText("New local rule");
 	        		navigationTree.expandPath(localiRulesPath);
 	        	}
-	        	
-	        	// Insert new node as last child of node
-//	        	model.insertNodeInto(addRule, node, node.getChildCount());
-	        	
 	        	
 	        }
 	        
@@ -1106,8 +1157,33 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
     				exceptionHandler.processException();
     			}
     		}
+    		//remoteTree is already built so let's clear it out
+    		if (remoteTreeBuilt) {
+    			//Gotta put the are you sure dialog here. I hope I can re-use it.
+    		    if ( !checkForUnsavediRules() ) {
+    		    	log.info("No unsaved rules. Refreshing");
+    		    } else {
+    		    	log.info("Canceling refresh.");
+    		    	//Unclear if this will actually do what I think it will.
+    		    	return;
+    		    }
+    			log.info("Remote tree already populated. Depopulating");
+    			remoteiRulesCategory.removeAllChildren();
+    			try {
+    				//Let's see if this removes everything
+    				iRuleList.removeAll(iRuleList);
+    			} catch (Exception e1) {
+    				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, this, log);
+    				exceptionHandler.processException();
+    			}
+    			//Reset the tree to get rid of the old elements.
+    			navigationTree.updateUI();
+    			//Then repopulate the iRule list from the server
+    			iRuleList = new ArrayList<String>(Arrays.asList(getiRuleList()));
+    		}
     		createNodes(remoteiRulesCategory);
-    		navigationTree.expandPath(remoteiRulesPath);
+    		navigationTree.expandPath(remoteiRulesPath); //Dunno why this doesn't work after re-fetching
+    		remoteTreeBuilt = true;
     		
         } else if (actionCommand == "Delete iRule"){
         	log.info("Delete iRule detected");
@@ -1207,6 +1283,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 			exceptionHandler.processException();
 		}
 		
+		boolean success = false;
 		//TODO: Move this part, the setting of the progress bar and displaying of connection validity out of this section and maybe back into the listener. We should only be returning true/false here.
 		if (version != null) {
         	log.debug("My Big-IP is version:" + bigIPVersion);
@@ -1214,23 +1291,36 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         		log.info("v" + bigIPVersion + ", success");
         		resultsPanelNoticesBox.setText("Connected to BIG-IP version: " + bigIPVersion);
         		connectionInitialized = true;
-        		return true; //It worked
+        		success = true; //It worked
         	} else if (bigIPVersion.startsWith("11")) {
         		log.info("v" + bigIPVersion + ", success");
         		resultsPanelNoticesBox.setText("Connected to BIG-IP version: " + bigIPVersion);
         		connectionInitialized = true;
-        		return true; //It worked;
+        		success = true; //It worked;
         	} else if (bigIPVersion.startsWith("9")) {
         		log.info("v" + bigIPVersion + ", unclear");
         		resultsPanelNoticesBox.setText("njord is currently untested on BIG-IP version 9 systems. Proceed at your own risk.");
         		connectionInitialized = true;
-        		return true; 
+        		success = true; 
         	} else {
         		log.info("v" + bigIPVersion + ", fail");
         		resultsPanelNoticesBox.setText("BIG-IP version: " + bigIPVersion + "Is unsupported. You must connect to a BIG-IP version 9.4 or higher.");
         		connectionInitialized = false;
-        		return false;
+        		success = false;
         	}
+        	//Now populate the provisioned modules list
+        	
+        	try {
+        		provisionedModulesList = ic.getManagementProvision().get_provisioned_list();
+			} catch (RemoteException e) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+				exceptionHandler.processException();
+			} catch (Exception e) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+				exceptionHandler.processException();
+			}
+        	
+        	return success;
 		} else {
 			// scream, run and cry
 			//TODO: Check the return code of the exception to see what the cause of failure is.
@@ -1262,8 +1352,10 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
     }
     
     /**
-     * returns only a string list of the names of the Virtual Servers instead of actual virtual server objects. I might move these to a sub package
-     * @return
+     * returns only a string list of the names of the Virtual Servers instead of actual virtual server objects. I might move 
+     * these to a sub package.
+     * 
+     * @return The iRules on the BIGIP.
      * @throws Exception
      */
 	public String [] getVirtualsList() {
@@ -1287,13 +1379,21 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	/**
 	 * getiRuleList returns only a string list of the names of the iRules instead of actual iRule objects 
 	 * 
-	 * @return
+	 * @return The list of iRules from the BIGIP.
 	 * @throws Exception
 	 */
 	public String[] getiRuleList() {
+		// LTM and GTM are the only two sections that have iRules.
+		String[] LTMiRules = null;
+		String[] GTMiRules = null;
 		String[] iRules = null;
 		try {
-			iRules = ic.getLocalLBRule().get_list();
+			LTMiRules = ic.getLocalLBRule().get_list();
+//			
+//			   T[] C= new T[A.length+B.length];
+//			   System.arraycopy(A, 0, C, 0, A.length);
+//			   System.arraycopy(B, 0, C, A.length, B.length);	
+//			iRules = LTMiRules + GTMiRules; 
 		} catch (RemoteException e) {
 			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
 			exceptionHandler.processException();
@@ -1301,7 +1401,23 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
 			exceptionHandler.processException();
 		}
-		log.debug("Available Rules");
+		try {
+			GTMiRules = ic.getGlobalLBRule().get_list();
+//			iRules = ic.getGlobalLBRule().get_list();
+		} catch (RemoteException e) {
+			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+			exceptionHandler.processException();
+		} catch (Exception e) {
+			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+			exceptionHandler.processException();
+		}
+		//This is crap but until I come up with a better way we're still only going to do LTM iRules.		
+		iRules = LTMiRules;
+		//iRules = new String[LTMiRules.length + GTMiRules.length];
+		//System.arraycopy(LTMiRules, 0, iRules, 0, LTMiRules.length);
+		//System.arraycopy(GTMiRules, 0, iRules, LTMiRules.length, GTMiRules.length);
+		
+		log.info("Available Rules");
 		for (String string : iRules) {
 			log.debug("   " + string);
 		}
@@ -1335,62 +1451,19 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		}
 		return iRules;
 	}
-    
+   
 	/**
-	 * Depricated, Get the iRules from the BigIP and create a list of NjordRules for them. This was originally intended to store
-	 * things like clean/dirty local/remote but that's being handled either by the editor or by the filelocation at this point. 
+	 * CreateEditorPanel builds the main holder panel where the editor will be held.
 	 * 
-	 * 
-	 * @return
+	 * @return a JPanel with a scroll pane to contain an editor pane.
 	 */
-//	public NjordiRuleDefinition[] getNjordiRules() {
-//		LocalLBRuleRuleDefinition[] iRules = null;
-//		NjordiRuleDefinition[] NjordRules = null;
-//		try {
-//			iRules = ic.getLocalLBRule().query_all_rules();
-//			log.debug("Available Rules");
-//			NjordRules = new NjordiRuleDefinition[iRules.length];
-//			for (int i = 0; i < iRules.length ; i++) {
-////			for (LocalLBRuleRuleDefinition rule : iRules) {
-//				NjordRules[i] = new NjordiRuleDefinition(iRules[i]);
-//				log.debug("   " + iRules[i]); //wonder if LocalLBRuleRuleDefinition has a toString() it should.
-//			}
-//		} catch (RemoteException e) {
-//			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
-//			exceptionHandler.processException();
-//			//Not:
-//			//e.printStackTrace();
-//		} catch (Exception e) {
-//			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
-//			exceptionHandler.processException();
-//			//Not:
-//			//e.printStackTrace();
-//		}
-//		return NjordRules;
-//	}
-	
-	//I can probably get rid of this method completely
 	private JPanel createEditorPanel() {
     	JPanel editorPanel = new JPanel();
 		AbstractTokenMakerFactory atmf = (AbstractTokenMakerFactory) TokenMakerFactory.getDefaultInstance();
 		atmf.putMapping("SYNTAX_STYLE_IRULES", "com.f5.AaronForster.njord.util.iRulesTokenMaker");
 		TokenMakerFactory.setDefaultInstance(atmf); //Don't know if I need this line or not
-    	
-//		//This text editor pane is no longer in use but I'm leaving it here for reference.
-//    	nTextEditorPane = new TextEditorPane();
-//    	nTextEditorPane.setSyntaxEditingStyle("SYNTAX_STYLE_IRULES");
-//    	nTextEditorPane.setCodeFoldingEnabled(true);
-//    	nTextEditorPane.setAntiAliasingEnabled(true);
-//    	nTextEditorPane.setName("editorPane");
-//    	SyntaxScheme scheme = nTextEditorPane.getSyntaxScheme();
-//        scheme.getStyle(Token.FUNCTION).foreground = Color.MAGENTA;
-//        Color operatorColor = new Color(880080);
-//        scheme.getStyle(Token.OPERATOR).foreground = operatorColor;
-    	
-    	//TODO: change the name of this scrollpane to something more intelligent.
+		
     	codeEditorScrollPane = new JScrollPane();
-    	//Let's try this with TextEditorPane;
-//    	codeEditorScrollPane.setViewportView(nTextEditorPane);
     	GridBagConstraints gbc_codeEditorScrollPane = new GridBagConstraints();
     	gbc_codeEditorScrollPane.fill = GridBagConstraints.BOTH;
     	gbc_codeEditorScrollPane.gridwidth = 8;
@@ -1400,11 +1473,11 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
     	gbc_codeEditorScrollPane.gridx = 1;
     	gbc_codeEditorScrollPane.gridy = 0;
     	editorPanel.add(codeEditorScrollPane, gbc_codeEditorScrollPane);
-
+    	
     	JButton btnSave = new JButton("Save");
     	btnSave.addActionListener(this);
     	btnSave.setEnabled(false);
-
+    	
     	GroupLayout gl_EditorPanel = new GroupLayout(editorPanel);
     	gl_EditorPanel.setHorizontalGroup(
     			gl_EditorPanel.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -1429,25 +1502,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
                     		.addComponent(btnSave))
                     .addContainerGap())
             );
-
+    	
     	editorPanel.setLayout(gl_EditorPanel);
-//
-//    	// A CompletionProvider is what knows of all possible completions, and
-//        // analyzes the contents of the text area at the caret position to
-//        // determine what completion choices should be presented. Most
-//        // instances of CompletionProvider (such as DefaultCompletionProvider)
-//        // are designed so that they can be shared among multiple text
-//        // components.
-//        CompletionProvider provider = createCompletionProvider();
-//
-//        // An AutoCompletion acts as a "middle-man" between a text component
-//        // and a CompletionProvider. It manages any options associated with
-//        // the auto-completion (the popup trigger key, whether to display a
-//        // documentation window along with completion choices, etc.). Unlike
-//        // CompletionProviders, instances of AutoCompletion cannot be shared
-//        // among multiple text components.
-//        AutoCompletion ac = new AutoCompletion(provider);
-//        ac.install(nTextEditorPane);
     	
     	return editorPanel;
 	}
@@ -1464,138 +1520,62 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		// language semantics. It simply checks the text entered up to the
 		// caret position for a match against known completions. This is all
 		// that is needed in the majority of cases.
-		DefaultCompletionProvider provider = new DefaultCompletionProvider();
+		NjordCompletionProvider provider = new NjordCompletionProvider();
 
+		String eventsPath = "/resources/iRulesEventsUncategorized.txt"; // CLIENT_ACCEPTED, CACHE_REQUEST, etc.
 		String operatorsPath = "/resources/iRulesOperatorsUncategorized.txt";
 		String statementsPath = "/resources/iRulesStatementsUncategorized.txt"; // drop, pool and more
 		String functionsPath = "/resources/iRulesFunctionsUncategorized.txt"; // findstr, class and others
 		String commandsPath = "/resources/iRulesCommandsUncategorized.txt"; // HTTP::return etc etc
 		String tclCommandsPath = "/resources/tclCommandsUncategorized.txt"; // Built in tcl commands
 		
-		provider.addCompletion(new BasicCompletion(provider, "abstract"));
-	    provider.addCompletion(new BasicCompletion(provider, "assert"));
+//		provider.addCompletion(new BasicCompletion(provider, "abstract"));
+//	    provider.addCompletion(new BasicCompletion(provider, "assert"));
 	    BufferedReader reader = null;
 	    
-		try {
-			reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(operatorsPath)));
-			String str;
-			while ((str = reader.readLine()) != null) {
-				provider.addCompletion(new BasicCompletion(provider, str));
-			}
-		} catch (IOException e) {
-			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
-			exceptionHandler.processException();
-		} finally {
-			try {
-				if (reader !=null) { 
-					reader.close();  
+	    // Now go through the above list in order and add the contents of each file to the completion provider.
+	    List<String> keyWordsLists = new ArrayList<String>(Arrays.asList(eventsPath, operatorsPath, statementsPath, functionsPath,
+	    		commandsPath, tclCommandsPath));
+	    
+	    for (String keyWordList : keyWordsLists) {
+	    	boolean append = false;
+	    	if (keyWordList.matches("/resources/iRulesEventsUncategorized.txt")) {
+	    		append = true;
+	    	}
+	    	try {
+				reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(keyWordList)));
+				String str;
+				while ((str = reader.readLine()) != null) {
+					if (append == true) { // If this is the events list then let's append a space and an open curly brace.
+						str = str + " {";
+					}
+					provider.addCompletion(new BasicCompletion(provider, str));
 				}
 			} catch (IOException e) {
-				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
 				exceptionHandler.processException();
-			}
-		}
-
-		try {
-			reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(statementsPath)));;
-			String str;
-			while ((str = reader.readLine()) != null) {
-				String[] words = str.split(","); // split on commas
-				for (String word : words) {
-					provider.addCompletion(new BasicCompletion(provider, word));
+			} finally {
+				try {
+					if (reader !=null) { 
+						reader.close();  
+					}
+				} catch (IOException e) {
+					f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
+					exceptionHandler.processException();
 				}
-
 			}
-		} catch (IOException e) {
-			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
-			exceptionHandler.processException();
-		} finally {
-			try {
-				if (reader !=null) { 
-					reader.close();  
-				}
-			} catch (IOException e) {
-				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
-				exceptionHandler.processException();
-			}
-		}
-
-		try {
-			reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(functionsPath)));
-			String str;
-			while ((str = reader.readLine()) != null) {
-				String[] words = str.split(","); // split on commas
-				for (String word : words) {
-					provider.addCompletion(new BasicCompletion(provider, word));
-				}
-
-			}
-		} catch (IOException e) {
-			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
-			exceptionHandler.processException();
-		} finally {
-			try {
-				if (reader !=null) { 
-					reader.close();  
-				}
-			} catch (IOException e) {
-				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
-				exceptionHandler.processException();
-			}
-		}
-
-		try {
-			reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(commandsPath)));
-			String str;
-			while ((str = reader.readLine()) != null) {
-				String[] words = str.split(","); // split on commas
-				for (String word : words) {
-					provider.addCompletion(new BasicCompletion(provider, word));
-				}
-
-			}
-		} catch (IOException e) {
-			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
-			exceptionHandler.processException();
-		}
+	    }
+		// These are some sample completions. I will add more useful ones in the future as well as the ability to add your own.
+//		provider.addCompletion(new ShorthandCompletion(provider, "dbl0",
+//				"if {($DEBUG > 0 )} { log local0.debug \"", "if {($DEBUG > 0 )} { log local0.debug \""));
+//		provider.addCompletion(new ShorthandCompletion(provider, "dbl1",
+//				"if {($DEBUG > 1 )} { log local0.debug \"", "if {($DEBUG > 1 )} { log local0.debug \""));
 		
-		try {
-			reader = new BufferedReader(new InputStreamReader(MainGuiWindow.class.getResourceAsStream(tclCommandsPath)));
-			String str;
-			while ((str = reader.readLine()) != null) {
-				String[] words = str.split(","); // split on commas
-				for (String word : words) {
-					provider.addCompletion(new BasicCompletion(provider, word));
-				}
-
-			}
-		} catch (IOException e) {
-			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
-			exceptionHandler.processException();
-		} finally {
-			try {
-				if (reader !=null) { 
-					reader.close();  
-				}
-			} catch (IOException e) {
-				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
-				exceptionHandler.processException();
-			}
-		}
-		
-		//TODO: replace these with some iRules defaults.
-		// These are some sample completions. They are java but this can be used to do code templates for iRules
-		provider.addCompletion(new ShorthandCompletion(provider, "sysout",
-				"System.out.println(", "System.out.println("));
-		provider.addCompletion(new ShorthandCompletion(provider, "syserr",
-				"System.err.println(", "System.err.println("));
-
 		return provider;
 	}
-
 	
 	/**
-	 * buildNavTreeFromBIGIP because later i will build it from some local which may or may not include stuff from the BigIP.
+	 * Builds the navigation tree.
 	 * 
 	 */
 	private void buildNavTree() {
@@ -1673,10 +1653,11 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	    buildLocalNodes(localiRulesCategory);
 	}
 	
-	
 	/**
 	 * Builds the local side of the navigation tree. At some point it might be nice to have a single method for local and 
 	 * remote or to have them return something but this is separate for now to simplify development and troubleshooting.
+	 * 
+	 * @param tree A JTree element to build the local tree under.
 	 */
 	public void buildLocalNodes(NjordTreeNode tree) {
 		// check to see that the local folder exists. 
@@ -1706,6 +1687,11 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		}
 	}
 	
+	/**
+	 * Pushes the iRule to the BIGIP. 
+	 * 
+	 * @param node A NjordTreeNode object which contains a textEditor/iRule to deploy to the BigIP.
+	 */
 	public void deployLocaliRuleToBigIP(NjordTreeNode node) {
 		//TODO: COnfirm connection to BIGIP First
 		TextEditorPane editorPane = (TextEditorPane) node.getUserObject();
@@ -1713,8 +1699,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		NjordFileLocation remoteLocation = new NjordFileLocation(this, editorPane.getName(), ic, editorPane.getText());
 		
 		TextEditorPane newEditorPane = getEditorForRule(remoteLocation, editorPane.getName()); 
-				
-//				new TextEditorPane(0, true, remoteLocation);
 		
 		if (iRuleList.contains(editorPane.getName())) { 
 			//There is already a rule with this name
@@ -1731,14 +1715,12 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
     	model.insertNodeInto(addRule, remoteiRulesCategory, remoteiRulesCategory.getChildCount());
     	resultsPanelNoticesBox.setText("Hit Save to complete creation on BIGIP.");
     	navigationTree.expandPath(remoteiRulesPath);
-		
 	}
-	
-	
 	
 	/**
 	 * Sets the contents of the notices box. For sub classes to be able to send back a message to us to set.
-	 * @param message
+	 * 
+	 * @param message The message to send to the end user.
 	 */
 	public void setNoticesText(String message) {
 		resultsPanelNoticesBox.setText(message);	
@@ -1746,8 +1728,9 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	
 	/**
 	 * loadPreferences will handle reading in connections preferences and creating the prefs file if need be. 
-	 * That is if I use the whole file thing at all instead of changing to java.util.prefs
-	 * @return
+	 * That is if I use the whole file thing at all instead of changing to java.util.prefs.
+	 * 
+	 * @return Success/Failure.
 	 */
 	private boolean loadPreferences() {
 		userHome = System.getProperty("user.home");
@@ -1794,8 +1777,9 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	 * 
 	 * @param iRuleLocation Expects mostly a NjordFileLocation but should be generic enough to handle any. 
 	 * @param iRuleName
-	 * @return
+	 * @return A TextEditorPane which contains an iRule.
 	 */
+	@SuppressWarnings("static-access")
 	public TextEditorPane getEditorForRule(FileLocation iRuleLocation, String iRuleName) {
 		
 //		How do to this so one should go if there's a remote location and another if it's local
@@ -1818,22 +1802,22 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 //				Maybe a new deploy to bigip button that actually just gets the contents of the text editor, issues a create irule on the bigip with them then re-fetches the list of iRules from the server. I love this plan.
 //				Then if the file is 'local' all actions like getOutputStream return some output stream suitable for 'local file system' or whatever and if remote uses the other.
 //				
-//				So then my todos right now are create this method have new iRule use a null for file location if there's no valid connection which would just let you create the editor and such. Then I can get this subroutine working and tested and deal with the other outputstream after.
+//				So then my todos right now are create this method have new iRule use a null for file location if there's no valid connection which would just let you create the editor and such. Then I can get this subroutine working and tested and deal with the other outputstream after.		
 				
-						
 		//For the methods that take a default encoding value "If this value is null, the system default encoding is used."
 		TextEditorPane ruleEditor = null;
 		try {
-    		ruleEditor = new TextEditorPane(0, true, iRuleLocation);
+			
+    		ruleEditor = new TextEditorPane(0, true, iRuleLocation, "ISO-8859-1");
     	} catch (IOException e) {
     		f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e);
     		exceptionHandler.processException();
     	}
-
+		
     	ruleEditor.setName(iRuleName);
     	ruleEditor.discardAllEdits(); //This prevents undo from 'undoing' the loading of the editor with an iRule. Should be unnessesary now that I'm using FileLocation.
     	ruleEditor.getDocument().addDocumentListener(new NjordDocumentListener(this));
-
+    	
     	//Syntax Highlighting items
     	ruleEditor.setSyntaxEditingStyle("SYNTAX_STYLE_IRULES");
     	ruleEditor.setCodeFoldingEnabled(true);
@@ -1854,10 +1838,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
     	//Some good purples
     	// 660066 990099
     	
-    	
     	SyntaxScheme scheme = ruleEditor.getSyntaxScheme();
     	
-
     	log.debug(logPrefix + "Vars currently have " + scheme.getStyle(Token.VARIABLE).foreground);
     	
     	scheme.getStyle(Token.ANNOTATION).foreground = annotationColor;
@@ -1874,10 +1856,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
     	scheme.getStyle(Token.LITERAL_BACKQUOTE).foreground = backquoteColor;
     	scheme.getStyle(Token.SEPARATOR).foreground = bracketColor;
     	
-    	
-    	//Let's try and make variables work.
-    	
-    	
     	// A CompletionProvider is what knows of all possible completions, and
         // analyzes the contents of the text area at the caret position to
         // determine what completion choices should be presented. Most
@@ -1885,7 +1863,15 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         // are designed so that they can be shared among multiple text
         // components.
         CompletionProvider provider = createCompletionProvider();
-
+        
+		//Trying to get hyperlinks working the below isn't doing it. Taking a look at the JavaScriptTokenMaker it has functionality to
+        // 	identify URLs. From the comments that hyperlinks only work if the language supports it I'm going to guess that hyperlinks
+        //	means if the full http://etc.etcimator.com is in the code. not what I'm looking for where you can have anything be a hyperlink
+        //	I'm going to have to extend it. I'll make the thing set tooltip text for them and then figure out how to modify the hyperlink
+        //	listener so that it works. Or even better just modify a double click listener. Ooh, that's good.
+//        ruleEditor.setLinkScanningMask(InputEvent.ALT_DOWN_MASK);
+//        ruleEditor.addHyperlinkListener(this);// addHyperlinkListener(l);
+        
         // An AutoCompletion acts as a "middle-man" between a text component
         // and a CompletionProvider. It manages any options associated with
         // the auto-completion (the popup trigger key, whether to display a
@@ -1895,7 +1881,205 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
         AutoCompletion ac = new AutoCompletion(provider);
         ac.install(ruleEditor);
         
+        //Gotta add a parser here I think to catch the words and make them links?
+        NjordParser parser = new NjordParser();
+        ruleEditor.addParser(parser);
+        
+        //Let's see if setting this true or false fixes the odd word wrap== new line thing
+        ruleEditor.setWrapStyleWord(true);
+        
+        JFileChooser fc = new JFileChooser();  
+		FileSystemView fv = fc.getFileSystemView();  
+		File documentsDir = fv.getDefaultDirectory();
+        String templatesDirPath = documentsDir.getAbsolutePath() + "/Njord/Templates/";
+        ruleEditor.setTemplateDirectory(templatesDirPath);
+        ruleEditor.setTemplatesEnabled(true);
+       
+        //Some stuff to add to the editor
+        // Try setEncoding
+        //setTemplateDirectory(dir)
+        //setTemplatesEnabled(enabled)
+        //setIconGroup(group)
+        //setMarkOccurrences(markOccurrences) gotta update my search to include that
+        //This needs to be setable by a preference
+        //setEOLMarkersVisible(boolean visible)
+        //setPaintTabLines(paint)
+        //.setWhitespaceVisible(visible)
+        
+//    	ruleEditor.discardAllEdits(); //This prevents undo from 'undoing' the loading of the editor with an iRule. Should be unnessesary now that I'm using FileLocation.
         return ruleEditor;
+	}
+	
+	/** (non-Javadoc)
+	 * @see javax.swing.event.HyperlinkListener#hyperlinkUpdate(javax.swing.event.HyperlinkEvent)
+	 */
+	@Override
+	public void hyperlinkUpdate(HyperlinkEvent e) {
+        try {
+            Desktop desktop = java.awt.Desktop.getDesktop();
+//            URI uri = new java.net.URI(e.getURL().toURI());
+            desktop.browse(e.getURL().toURI());
+        } catch (URISyntaxException use) {
+            throw new AssertionError(use);
+        } catch (IOException ioe) {
+            ioe.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Sorry, a problem occurred while trying to open this link in your system's standard browser.", "A problem occured", JOptionPane.ERROR_MESSAGE);
+        }
+	}
+
+	/**
+	 * Triggered when someone clicks the X on the main window. Should give me a chance to make sure that everything is saved.
+	 * 
+	 * @param e
+	 */
+	public void windowClosing(WindowEvent e) {
+		//I totally need a displayMessage
+	    displayMessage("WindowListener method called: windowClosing.");
+	    //A pause so user can see the message before
+	    //the window actually closes.
+
+	    //Check and see if we have any unsaved iRules.
+	    if ( !checkForUnsavediRules() ) {
+	    	//unsavediRules returned false so we should exit
+	    	log.info("No unsaved rules. Quitting normally");
+	    	frame.dispose();
+	    } else {
+	    	log.info("Canceling shutdown.");
+	    }
+
+	}
+	
+	/**
+	 * Executed after a window is really closed.
+	 * @param e
+	 */
+	public void windowClosed(WindowEvent e) {
+	    //This will only be seen on standard output.
+	    displayMessage("WindowListener method called: windowClosed.");
+	}
+	
+	//Unused window listener events
+	/**
+	 * Currently unused
+	 * @see java.awt.event.WindowListener#windowActivated(java.awt.event.WindowEvent)
+	 */
+	@Override
+	public void windowActivated(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
+	 * Currently unused
+	 * @see java.awt.event.WindowListener#windowDeactivated(java.awt.event.WindowEvent)
+	 */
+	@Override
+	public void windowDeactivated(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
+	 * Currently unused
+	 * @see java.awt.event.WindowListener#windowDeiconified(java.awt.event.WindowEvent)
+	 */
+	@Override
+	public void windowDeiconified(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
+	 * Currently unused
+	 * @see java.awt.event.WindowListener#windowIconified(java.awt.event.WindowEvent)
+	 */
+	@Override
+	public void windowIconified(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
+	 * Currently unused
+	 * @see java.awt.event.WindowListener#windowOpened(java.awt.event.WindowEvent)
+	 */
+	@Override
+	public void windowOpened(WindowEvent arg0) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	/**
+	 * Checks both the local and remote trees to see if there are any unsaved iRules.
+	 * 
+	 * @return
+	 */
+	public boolean checkForUnsavediRules() {
+//		Ok, so I'm going to check for rules that are open. If there are some I will present a dialog that asks to save all or cancel. 
+//		If save all then do so and return false (no rules that aren't saved) If cancel then return true and in calling method I should 
+//				just exit from the quit event however you do that.
+		List<TextEditorPane> uncleanEditorList = new ArrayList<TextEditorPane>();
+		for (int i = 0; i < remoteiRulesCategory.getChildCount(); i++ ) {
+			NjordTreeNode childNode =  (NjordTreeNode) remoteiRulesCategory.getChildAt(i);
+			if (childNode.isLeaf() ) {
+				TextEditorPane thisPane = (TextEditorPane) childNode.getUserObject();
+				if (thisPane.isDirty()) {
+					//If it's dirty add it to the list
+					//TODO: Change this to debug once it's working.
+					log.info("Adding " + thisPane.getName() + " to unclean list.");
+					uncleanEditorList.add(thisPane);
+				}
+			}
+		}
+		if (uncleanEditorList.isEmpty()) {
+			//There are no unclean rules
+			return false;
+		} else {
+			log.info("Unclean iRules shutdown detected. Displaying dialog");
+			Object[] options = {"Save All", "Discard All", "Cancel"};
+			
+			int result = JOptionPane.showOptionDialog(null, 
+					"There are unclean rules. Do we want to save them?",
+					"Unsaved iRules",
+					JOptionPane.YES_NO_CANCEL_OPTION,
+					JOptionPane.QUESTION_MESSAGE,
+					null,
+					options,
+					"Cancel");
+					     
+			if (result == JOptionPane.OK_OPTION) {
+				displayMessage("Saving all.");
+				log.info("Save All chosen");
+				boolean failure = true;
+				for (TextEditorPane thisEditor : uncleanEditorList) {
+					log.info("Running save on editor for rule [" + thisEditor.getName() + "]");
+					try {
+						thisEditor.save();
+						failure = false;
+					} catch (IOException e) {
+						f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e, this, log);
+						exceptionHandler.processException();
+						failure = true;
+					}
+				}
+				//This is just a stupid trick to say "Save Successful" if there was only one unclean iRule and "Saves successful" if there were multiple.
+				String saveOrSaves = "Save";
+				if (uncleanEditorList.size() > 1 ) {
+					saveOrSaves = "Saves";
+				}
+				if (failure == false) {
+					JOptionPane.showMessageDialog(null, saveOrSaves + " Successful");
+				}
+				//This will be changed to return false once we actually save all the rules.
+				return failure;
+			} else if (result == JOptionPane.NO_OPTION) {
+				log.info("Discard all changes option chosen. Shutting down without saving.");
+				return false;
+			} else {
+				log.info("Cancel chosen. Cancelling shut down");
+				return true;
+			}
+		}
 	}
 	
 	/**
@@ -1942,14 +2126,32 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		}
 		return true;
 	}
-
-	private static void makeLinkable(JLabel c, MouseListener ml) {
-	    assert ml != null;
-	    c.setText(htmlIfy(linkIfy(c.getText(), c.getToolTipText())));
-	    c.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-	    c.addMouseListener(ml);
+	
+	/**
+	 * This needs to be written and used.
+	 * @param message
+	 */
+	public void displayMessage(String message) {
+		resultsPanelNoticesBox.setText(message);
 	}
-
+	
+	/**
+	 * Takes a JLabel and converts it's text into a hyperlink using it's tooltipText as the link tarket.
+	 * 
+	 * @param label The label to link. 
+	 * @param ml A mouse listener to notify us when a click event has happened.
+	 */
+	private static void makeLinkable(JLabel label, MouseListener ml) {
+	    assert ml != null;
+	    label.setText(htmlIfy(linkIfy(label.getText(), label.getToolTipText())));
+	    label.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
+	    label.addMouseListener(ml);
+	}
+	
+	/**
+	 * Checks to see if the platform we are executing on supports Desktop Browsing.
+	 * @return True/False.
+	 */
 	private static boolean isBrowsingSupported() {
 	    if (!Desktop.isDesktopSupported()) {
 	        return false;
@@ -1962,9 +2164,12 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	    return result;
 
 	}
-
+	
+	/**
+	 * The mouse event listener for the desktop browsing interface. Detects the mouse click event and opens a browser.
+	 *
+	 */
 	private static class LinkMouseListener extends MouseAdapter {
-
 	    @Override
 	    public void mouseClicked(java.awt.event.MouseEvent evt) {
 	        JLabel l = (JLabel) evt.getSource();
@@ -1980,25 +2185,38 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	        }
 	    }
 	}
-
+	
+	/**
+	 * Converts a string into an HTML link. This method requires that s is a plain string that requires no further escaping.
+	 * 
+	 * @param s A String to be converted into an HTML link.
+	 * @return HTML text.
+	 */
 	private static String getPlainLink(String s) {
 	    return s.substring(s.indexOf(A_HREF) + A_HREF.length(), s.indexOf(HREF_CLOSED));
 	}
-
-	//WARNING
-	//This method requires that s is a plain string that requires
-	//no further escaping
-	private static String linkIfy(String s) {
-	    return A_HREF.concat(s).concat(HREF_CLOSED).concat(s).concat(HREF_END);
-	}
-
-	private static String linkIfy(String s, String l) {
-	    return A_HREF.concat(l).concat(HREF_CLOSED).concat(s).concat(HREF_END);
+	
+	/**
+	 * Creates an HTML link from the provided data.
+	 * 
+	 * @param textString The text to be presented.
+	 * @param linkLocation The URL Location to use as the destination of the HREF.
+	 * @return
+	 */
+	private static String linkIfy(String textString, String linkLocation) {
+	    return A_HREF.concat(linkLocation).concat(HREF_CLOSED).concat(textString).concat(HREF_END);
 	}
 	
 	//WARNING
 	//This method requires that s is a plain string that requires
 	//no further escaping
+	
+	/**
+	 * Surrounds a string with HTML open and close HTML tags.
+	 * 
+	 * @param s Non HTML String text.
+	 * @return The same text surrounded with HTML open and close text.
+	 */
 	private static String htmlIfy(String s) {
 	    return HTML.concat(s).concat(HTML_END);
 	}

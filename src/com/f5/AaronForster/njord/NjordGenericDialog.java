@@ -16,18 +16,17 @@ import javax.swing.JTextField;
 
 // Currently this code will produce a bunch of different dialogs. I need to add one that will produce the prefs dialog I am going for.
 
-public class GenericCustomDialog extends JDialog implements ActionListener, PropertyChangeListener {
-	private String logPrefix = "GenericCustomDialog: ";
+public class NjordGenericDialog extends JDialog implements ActionListener, PropertyChangeListener {
+	private String logPrefix = "NjordGenericDialog: ";
 	
 	private String typedText = null;
     private JTextField textField;
     private MainGuiWindow mainGuiWindow;
+    public JOptionPane optionPane;
 
-    private String magicWord;
-    private JOptionPane optionPane;
-
-    private String btnString1 = "Enter";
-    private String btnString2 = "Cancel";
+    private static String btnButton1DefaultString = "Yes";
+    private static String btnButton2DefaultString = "Cancel";
+    private static String defaultDialogMessage = "Are you sure?";
 
     /**
      * Returns null if the typed string was invalid;
@@ -36,26 +35,34 @@ public class GenericCustomDialog extends JDialog implements ActionListener, Prop
     public String getValidatedText() {
         return typedText;
     }
+    
+    /**
+     * SUPER generic dialog will default to "Are you Sure?" "Yes" "Cancel"
+     * @param aFrame
+     * @param parent
+     */
+    public NjordGenericDialog(Frame aFrame, MainGuiWindow parent) {
+        this(aFrame, defaultDialogMessage, btnButton1DefaultString, btnButton2DefaultString, parent);
+    }
 
-    /** Creates the reusable dialog. */
-    public GenericCustomDialog(Frame aFrame, String aWord, MainGuiWindow parent) {
+    
+    /**
+     * Actual method for creating the dialog requires text for the buttons and a dialog message
+     *
+     *
+     */
+    public NjordGenericDialog(Frame aFrame, String dialogMessage, String buttonOneText, String buttonTwoText, MainGuiWindow parent) {
         super(aFrame, true);
         mainGuiWindow = parent;
 
-        magicWord = aWord.toUpperCase();
-        setTitle("Quiz");
-
-        textField = new JTextField(10);
-
-        //Create an array of the text and components to be displayed.
-        String msgString1 = "What was Dr. SEUSS's real last name?";
-        String msgString2 = "(The answer is \"" + magicWord
-                              + "\".)";
-        Object[] array = {msgString1, msgString2, textField};
+//        textField = new JTextField(10);
+//        String msgString1 = "String 1";
+//        String msgString2 = "String 2";
+        Object[] array = {dialogMessage};
 
         //Create an array specifying the number of dialog buttons
         //and their text.
-        Object[] options = {btnString1, btnString2};
+        Object[] options = {buttonOneText, buttonTwoText};
 
         //Create the JOptionPane.
         optionPane = new JOptionPane(array,
@@ -67,38 +74,41 @@ public class GenericCustomDialog extends JDialog implements ActionListener, Prop
 
         //Make this dialog display it.
         setContentPane(optionPane);
-
+//        setContentPane(this);
+        
         //Handle window closing correctly.
         setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
-                public void windowClosing(WindowEvent we) {
-                /*
-                 * Instead of directly closing the window,
-                 * we're going to change the JOptionPane's
-                 * value property.
-                 */
-                    optionPane.setValue(new Integer(
-                                        JOptionPane.CLOSED_OPTION));
-            }
-        });
+//        addWindowListener(new WindowAdapter() {
+//                public void windowClosing(WindowEvent we) {
+//                /*
+//                 * Instead of directly closing the window,
+//                 * we're going to change the JOptionPane's
+//                 * value property.
+//                 */
+//                    optionPane.setValue(new Integer(
+//                                        JOptionPane.CLOSED_OPTION));
+//            }
+//        });
 
-        //Ensure the text field always gets the first focus.
-        addComponentListener(new ComponentAdapter() {
-            public void componentShown(ComponentEvent ce) {
-                textField.requestFocusInWindow();
-            }
-        });
-
-        //Register an event handler that puts the text into the option pane.
-        textField.addActionListener(this);
-
-        //Register an event handler that reacts to option pane state changes.
-        optionPane.addPropertyChangeListener(this);
+//        //Ensure the text field always gets the first focus.
+//        addComponentListener(new ComponentAdapter() {
+//            public void componentShown(ComponentEvent ce) {
+//                textField.requestFocusInWindow();
+//            }
+//        });
+//
+//        //Register an event handler that puts the text into the option pane.
+//        textField.addActionListener(this);
+//
+//        //Register an event handler that reacts to option pane state changes.
+//        optionPane.addPropertyChangeListener(this);
     }
 
-    /** This method handles events for the text field. */
+    /** I believe this is what happens if you hit enter from the text field. Which should be gone now. Hrm...
+     * This method handles events for the text field. 
+     * */
     public void actionPerformed(ActionEvent e) {
-        optionPane.setValue(btnString1);
+        optionPane.setValue(btnButton1DefaultString);
     }
 
     /** This method reacts to state changes in the option pane. */
@@ -123,33 +133,6 @@ public class GenericCustomDialog extends JDialog implements ActionListener, Prop
             optionPane.setValue(
                     JOptionPane.UNINITIALIZED_VALUE);
 
-            if (btnString1.equals(value)) {
-                    typedText = textField.getText();
-                String ucText = typedText.toUpperCase();
-                if (magicWord.equals(ucText)) {
-                    //we're done; clear and dismiss the dialog
-                    clearAndHide();
-                } else {
-                    //text was invalid
-                    textField.selectAll();
-                    JOptionPane.showMessageDialog(
-                                    GenericCustomDialog.this,
-                                    "Sorry, \"" + typedText + "\" "
-                                    + "isn't a valid response.\n"
-                                    + "Please enter "
-                                    + magicWord + ".",
-                                    "Try again",
-                                    JOptionPane.ERROR_MESSAGE);
-                    typedText = null;
-                    textField.requestFocusInWindow();
-                }
-            } else { //user closed dialog or clicked cancel
-                mainGuiWindow.setLabel("It's OK.  "
-                         + "We won't force you to type "
-                         + magicWord + ".");
-                typedText = null;
-                clearAndHide();
-            }
         }
     }
 
@@ -191,7 +174,7 @@ public class GenericCustomDialog extends JDialog implements ActionListener, Prop
 //		EventQueue.invokeLater(new Runnable() {
 //			public void run() {
 //				try {
-//					GenericCustomDialog window = new GenericCustomDialog();
+//					NjordGenericDialog window = new NjordGenericDialog();
 //					window.frame.setVisible(true);
 //				} catch (Exception e) {
 //					e.printStackTrace();
@@ -203,7 +186,7 @@ public class GenericCustomDialog extends JDialog implements ActionListener, Prop
 //	/**
 //	 * Create the application.
 //	 */
-//	public GenericCustomDialog() {
+//	public NjordGenericDialog() {
 //		initialize();
 //	}
 //

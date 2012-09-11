@@ -24,17 +24,16 @@ import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
-import javax.swing.JCheckBox;
 
 // Currently this code will produce a bunch of different dialogs. I need to add one that will produce the prefs dialog I am going for.
 
-public class PreferencesDialog extends JDialog implements ActionListener, PropertyChangeListener {
+public class ConnectionsSettingsDialog extends JDialog implements ActionListener, PropertyChangeListener {
 	/*##############################################################################################################
 	 * POSSIBLY NOT IN USE:
 	 * I'm not sure if this is actually in use anywhere. I need to check.
 	 *##############################################################################################################
 	 */
-//	private String logPrefix = "PreferencesDialog: ";
+//	private String logPrefix = "ConnectionsSettingsDialog: ";
 	
 	private String typedText = null;
     private JTextField textField1;
@@ -48,6 +47,10 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
     private String btnString2 = "Cancel";
 
 	public JFrame frame;
+	public JTextField ConnPreffsHostTextField;
+	public JTextField ConnPreffsPortTextField;
+	public JTextField ConnPreffsUserTextField;
+	public JTextField ConnPreffsPasswordTextField;
 	public JPanel panel_1;
     
     
@@ -61,7 +64,7 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
     }
 
     /** Creates the reusable dialog. */
-    public PreferencesDialog(Frame aFrame, MainGuiWindow parent) {
+    public ConnectionsSettingsDialog(Frame aFrame, MainGuiWindow parent) {
         super(aFrame, true);
         mainGuiWindow = parent;
 
@@ -145,20 +148,52 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
 				RowSpec.decode("default:grow"),}));
 		
 		//TODO: Write these four things to a preferences file
-		JLabel lblConnectAtStartup = new JLabel("Automatically Connect to BIG-IP on startup");
-		lblConnectAtStartup.setToolTipText("Warning this may cause Njord to hang during startup if the BIG-IP is not present.");
-		panel.add(lblConnectAtStartup, "4, 4");
+		JLabel lblBigipAddress = new JLabel("Host:");
+		lblBigipAddress.setToolTipText("IP Address or DNS name");
+		panel.add(lblBigipAddress, "4, 4");
 		
-		JCheckBox chckbxConnectAtStartup = new JCheckBox("");
-		panel.add(chckbxConnectAtStartup, "8, 4");
 		
-		JLabel lblSaveWindowGeometry = new JLabel("Save window geometry between executions");
-		lblSaveWindowGeometry.setToolTipText("NOT YET IMPLEMENTED");
-		panel.add(lblSaveWindowGeometry, "4, 6");
+//		iIPAddress 
+//        iPort 
+//        iUserName 
+//        iPassword
+        
+        
+		ConnPreffsHostTextField = new JTextField();
+		ConnPreffsHostTextField.setText("192.168.215.251");
+//		ConnPreffsHostTextField.setText(MainGuiWindow.iIPAddress);
+		panel.add(ConnPreffsHostTextField, "8, 4, fill, default");
+		ConnPreffsHostTextField.setColumns(10);
 		
-		JCheckBox chckbxSaveWindowGeometry = new JCheckBox("");
-		chckbxSaveWindowGeometry.setSelected(true);
-		panel.add(chckbxSaveWindowGeometry, "8, 6");
+		JLabel lblBigipConnectionPort = new JLabel("Port:");
+		lblBigipConnectionPort.setToolTipText("Likely 443");
+		panel.add(lblBigipConnectionPort, "4, 6");
+		
+		ConnPreffsPortTextField = new JTextField();
+		ConnPreffsPortTextField.setText("443");
+		panel.add(ConnPreffsPortTextField, "8, 6, fill, default");
+		ConnPreffsPortTextField.setColumns(10);
+		
+		JLabel lblUnsername = new JLabel("Username:");
+		lblUnsername.setToolTipText("A user with Administrative access to the BigIP System");
+		panel.add(lblUnsername, "4, 8");
+		
+		ConnPreffsUserTextField = new JTextField();
+		ConnPreffsUserTextField.setText("admin");
+		panel.add(ConnPreffsUserTextField, "8, 8, fill, default");
+		ConnPreffsUserTextField.setColumns(10);
+		
+		//TODO: Make this contain asterisks
+		//TODO: Potentially add a shoulder surfing replace display text as you type with asterisks.
+		//TODO: Make sure not to write asterisks to the password variable stored in preferences
+		JLabel lblPassword = new JLabel("Password");
+		lblPassword.setToolTipText("The password for the above account");
+		panel.add(lblPassword, "4, 10");
+		
+		ConnPreffsPasswordTextField = new JTextField();
+		ConnPreffsPasswordTextField.setText("admin");
+		panel.add(ConnPreffsPasswordTextField, "8, 10, fill, default");
+		ConnPreffsPasswordTextField.setColumns(10);
 		
 		Component horizontalStrut_1 = Box.createHorizontalStrut(20);
 		panel_1.add(horizontalStrut_1, BorderLayout.EAST);
@@ -287,7 +322,7 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
                     //text was invalid
                     textField1.selectAll();
                     JOptionPane.showMessageDialog(
-                                    PreferencesDialog.this,
+                                    ConnectionsSettingsDialog.this,
                                     "Sorry, \"" + typedText + "\" "
                                     + "isn't a valid response.\n"
                                     + "Please enter "
@@ -343,7 +378,7 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
 //		EventQueue.invokeLater(new Runnable() {
 //			public void run() {
 //				try {
-//					PreferencesDialog window = new PreferencesDialog();
+//					ConnectionsSettingsDialog window = new ConnectionsSettingsDialog();
 //					window.frame.setVisible(true);
 //				} catch (Exception e) {
 //					e.printStackTrace();
@@ -355,7 +390,7 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
 //	/**
 //	 * Create the application.
 //	 */
-//	public PreferencesDialog() {
+//	public ConnectionsSettingsDialog() {
 //		initialize();
 //	}
 //

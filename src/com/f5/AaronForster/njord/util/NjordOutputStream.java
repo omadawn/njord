@@ -3,6 +3,7 @@
  */
 package com.f5.AaronForster.njord.util;
 
+import iControl.GlobalLBRuleRuleDefinition;
 import iControl.LocalLBRuleRuleDefinition;
 
 import java.io.ByteArrayOutputStream;
@@ -29,18 +30,20 @@ public class NjordOutputStream extends OutputStream  {
 	public MainGuiWindow owner = null;
 	public boolean isInError = false; // This is a stupid hack to try and figure out why TextEditorPane isn't noticing that we're throwing an IOException.
 	final Logger log = LoggerFactory.getLogger(NjordOutputStream.class);
-	
+	public int iRuleType = 0;
 	
 	public NjordOutputStream(String iRuleName, iControl.Interfaces ic) {
 		this.iRuleName = iRuleName;
 		this.ic = ic;
 	}
 	
-	public NjordOutputStream(MainGuiWindow owner, String iRuleName, iControl.Interfaces ic, boolean local, boolean exists) {
+	public NjordOutputStream(MainGuiWindow owner, String iRuleName, iControl.Interfaces ic, boolean local, boolean exists, int type) {
 		this.owner = owner;
 		this.iRuleName = iRuleName;
 		this.ic = ic;
 		this.local = local;
+		this.exists = exists;
+		this.iRuleType = type;
 	}
 
 	/** 
@@ -58,29 +61,60 @@ public class NjordOutputStream extends OutputStream  {
 	}
 
 	public void write(String ruleDefinition) throws IOException{
-		LocalLBRuleRuleDefinition[] saveRules = new LocalLBRuleRuleDefinition[1]; // Create a list of iRules in order to write them back. We only have one so we only need a tiny list
-		saveRules[0] = new LocalLBRuleRuleDefinition();
-		saveRules[0].setRule_definition(ruleDefinition);
-		saveRules[0].setRule_name(iRuleName);
+		switch (iRuleType) {
+		case NjordConstants.IRULE_TYPE_GTM: {
+			GlobalLBRuleRuleDefinition[] saveRules = new GlobalLBRuleRuleDefinition[1]; // Create a list of iRules in order to write them back. We only have one so we only need a tiny list
+			saveRules[0] = new GlobalLBRuleRuleDefinition();
+			saveRules[0].setRule_definition(ruleDefinition);
+			saveRules[0].setRule_name(iRuleName);
 
-		try {
-			//          if (nodeInfo.isNew()) {
-			if (!exists) {
-				//Rule doesn't exist on the server so create it instead of modifying it.
-				ic.getLocalLBRule().create(saveRules);
-				exists = true;
-			} else {
-				ic.getLocalLBRule().modify_rule(saveRules);
+			try {
+				//          if (nodeInfo.isNew()) {
+				if (!exists) {
+					//Rule doesn't exist on the server so create it instead of modifying it.
+					ic.getGlobalLBRule().create(saveRules);
+					exists = true;
+				} else {
+					ic.getGlobalLBRule().modify_rule(saveRules);
+				}
+			} catch (RemoteException e1) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, owner, log);
+				exceptionHandler.processException();
+				throw new java.io.IOException(e1.getMessage());
+			} catch (Exception e1) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, owner, log);
+				exceptionHandler.processException();
+				throw new java.io.IOException(e1.getMessage());
 			}
-		} catch (RemoteException e1) {
-			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, owner, log);
-			exceptionHandler.processException();
-			throw new java.io.IOException(e1.getMessage());
-		} catch (Exception e1) {
-			f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, owner, log);
-			exceptionHandler.processException();
-			throw new java.io.IOException(e1.getMessage());
 		}
+		case NjordConstants.IRULE_TYPE_LTM:
+		default: {
+			LocalLBRuleRuleDefinition[] saveRules = new LocalLBRuleRuleDefinition[1]; // Create a list of iRules in order to write them back. We only have one so we only need a tiny list
+			saveRules[0] = new LocalLBRuleRuleDefinition();
+			saveRules[0].setRule_definition(ruleDefinition);
+			saveRules[0].setRule_name(iRuleName);
+
+			try {
+				//          if (nodeInfo.isNew()) {
+				if (!exists) {
+					//Rule doesn't exist on the server so create it instead of modifying it.
+					ic.getLocalLBRule().create(saveRules);
+					exists = true;
+				} else {
+					ic.getLocalLBRule().modify_rule(saveRules);
+				}
+			} catch (RemoteException e1) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, owner, log);
+				exceptionHandler.processException();
+				throw new java.io.IOException(e1.getMessage());
+			} catch (Exception e1) {
+				f5ExceptionHandler exceptionHandler = new f5ExceptionHandler(e1, owner, log);
+				exceptionHandler.processException();
+				throw new java.io.IOException(e1.getMessage());
+			}
+		}
+		}
+
 	}
-	
+
 }
