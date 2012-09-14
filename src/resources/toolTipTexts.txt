@@ -1,3 +1,600 @@
+<tooltip name="contains">
+Tests if one string contains another string.
+
+Syntax
+<string1> 
+contains <string2>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.contains.ashx
+
+</tooltip>
+<tooltip name="ends_with">
+Tests if one string ends with another string.
+
+Syntax
+<string1> 
+ends_with <string2>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ends_with.ashx
+
+</tooltip>
+<tooltip name="equals">
+Tests if one string equals another string.
+
+Syntax
+<string1> 
+equals <string2>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.equals.ashx
+
+</tooltip>
+<tooltip name="matches_glob">
+This command allows the use of glob style matching, as found in string match , switch -glob , etc.
+
+Syntax
+
+matches_glob
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.matches_glob.ashx
+
+</tooltip>
+<tooltip name="matches_regex">
+Tests if one string matches a regular expression.Note: It is more efficient to use a string command versus a regular expression.  Most scenarios can be handled using string match or scan .
+
+Syntax
+<string1> 
+matches_regex <regex>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.matches_regex.ashx
+
+</tooltip>
+<tooltip name="starts_with">
+Tests if one string starts_with another string
+
+Syntax
+<string1> 
+starts_with <string2>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.starts_with.ashx
+
+</tooltip>
+<tooltip name="switch">
+A built-in TCL command. Evaluates one of several scripts, depending on a given value.  See the TCL wiki page for additional info:http://www.tcl.tk/man/tcl8.4/TclCmd/switch.htm
+
+Syntax
+
+switch abc a - b {format 1} abc {format 2} default {format 3}
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.switch.ashx
+
+</tooltip>
+<tooltip name="and">
+Performs a logical "and" comparison between two values.
+
+Syntax
+<value1> 
+and <value2>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.and.ashx
+
+</tooltip>
+<tooltip name="not">
+Performs a logical "not" on a value.
+
+Syntax
+
+not <value>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.not.ashx
+
+</tooltip>
+<tooltip name="or">
+Performs a logical "or" comparison between two values.
+
+Syntax
+<value1> 
+or <value2>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.or.ashx
+
+</tooltip>
+<tooltip name="clientside">
+Causes the specified iRule commands to be evaluated under the client-side context. This command has no effect if the iRule is already being evaluated under the client-side context.
+
+Syntax
+
+clientside 
+clientside {<iRule commands>}
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.clientside.ashx
+
+</tooltip>
+<tooltip name="clone">
+Causes the system to clone traffic to the specified pool or pool member regardless of monitor status.  (Pool member status may be determined by the use of the LB::status command.   Failure to select a server because none are available may be prevented by using the active_members command to test the number of active members in the target pool before choosing it.)Pool / member may be selected conditionally.  If multiple conditions match, the last match will determine the pool/member to which this traffic is cloned.
+
+Syntax
+
+clone pool <pool_name>
+clone pool <pool_name> [member <addr> [<port>]]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.clone.ashx
+
+</tooltip>
+<tooltip name="cpu">
+The cpu usage command returns the average TMM cpu load for the given interval. All averages are exponential weighted moving averages over the interval.
+
+Syntax
+
+cpu usage [1sec | 5secs | 15secs | 1min | 5mins | 15mins | all_seconds | all_minutes]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.cpu.ashx
+
+</tooltip>
+<tooltip name="discard">
+Causes the current packet or connection (depending on the context of the event) to be dropped/discarded and the rule continues (no implied return).  This command is identical to drop.
+
+Syntax
+
+discard
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.discard.ashx
+
+</tooltip>
+<tooltip name="drop">
+Causes the current packet or connection (depending on the context of the event) to be dropped/discarded and the rule continues (no implied return).  This command is identical to discard.
+
+Syntax
+
+drop
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.drop.ashx
+
+</tooltip>
+<tooltip name="event">
+Enables or disables evaluation of the specified iRule event, or all iRule events, on this connection. However, the iRule continues to run.
+
+Syntax
+
+event [<name>] [enable|disable] | [enable all|disable all]
+
+v11 Additions/Changes:
+event info
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.event.ashx
+
+</tooltip>
+<tooltip name="forward">
+Sets the connection to forward IP packets.  This is strict forwarding and will bypass any pool configured on the virtual server.The request will be forwarded out the appropriate interface according to the routes in the LTM routing table. No destination address or port translation is performed.
+
+Syntax
+
+forward
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.forward.ashx
+
+</tooltip>
+<tooltip name="if">
+Examines the supplied conditional and executes the following code if the result is true.
+
+Syntax
+
+if { <conditional statement> } {  <command(s)>}
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.if.ashx
+
+</tooltip>
+<tooltip name="lasthop">
+Sets the lasthop of a IP connection. The lasthop is the destination for packets coming back to the client. This is usually the router that sends the packets to the BIG-IP (if "auto lasthop" is set), or is determined by the IP routing table. This command lets you specify the lasthop to use for a particular connection.
+
+Syntax
+
+lasthop [<vlan>] <IP address>
+lasthop <vlan> <ethernet address>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.lasthop.ashx
+
+</tooltip>
+<tooltip name="log">
+Generates and logs the specified message to the Syslog-ng utility. This command works by performing variable expansion on the message as defined for the HTTP profile Header Insert setting.The log command can produce large amounts of output.  Use with care in production environments, especially where disk space is limited.The syslog facility is limited to logging 1024 bytes per request.  Longer strings will be truncated.The High Speed Logging feature offers the ability to send TCP or UDP syslog messages from an iRule with very low CPU or memory overhead.  Consider using HSL instead of the default log command for remote logging.
+
+Syntax
+
+log <message>
+log [-noname] <facility>.[<level>] <message>
+log [-noname] <remote_ip>[:<remote_port>] <facility>.[<level>] <message>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.log.ashx
+
+</tooltip>
+<tooltip name="nexthop">
+Sets the nexthop of an IP connection. The nexthop is the destination for packets going from the BIG-IP to the server. This is usually determined by the IP routing table. This command lets you specify the nexthop to use for a particular connection.
+
+Syntax
+
+nexthop [<vlan>] <IP address>
+nexthop <vlan> <ethernet address>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.nexthop.ashx
+
+</tooltip>
+<tooltip name="node">
+Causes the specified server node (IP address and port number) to be used directly, thus bypassing any load-balancing.
+
+Syntax
+
+node <addr> [<port>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.node.ashx
+
+</tooltip>
+<tooltip name="peer">
+Causes the specified iRule commands to be evaluated under the peer’s (opposite) context. This is a general form of the clientside and serverside commands.
+
+Syntax
+
+peer { <iRule commands> }
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.peer.ashx
+
+</tooltip>
+<tooltip name="persist">
+Causes the system to use the named persistence type to persist the connection. Also allows direct inspection and manipulation of the persistence table.
+
+Syntax
+
+persist simple [<mask>] [<timeout>]        
+persist source_addr [<mask>] [<timeout>]        
+persist sticky [<mask>] [<timeout>]        
+persist dest_addr [<mask>] [<timeout>]        
+persist ssl [<timeout>]        
+persist msrdp [<timeout>] 
+persist cookie [insert [<cookie_name>] [<expiration>] |                rewrite [<cookie_name>] [<expiration>] |                passive [<cookie_name>] |                hash <cookie_name> [ {<offset> [<length>]} [<timeout>]] ]
+persist uie <string> [<timeout>]        
+persist hash <string> [<timeout>]
+persist carp <string> [<timeout>]
+persist none  <timeout> = The timeout in seconds.
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.persist.ashx
+
+</tooltip>
+<tooltip name="pool">
+Causes the system to load balance traffic to the specified pool or pool member . In case only pool member is specified ,the system will load balance traffic to the specified pool member regardless of pool member monitor status.  Pool member status may be determined by the use of the LB::status command.   Server failure to respond may be caught in the LB_FAILED event.  Failure to select a server because none are available may be caught in the LB_FAILED event or prevented by using the active_members command to test the number of active servers in the pool before sending traffic.)Pool / member may be selected conditionally.  If multiple conditions match, the last match will determine the pool/member to which this traffic is load balanced.
+
+Syntax
+
+pool <
+pool_name>
+pool <
+pool_name> [member <addr> [<port>]]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.pool.ashx
+
+</tooltip>
+<tooltip name="rateclass">
+Causes the system to select the specified rate class to use when transmitting packets.
+
+Syntax
+
+rateclass <
+rateclass_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.rateclass.ashx
+
+</tooltip>
+<tooltip name="reject">
+Causes the connection to be rejected, returning a reset as appropriate for the protocol.  Subsequent code in the current event is still executed prior to the reset being sent.
+
+Syntax
+
+reject
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.reject.ashx
+
+</tooltip>
+<tooltip name="serverside">
+Causes the specified iRule command or commands to be evaluated under the server-side context. This command has no effect if the iRule is already being evaluated under the server-side context.
+
+Syntax
+
+serverside
+serverside { <iRule command> }
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.serverside.ashx
+
+</tooltip>
+<tooltip name="snat">
+Causes the system to assign the specified source address to the serverside connection(s).  The assignment is valid for the duration of the clientside connection or until 'snat none' is called.  The iRule SNAT command overrides the SNAT configuration of the virtual server or a SNAT pool.  It does not override the 'Allow SNAT' setting of a pool.
+
+Syntax
+
+snat <addr> [<port>] | none | automap
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.snat.ashx
+
+</tooltip>
+<tooltip name="snatpool">
+Causes the pool of addresses identified by <snatpool_name> to be used as translation addresses to create a SNAT.
+
+Syntax
+
+snatpool <
+snatpool_name> [member <IP address>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.snatpool.ashx
+
+</tooltip>
+<tooltip name="static">
+A namespace for creating global variables to hold constant values in a CMP-compatible fashion. This namespace is intended only for use with values that will not change. While it is possible to alter the value of a global variable in the static namespace, this value will not be propagated to other CMP nodes in the system. Therefore, doing so may lead to unexpected results. If you need to share information across CMP nodes, you should use the session or table commands instead.
+
+Syntax
+
+static::varname
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.static.ashx
+
+</tooltip>
+<tooltip name="tcl_platform">
+A variable that contains platform specific information. In general, this variable holds useful data concerning the platform on which a specific Tcl interpreter is running. Starting in BIG-IP v10.0.0, information specific to BIG-IP is also provided. Note that if a virtual server accesses a normal global variable (such as tcl_platform) via an iRule, the virtual server would not be compatible with CMP and would be demoted to run on a single node. The static namespace has been provided to allow general access to constant global values in a CMP-compatible fashion. In this way, the tcl_platform array can be accessed via static::tcl_platform to be CMP-compatible.
+
+Syntax
+
+tcl_platform(os)
+tcl_platform(osVersion)
+tcl_platform(tmmVersion)
+tcl_platform(byteOrder)
+tcl_platform(platform)
+tcl_platform(wordsize)
+
+v11 Additions/Changes:
+tcl_platform(machine)
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.tcl_platform.ashx
+
+</tooltip>
+<tooltip name="when">
+Used to specify an event in an iRule. All BIG-IP 9.X iRules begin with a when command. You can specify multiple when commands within a single iRule.
+
+Syntax
+
+when <event_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.when.ashx
+
+</tooltip>
+<tooltip name="class">
+The class command, implemented in v10.0.0, allows you to query data groups and data group properties.These commands work for both internal (defined in the bigip.conf) and external (custom file) data groups.  Internal data groups were not able to make use of the name/value pairing with the := separator until version 10.1.  As of 10.1 all classes support the name/value pairing.The class command deprecates the findclass and matchclass commands as it offers better functionality and performance than the older commands.Note that you should not use a $:: or :: prefix on the datagroup name when using the class command (or in any datagroup reference on 9.4.4 or later).In v9.4.4 - 10, using $::datagroup_name will work but demote the virtual server from running on all TMMs. For details, see the CMP compatibility page.In v11, using $::datagroup_name will result in a TCL runtime error and a reset being sent to the client!Note that starting in v11, any data-groups that are configured in a partition other than Common must be referenced by /Partition_Name/Data-Group_Name, even by iRules configured in that partition.  Data-groups referenced only by name are implicitly presumed to be /Common/Data-Group_Name.
+
+Syntax
+
+class match [<options>] <item> <operator> <
+class>
+class search [<options>] <
+class> <operator> <item>
+class lookup <item> <
+class>
+class element [<options>] <index> <
+class>
+class type <
+class>
+class exists <
+class>
+class size <
+class>
+class names [-nocase] <
+class> [<pattern>]
+class get [-nocase] <
+class> [<pattern>]
+class startsearch <
+class>
+class nextelement [<options>] <
+class> <search_id>
+class anymore <
+class> <search_id>
+class donesearch <
+class> <search_id>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.class.ashx
+
+</tooltip>
+<tooltip name="findclass">
+Searches a data group list for a member whose key matches the specified string, and if a match is found, returns the data-group member string.  Note: findclass has been deprecated in v10 in favor of the new class commands.  The class command offers better functionality and performance than findclassOnly the key value of the data group list member (the portion up to the first separator character, which defaults to space unless otherwise specified) is compared to the specified string to determine a match.If a match is found, and no separator character is specified, the command returns the entire member value associated with the matched key (including the key).If a match is found and a separator is specified, the data group member is split at the first separator, and the portion of the list member following the first separator is returned.Note that you should not use a $:: or :: prefix on the datagroup name when using the class command (or in any datagroup reference on 9.4.4 or later).In v9.4.4 - 10, using $::datagroup_name will work but demote the virtual server from running on all TMMs. For details, see the CMP compatibility page.In v11, using $::datagroup_name will result in a runtime error and TCP reset being sent to the client!
+
+Syntax
+
+findclass <string> <data group> [<separator>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.findclass.ashx
+
+</tooltip>
+<tooltip name="matchclass">
+Performs comparisons against the contents of data group. Typically used for conditional logic control.Note: matchclass has been deprecated in v10 in favor of the new class commands.  The class command offers better functionality and performance than matchclass.Note that you should not use a $:: or :: prefix on the datagroup name when using the matchclass command (or in any datagroup reference on 9.4.4 or later).In v9.4.4 - 10, using $::datagroup_name will work but demote the virtual server from running on all TMMs. For details, see the CMP compatibility page.In v11, using $::datagroup_name will result in a TCL runtime error and reset being sent to the client!
+
+Syntax
+
+matchclass <data-group> <operator name> <value>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.matchclass.ashx
+
+</tooltip>
+<tooltip name="domain">
+A custom iRule function which parses the specified string as a dotted domain name and returns the last <count> portions of the domain name.
+
+Syntax
+
+domain <string> <count>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.domain.ashx
+
+</tooltip>
+<tooltip name="findstr">
+A custom iRule function which finds a string within another string and returns the string starting at the offset specified from the match.
+
+Syntax
+
+findstr <string> <search_string> [<skip_count> [<terminator count or string>]]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.findstr.ashx
+
+</tooltip>
+<tooltip name="getfield">
+A custom iRule function which splits a string on a character or string, and returns the string corresponding to the specific field.
+
+Syntax
+
+getfield <string> <split> <field_number>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.getfield.ashx
+
+</tooltip>
+<tooltip name="substr">
+A custom iRule function which returns a substring named <string>, based on the values of the <skip_count> and <terminator> arguments. Note the following:The <skip_count> and <terminator> arguments are used in the same way as they are for the findstr command.The <skip_count> argument is the index into <string> of the first character to be returned, where 0 indicates the first character of <string>.The <terminator> argument can be either the subtring length or the substring terminating string.If <terminator> is an integer, the returned string will include that many characters, or up to the end of the string, whichever is shorter.If <terminator> is a string, the returned string will include characters up to but not including the first occurence of the string.If <terminator> is a string which does not occur in the search space, from <skip_count> to the end of <string> is returned.This command is equivalent to the Tcl string range command except that the value of the <terminator> argument may be either a character or a count.
+
+Syntax
+
+substr <string> <skip_count> [<terminator>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.substr.ashx
+
+</tooltip>
+<tooltip name="b64decode">
+Returns a string that is base-64 decoded.
+
+Syntax
+
+b64decode <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.b64decode.ashx
+
+</tooltip>
+<tooltip name="b64encode">
+Returns a string that is base-64 encoded, or if an error occurs, an empty string.
+
+Syntax
+
+b64encode
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.b64encode.ashx
+
+</tooltip>
+<tooltip name="crc32">
+Returns the crc32 checksum for the specified string, or if an error occurs, an empty string. Used to ensure data integrity.
+
+Syntax
+
+crc32 <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.crc32.ashx
+
+</tooltip>
+<tooltip name="decode_uri">
+Decodes the specified string using HTTP URI encoding per RFC2616 and returns the result. This is a BIG-IP 4.x variable, provided for backward-compatibiliy. You can use the equivalent 9.X commmand URI::decode instead.
+
+Syntax
+
+decode_uri <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.decode_uri.ashx
+
+</tooltip>
+<tooltip name="md5">
+Returns the RSA Data Security, Inc. MD5 Message Digest Algorithm (md5) message digest of the specified string, or if an error occurs, an empty string. Used to ensure data integrity.
+
+Syntax
+
+md5 <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.md5.ashx
+
+</tooltip>
+<tooltip name="sha1">
+Returns the Secure Hash Algorithm version 1.0 (SHA1) message digest of the specified string, or if an error occurs, an empty string. Used to ensure data integrity.
+
+Syntax
+
+sha1 <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.sha1.ashx
+
+</tooltip>
+<tooltip name="sha256">
+Returns the Secure Hash Algorithm (SHA2) 256-bit message digest of the specified string.  If an error occurs, an empty string is returned. Used to ensure data integrity.
+
+Syntax
+
+sha256 <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.sha256.ashx
+
+</tooltip>
+<tooltip name="sha384">
+Returns the Secure Hash Algorithm (SHA2) 384-bit message digest of the specified string.  If an error occurs, an empty string is returned. Used to ensure data integrity.
+
+Syntax
+
+sha384 <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.sha384.ashx
+
+</tooltip>
+<tooltip name="sha512">
+Returns the Secure Hash Algorithm (SHA2) 512-bit message digest of the specified string.  If an error occurs, an empty string is returned. Used to ensure data integrity.
+
+Syntax
+
+sha512 <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.sha512.ashx
+
+</tooltip>
 <tooltip name="ACCESS::acl">
 The ACCESS::acl commands allow you to poll, query or enforce ACLs for a given connection.
 
