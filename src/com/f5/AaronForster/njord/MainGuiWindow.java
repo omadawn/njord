@@ -12,7 +12,6 @@ import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseListener;
@@ -74,20 +73,16 @@ import javax.swing.tree.TreePath;
 import javax.swing.tree.TreeSelectionModel;
 import javax.xml.rpc.ServiceException;
 
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.fife.ui.autocomplete.AutoCompletion;
 import org.fife.ui.autocomplete.BasicCompletion;
 import org.fife.ui.autocomplete.CompletionProvider;
-import org.fife.ui.autocomplete.ShorthandCompletion;
 import org.fife.ui.rsyntaxtextarea.AbstractTokenMakerFactory;
-import org.fife.ui.rsyntaxtextarea.CodeTemplateManager;
 import org.fife.ui.rsyntaxtextarea.FileLocation;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxScheme;
 import org.fife.ui.rsyntaxtextarea.TextEditorPane;
 import org.fife.ui.rsyntaxtextarea.Token;
 import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
-import org.fife.ui.rsyntaxtextarea.templates.CodeTemplate;
-import org.fife.ui.rsyntaxtextarea.templates.StaticCodeTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,26 +121,18 @@ import com.f5.AaronForster.njord.util.f5ExceptionHandler;
  * 
  * 0.9
  * TODO: Create a makeVerified (or something slightly different) Function as well as a makeUnVerified that does a number of things neccessary for that state. Such as disabling buttons/etc.
- * TODO: Working on syntax highlighting this is the java token scanner http://svn.fifesoft.com/viewvc-1.0.5/bin/cgi/viewvc.cgi/RSTALanguageSupport/trunk/src/org/fife/rsta/ac/common/TokenScanner.java?view=markup&revision=588&root=RSyntaxTextArea
- * 			I believe that's the part that pulls out tokens from the document which the syntax then decides if they should be highlighted or not. I can probably extend the TCL one.
- * 		And this is the java parser. Dunno what entirely the difference is http://svn.fifesoft.com/viewvc-1.0.5/bin/cgi/viewvc.cgi/RSTALanguageSupport/trunk/src/org/fife/rsta/ac/java/JavaParser.java?view=markup&revision=279&root=RSyntaxTextArea 
- * 			I think they are used in conjunction.
  * TODO: Get rid of the progress bar and add a red/green light to the BigIP in the list
  * TODO: Update the new rule template so that you can select from multiple events
- * TODO: Store the window geometry in preferences these are the bounderies of the window and where on the screen it starts
- * TODO: Figure out how to get bounds. It's frame.getBounds(); figure out when to save them.
  * 
  * 1.0 
  * TODO: Implement set tab width (built into ntextarea)
- * TODO: Build the nav tree but don't populate the iRules tree until it has been expanded.
  * TODO: Add some more reasonable sample templates
- * TODO: Add a reload from bigip/reload from disk button. Using whichever is correct.
+ * 
  * later
  * TODO: Figure out my problem with logging in my other methods
  * TODO: Add make EOL visible and probably make whitespace visible setEOLMarkersVisible(boolean visible) 	setWhitespaceVisible(boolean visible) 
  * TODO: add a preference to paint tab lines. See if this setPaintTabLines(boolean paint)  does what I think it does.
  * TODO: Implement some of the other fecking awesome features of rsyntax and ntext area like the built in search/replace/highlight all functionality. 
- * TODO: Add custom code templates both for new rule creation and for shortcut expansion the way sysout works
  * TODO: Maybe later in $userHome/.f5/njord/preferences.settings if that exists it overrides the one in apphome? I will need to store individual bigip connection info there.  
  * 			TODO: Perhaps a preferences file in $appHome/preferences.settings could hold generic items
  * TODO: Figure out if I can have the bigip do a syntax check without saving to bigip.
@@ -203,13 +190,13 @@ import com.f5.AaronForster.njord.util.f5ExceptionHandler;
  * At minimum there will be functionality to enable/disable pool members and virtual servers and manage what virtual servers iRules are attached to.
  * 
  * @author Aaron Forster @date 20120601
- * @version 0.9.0
+ * @version 0.9.1
  */
 public class MainGuiWindow implements ActionListener, TreeSelectionListener, TreeExpansionListener, TreeWillExpandListener, WindowListener, HyperlinkListener {
 	/**
 	 * The version of Njord that we are.
 	 */
-	public String njordVersion = "0.9.0";
+	public String njordVersion = "0.9.1";
 	/**
 	 * Prepended to log messages to show what portion of code is currently logging.
 	 */
@@ -339,7 +326,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	/**
 	 * The notices text box is how Njord comminicates back to the end user.
 	 */
-	public JTextArea resultsPanelNoticesBox = new JTextArea();	//This is where we put messages
+	public JTextArea resultsPanelNoticesBox = new JTextArea();
 	/**
 	 * The 'Get iRUles' button.
 	 */
@@ -420,6 +407,10 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	 */
 	public JSplitPane resultsSPlitPane = new JSplitPane();
 	/**
+	 * A JScrollPane which contains the notices panel so that you can still read it if the contained message is larger than the pane.
+	 */
+	public JScrollPane noticesScrollPane = new JScrollPane(); //new JScrollPane();
+	/**
 	 * A deprecated RSTA TextEditorPane from when we were only creating one and swapping out the text from within.
 	 */
 	public TextEditorPane nTextEditorPane = null;
@@ -443,7 +434,6 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	 * I have no idea what this is for.
 	 */
 	public JScrollPane scrollPane;
-//	private JScrollPane navScrollPane = new JScrollPane();
 	/**
 	 * A small label in the bottom RHS of the application which should reflect our connected/disconnected status.
 	 */
@@ -587,13 +577,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		log.info(logPrefix + "Starting Up");
 		frame = new JFrame();
 		frame.setBounds(100, 100, 1118, 710);
-//		frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 		frame.addWindowListener(this);
-		//TODO: Change this to DO_NOTHING_ON_CLOSE and define a window close operation that saves the window state before closing. Or perhaps detect if the window is resized or moved then save then.
-		//DO_NOTHING_ON_CLOSE (defined in WindowConstants): Don't do anything; require the program to handle the operation in the windowClosing method of a registered WindowListener object. 
-		//DISPOSE_ON_CLOSE is supposedly preferred to EXIT_ON_CLOSE which will close windows but if there are still running threads then the app won't actually quit.
-		// I have VERY much run into that problem.
 		//TODO: This returns true/false. Deal with it and bail if it's false.
 		loadPreferences(); //Load our preferences from the preferences file or create the prefs file if it does not exist.
 
@@ -615,9 +600,10 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		menuBar = new JMenuBar();
 		menuBar.setName("menuBar");
 		
-		JMenu mnConnMenu = new JMenu("File");
-		mnConnMenu.setName("ConnectionMenu");
-		menuBar.add(mnConnMenu);
+		//File Menu **************************************************
+		JMenu mnFileMenu = new JMenu("File");
+		mnFileMenu.setName("ConnectionMenu");
+		menuBar.add(mnFileMenu);
 		
 		// This one might be my template for how to set action menu items. It also includes keyboard shortcut settings
 		mntmEditConnectionSettings = new JMenuItem("Edit Connection Settings");
@@ -625,18 +611,70 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
                 KeyEvent.VK_2, ActionEvent.ALT_MASK)); // I think this is the part that adds the hotkey
 		mntmEditConnectionSettings.addActionListener(this); // This adds an action listener so if you click this it will trigger actionListener() method defined below
 		mntmEditConnectionSettings.setName("editSettingsBtn"); 
-		mnConnMenu.add(mntmEditConnectionSettings);
+		mnFileMenu.add(mntmEditConnectionSettings);
 		
 		mntmConnect = new JMenuItem("Connect");
 		mntmConnect.addActionListener(this);
-		mnConnMenu.add(mntmConnect);
+		mnFileMenu.add(mntmConnect);
 		
-		JSeparator separator = new JSeparator();
-		mnConnMenu.add(separator);
+		JSeparator actionsSeparator = new JSeparator();
+		mnFileMenu.add(actionsSeparator);
+		
+		JMenuItem mntmGetiRules = new JMenuItem("Get iRules");
+		mntmGetiRules.setName("GetiRulesmntm");
+		mntmGetiRules.addActionListener(this);
+		mnFileMenu.add(mntmGetiRules);
+		JMenuItem mntmNewiRule = new JMenuItem("New iRule");
+		mntmNewiRule.setName("New iRule");
+		mntmNewiRule.addActionListener(this);
+		mntmNewiRule.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_N, ActionEvent.CTRL_MASK));
+		mnFileMenu.add(mntmNewiRule);
+		JMenuItem mntmSave = new JMenuItem("Save");
+		mntmSave.setName("Save");
+		mntmSave.addActionListener(this);
+		mntmSave.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_S, ActionEvent.CTRL_MASK));
+		mnFileMenu.add(mntmSave);
+		JMenuItem mntmDeleteiRule = new JMenuItem("Delete iRule");
+		mntmDeleteiRule.setName("Delete iRule");
+		mntmDeleteiRule.addActionListener(this);
+		mntmDeleteiRule.setAccelerator(KeyStroke.getKeyStroke(
+                KeyEvent.VK_DELETE, ActionEvent.CTRL_MASK));
+		mnFileMenu.add(mntmDeleteiRule);
+		JMenuItem mntmDeployiRule = new JMenuItem("Deploy to BIGIP");
+		mntmDeployiRule.setName("Deploy to BIGIP");
+		mntmDeployiRule.addActionListener(this);
+		mnFileMenu.add(mntmDeployiRule);
+		
+		JSeparator prefsSeparator = new JSeparator();
+		mnFileMenu.add(prefsSeparator);
 		
 		JMenuItem mntmEditPreferences = new JMenuItem("Edit Preferences");
-		mnConnMenu.add(mntmEditPreferences);
-
+		mntmEditPreferences.setName("preferencesMenuItem");
+		mntmEditPreferences.addActionListener(this);
+		mnFileMenu.add(mntmEditPreferences);
+		
+		//Edit Menu ******************************************************
+		JMenu mnEditMenu = new JMenu("Edit");
+		mnEditMenu.setName("EditMenu");
+		menuBar.add(mnEditMenu);
+		
+		//TODO: First figure out how to add the stuff that is currently under the right click menu here.
+		//TODO: Second figure out how to get the find functionality working ad add that here as well.
+		//TODO: Figure out an organized way to mark something as 'experimental' so that it's only shown if 'display experimental items' is selected in the master preferences file.
+		
+		//Help Menu ******************************************************
+		JMenu mnHelpMenu = new JMenu("Help");
+		mnHelpMenu.setName("HelpMenu");
+		menuBar.add(mnHelpMenu);
+		
+		//This is where I will start to need a generic dialog
+		JMenuItem mntmAbout = new JMenuItem("About Njord");
+		mntmAbout.setName("AbountMenuItem");
+		mntmAbout.addActionListener(this);
+		mnHelpMenu.add(mntmAbout);
+				
 		//ActionBar components *********************************************				
 		btnGetiRules = new JButton("Get iRules");
 		btnGetiRules.setHorizontalAlignment(SwingConstants.RIGHT);
@@ -709,6 +747,7 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 		defaultTextPaneConnectButton = new JButton("Connect");
 		defaultTextPaneConnectButton.addActionListener(this);
 		defaultTextPaneConnectButton.setName("defaultTxtPnConnectButton");
+		resultsPanelNoticesBox.setLineWrap(true);
 		
 		resultsPanelNoticesBox.setEditable(false);
 		resultsPanelNoticesBox.setText(initialNoticesTextboxText);
@@ -760,14 +799,20 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 					.addComponent(defaultTextPaneConnectButton))
 		);
 		resultsPanel.setLayout(gl_resultsPanel);
-
+		
+		//This part isn't working. I'll have to settle for line wrap enabled temporarily.
+//		noticesScrollPane.add(resultsPanelNoticesBox);
+//		resultsSPlitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, resultsPanel, noticesScrollPane);
 		resultsSPlitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT, resultsPanel, resultsPanelNoticesBox);
 		splitPane.setRightComponent(resultsSPlitPane);
 
 		resultsSPlitPane.setResizeWeight(0.95); // This says that the bottom component will keep most of it's size when the split pane is automatically rezized. IE the botton will stay smaller.
-		resultsPanelNoticesBox.setPreferredSize(resultsPanelNoticesDimension);
-		resultsPanelNoticesBox.setMaximumSize(resultsPanelNoticesDimension);
-		resultsPanelNoticesBox.setMinimumSize(resultsPanelNoticesDimension);
+		noticesScrollPane.setPreferredSize(resultsPanelNoticesDimension);
+		noticesScrollPane.setMaximumSize(resultsPanelNoticesDimension);
+		noticesScrollPane.setMinimumSize(resultsPanelNoticesDimension);
+//		resultsPanelNoticesBox.setPreferredSize(resultsPanelNoticesDimension);
+//		resultsPanelNoticesBox.setMaximumSize(resultsPanelNoticesDimension);
+//		resultsPanelNoticesBox.setMinimumSize(resultsPanelNoticesDimension);
 		resultsPanel.setMinimumSize(resultsPanelDimension);
 		
 		//I should get rid of this progress bar
@@ -2132,7 +2177,8 @@ public class MainGuiWindow implements ActionListener, TreeSelectionListener, Tre
 	 * @param message
 	 */
 	public void displayMessage(String message) {
-		resultsPanelNoticesBox.setText(message);
+		String escapedXml = StringEscapeUtils.escapeXml(message);
+		resultsPanelNoticesBox.setText(escapedXml);
 	}
 	
 	/**

@@ -1,0 +1,4896 @@
+<tooltip name="ACCESS::acl">
+The ACCESS::acl commands allow you to poll, query or enforce ACLs for a given connection.
+
+Syntax
+
+ACCESS::acl result
+ACCESS::acl lookup 
+ACCESS::acl eval $acl_name 
+
+v11 Additions/Changes:
+ACCESS::acl matched
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ACCESS__acl.ashx
+
+</tooltip>
+<tooltip name="ACCESS::disable">
+This command disables the access control enforcement for a particular request URI. The request is passed through access control module without any access control checks (excludes valid session check as well as policy allowed check).
+
+Syntax
+
+ACCESS::disable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ACCESS__disable.ashx
+
+</tooltip>
+<tooltip name="ACCESS::enable">
+This command enables the access control enforcement for a particular request URI.
+
+Syntax
+
+ACCESS::enable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ACCESS__enable.ashx
+
+</tooltip>
+<tooltip name="ACCESS::policy">
+The ACCESS::policy commands allow you to retrieve information about the access policies in place for a given connection.
+
+Syntax
+
+ACCESS::policy agent_id 
+ACCESS::policy result 
+
+v11 Additions/Changes:
+ACCESS::policy uri
+ACCESS::policy result [-sid <sid>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ACCESS__policy.ashx
+
+</tooltip>
+<tooltip name="ACCESS::respond">
+This command generates new respond and automatically overrides the default respond. This command only can be used only once per HTTP request, and subsequent calls to this command will return an error. Notes:Additional capabilities: ¶ACCESS::respond will ignores empty header name, but not header value. e.g. ACCESS::respond 200 content $body $header_name $header_value. If $header_name is empty, ACCESS::respond will also ignore $header_value.By default keeping connection alive is determined by HTTP hudfilter via http_keepalive(). The admin can override Keep-Alive state to force connection close via specifying header Connection Close. Currrently we don't support forcing connection to be keep-alive.For 401, This command will automatically insert this header WWW-Authenticate: Basic realm="". This can be overriden by specifying WWW-Authenticate header value. Changed behavior on ACCESS ¶As above, this command will override the default respond. If there is no respond, such as forwarding the request to the backend server, this command will cancel that forwarding.ACCESS default response is actually closing the connection. When this command is used, ACCESS will no longer close the connection unless admin force to close it via Connection header.
+
+Syntax
+
+ACCESS::respond <status code> [content <content>] [noserver] [<header name> <header value>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ACCESS__respond.ashx
+
+</tooltip>
+<tooltip name="ACCESS::restrict_irule_events">
+During access policy execution, ACCESS creates requests to various URIs related to various access policy processing.  These includes /my.policy and other pages (logon, message box etc.) shown to the end user.  By default from 11.0.0 onward, HTTP and higher layer iRule events are not  raised for the internal access control URIs. All events except ACCESS_SESSION_STARTED, ACCESS_SESSION_CLOSED, ACCESS_POLICY_AGENT_EVENT, ACCESS_POLICY_COMPLETED are blocked (not raised) for internal access control URI.This command allows admin to overwrite the default behavior.ACCESS::restrict_irule_events disableDisables the default behavior and enables admin to enable HTTP and higher layer iRule events for the internal access control URI. Admin can use this tohandle these URIs in their iRules if needed. Please note that changing processing for these internal URIs can interfere with access policy.Scope of this command is per flow. Once enabled for a flow, all subsequent internal access control URI requests will have events raised during processing
+
+Syntax
+
+ACCESS::restrict_irule_events [enable|disable]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ACCESS__restrict_irule_events.ashx
+
+</tooltip>
+<tooltip name="ACCESS::session">
+The different permutations of the ACCESS::session command allow you to access or manipulate different portions of session information when dealing with APM requests.
+
+Syntax
+
+ACCESS::session data get 
+ACCESS::session data set [ ] 
+ACCESS::session exists
+ACCESS::session remove
+
+v11 Additions/Changes:
+ACCESS::session create <timeout> <lifetime>
+ACCESS::session sid
+ACCESS::session exists [-sid <sid>]
+ACCESS::session exists -state_{allow|deny|redirect|inprogress} -sid <sid>
+ACCESS::session data get [-sid <sid>] [-secure] <key>
+ACCESS::session data set [-sid <sid>] [-secure] <key> [<value>]
+ACCESS::session remove [-sid <sid>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ACCESS__session.ashx
+
+</tooltip>
+<tooltip name="ACCESS::user">
+The ACCESS::user commands return user ID information.
+
+Syntax
+
+ACCESS::user getsid <key>
+ACCESS::user getkey <sid_hash>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ACCESS__user.ashx
+
+</tooltip>
+<tooltip name="ACCESS::uuid">
+Enumerates the session IDs that belongs to a specified uuid key by the order of its creation and provides them in a Tcl list.  By default, the uuid created by AAC is using the following format. {profile_name}.{user_name} However, the admin can manually override this by specifying their own uuid key via assigning that value to session.user.uuid session variable. This can be done via iRule using ACCESS::session data set session.user.uuid or via VPE using Variable Assignment Agent. The return value of ACCESS::uuid getsid is a Tcl list. When there is no session ID associated with that uuid key, it will return an empty list.
+
+Syntax
+
+ACCESS::uuid getsid "{profile_name}.{user_name}"
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ACCESS__uuid.ashx
+
+</tooltip>
+<tooltip name="accumulate">
+Terminates iRule processing until another another packet containing additional data is received from the originating client. This statement is useful with the HTTP::collect and TCP::collect commands, when not enough data has been received to be successfully evaluated.
+
+Syntax
+
+accumulate
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.accumulate.ashx
+
+</tooltip>
+<tooltip name="active_members">
+Returns the number or list of active members in the specified pool.
+
+Syntax
+
+active_members <pool_name>
+active_members -list <pool_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.active_members.ashx
+
+</tooltip>
+<tooltip name="active_nodes">
+Returns the alias for active members of the specified pool (for BIG-IP version 4.X compatibility).
+
+Syntax
+
+active_nodes <pool name>
+active_nodes -list <pool_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.active_nodes.ashx
+
+</tooltip>
+<tooltip name="AES::decrypt">
+Decrypt the data using an AES key.
+
+Syntax
+
+AES::decrypt <key> <data>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AES__decrypt.ashx
+
+</tooltip>
+<tooltip name="AES::encrypt">
+Encrypt the data using an AES key.
+
+Syntax
+
+AES::encrypt <key> <data>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AES__encrypt.ashx
+
+</tooltip>
+<tooltip name="AES::key">
+Creates an AES key of the specified length for use in encryption/decryption operations.
+
+Syntax
+
+AES::key < 128 | 192 | 256 >
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AES__key.ashx
+
+</tooltip>
+<tooltip name="after">
+The after command allows you to insert a delay into the processing of your iRule, executing the specified script after a certain amount of time has passed. It also allows for things like periodic (repeat) execution of a script, as well as looking up or canceling currently delayed scripts.Note: The after command is not available in GTM.
+
+Syntax
+
+after <ms>
+after <ms> [-periodic] < script >
+after cancel <id> â€¦
+after cancel -current
+after info [<id> â€¦]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.after.ashx
+
+</tooltip>
+<tooltip name="ASM::disable">
+Disables the ASM plugin for the current TCP connection.  ASM will remain disabled on the current TCP connection until it is closed or ASM::enable is called.
+
+Syntax
+
+ASM::disable <plugin>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ASM__disable.ashx
+
+</tooltip>
+<tooltip name="ASM::enable">
+Enables the ASM plugin for the current TCP connection.  ASM will remain enabled on the current TCP connection until it is closed or ASM::disable is called.
+
+Syntax
+
+ASM::enable <plugin>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ASM__enable.ashx
+
+</tooltip>
+<tooltip name="ASM::payload">
+This command retrieves or replaces the payload collected by ASM.
+
+Syntax
+
+ASM::payload [[<offset>] <length>]
+ASM::payload length
+ASM::payload replace <offset> <length> <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ASM__payload.ashx
+
+</tooltip>
+<tooltip name="ASM::violation_data">
+This command exposes the fields below using a multiple buffers instance#PositionFieldDescription0Violationstring that contains list of comma separated violations, see below the rquest side and response side violations for value options1support_idUnique id given for a transaction2web_applicationASM Web application name3Severityit will be the most critical severity of all the transaction violations, possible values: Emergency, Alert, Critical, Error, Warning, Notice and Informational4source_ipClient IP. (in case trust xff option is enabled on the policy, this will be the xff ip5attack_typestring that contains list of comma separated attack types, see below for value options6request_statusCan be â€œblockedâ€? or â€œalarmedâ€?EditRequest Side Violations Table¶Violation NameDescriptionVIOLATION_EVASION_DETECTEDEvasion technique detectedVIOLATION_REQUEST_TOO_LONGRequest length exceeds defined buffer sizeVIOLATION_ILLEGAL_INGRESS_OBJECTLogin URL bypassedVIOLATION_PARSER_EXPIRED_INGRESS_OBJECTLogin URL expiredVIOLATION_RESPONSE_SCRUBBINGresponse scrubbingVIOLATION_ILLEGAL_SOAP_ATTACHMENTIllegal attachment in SOAP messageVIOLATION_MISSING_MANDATORY_HEADERMandatory HTTP header is missingVIOLATION_HTTP_SANITY_CHECK_FAILEDHTTP protocol compliance failedVIOLATION_CHAR_CONVFailed to convert characterVIOLATION_MALFORMED_XMLMalformed XML dataVIOLATION_XML_WSDLXML data does not comply with schema or WSDL documentVIOLATION_XML_FORMAT_SETTINGXML data does not comply with format settingsVIOLATION_PARSER_FAILED_SOAP_SECURITYSoap security parser failedVIOLATION_SOAP_METHOD_NOT_ALLOWEDSOAP method not allowedVIOLATION_BRUTE_FORCE_ATTACK_DETECTEDMaximum login attempts are exceededVIOLATION_WEB_SCRAPING_DETECTEDWeb scraping detectionVIOLATION_OBJ_LENIllegal URL lengthVIOLATION_COOKIE_LENIllegal cookie lengthVIOLATION_REQ_LENIllegal request lengthVIOLATION_QS_LENIllegal query string lengthVIOLATION_POST_DATA_LENIllegal POST data lengthVIOLATION_MULTI_PART_PARAM_VALNull in multi-part parameter valueVIOLATION_HEADER_LENIllegal header lengthVIOLATION_METACHAR_IN_OBJIllegal meta character in URLVIOLATION_METACHAR_IN_PARAM_NAMEIllegal meta character in parameter nameVIOLATION_METACHAR_IN_DEF_PARAMIllegal meta character in parameter valueVIOLATION_OBJ_TYPEIllegal file typeVIOLATION_OBJ_DOESNT_EXISTNon-existent URLVIOLATION_FLOW_TO_OBJIllegal flow to URLVIOLATION_ILLEGAL_METHODIllegal methodVIOLATION_SESSSION_ID_IN_URLIllegal session ID in URLVIOLATION_QS_OR_POST_DATAIllegal query string or POST dataVIOLATION_PARAMIllegal parameterVIOLATION_EMPTY_PARAM_VALUEIllegal empty parameter valueVIOLATION_STATIC_PARAM_VALUEIllegal static parameter valueVIOLATION_DYN_PARAM_VALUEIllegal dynamic parameter valueVIOLATION_PARAM_VALUE_LENIllegal parameter value lengthVIOLATION_PARAM_DATA_TYPEIllegal parameter data typeVIOLATION_PARAM_NUMERIC_VALUEIllegal parameter numeric valueVIOLATION_ATTACK_SIGNATURE_DETECTEDAttack signature detectedVIOLATION_NUM_OF_MANDATORY_PARAMSIllegal number of mandatory parametersVIOLATION_PARAM_VALUE_NOT_MATCHING_REGEXParameter value does not comply with regular expressionVIOLATION_MOD_ASM_COOKIEModified ASM cookieVIOLATION_MOD_DOMAIN_COOKIEModified domain cookie(s)VIOLATION_NOT_RFC_COOKIECookie not RFC-compliantVIOLATION_ENTRY_POINTIllegal entry pointVIOLATION_MSG_KEYASM Cookie HighjackingVIOLATION_EXPIRED_TIMESTAMPExpired timestampVIOLATION_METACHAR_IN_HEADERIllegal meta character in headerVIOLATION_HTTP_STATUS_IN_RESPONSEIllegal response http status codeVIOLATION_DOS_ATTACK_STARTEDDos attack detectedEditResponse Side Violations Table¶Violation NameDescriptionVIOLATION_RESPONSE_SCRUBBINGInformation leakage detectedVIOLATION_HTTP_STATUS_IN_RESPONSEIllegal HTTP status in responseVIOLATION_ATTACK_SIGNATURE_DETECTEDAttack signature detectedVIOLATION_DOS_ATTACK_STARTEDDos attack detectedEditAttack-Type Table¶The attack type field can have the following valueAttack-Type NameDescriptionATTACK_TYPE_REMOTE_FILE_INCLUDERemote File IncludeATTACK_TYPE_NON_BROWSER_CLIENTNon-browser clientATTACK_TYPE_OTHER_APPLICATION_ATTACKSOther Application AttacksATTACK_TYPE_TROJAN_BACKDOOR_SPYWARETrojan/Backdoor/SpywareATTACK_TYPE_DETECTION_EVASIONDetection EvasionATTACK_TYPE_VULNERABILITY_SCANVulnerability ScanATTACK_TYPE_ABUSE_OF_FUNCTIONALITYAbuse of FunctionalityATTACK_TYPE_AUTHENTICATION_AUTHORIZATION_ATTACKSAuthentication/Authorization AttacksATTACK_TYPE_BUFFER_OVERFLOWBuffer OverflowATTACK_TYPE_PREDICTABLE_RESOURCE_LOCATIONPredictable Resource LocationATTACK_TYPE_INFORMATION_LEAKAGEInformation LeakageATTACK_TYPE_DIRECTORY_INDEXINGDirectory IndexingATTACK_TYPE_PATH_TRAVERSALPath TraversalATTACK_TYPE_XPATH_INJECTIONXPathATTACK_TYPE_LDAP_INJECTIONLDAP InjectionATTACK_TYPE_SERVER_SIDE_CODE_INJECTIONServer Side Code InjectionATTACK_TYPE_COMMAND_EXECUTIONCommand ExecutionATTACK_TYPE_SQL_INJECTIONSQL-InjectionATTACK_TYPE_CROSS_SITE_SCRIPTINGCross Site Scripting (XSS)ATTACK_TYPE_DENIAL_OF_SERVICEDenial of ServiceATTACK_TYPE_OTHER_APPLICATION_ACTIVITYOther Application ActivityATTACK_TYPE_HTTP_PARSER_ATTACKHTTP Parser AttackATTACK_TYPE_HTTP_REQUEST_SMUGGLING_ATTACKRequest smuggling attackATTACK_TYPE_FORCEFUL_BROWSINGForceful BrowsingATTACK_TYPE_BRUTE_FORCE_ATTACKBrute Force AttackATTACK_TYPE_INJECTION_ATTEMPTInjection AttemptATTACK_TYPE_PARAMETER_TAMPERINGParameter TamperingATTACK_TYPE_XML_PARSER_ATTACKXML Parser AttackATTACK_TYPE_SESSION_HIJACKINGSession HijackingATTACK_TYPE_HTTP_RESPONSE_SPLITTING_ATTACKHttp response splitting attackATTACK_TYPE_WEB_SCRAPINGWeb scrapingATTACK_TYPE_DOS_ATTACK_STARTEDDos attack startedATTACK_TYPE_MALICIOUS_FILE_UPLOADVirus upload
+
+Syntax
+
+ASM::violation_data
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ASM__violation_data.ashx
+
+</tooltip>
+<tooltip name="AUTH::abort">
+Cancels any outstanding auth operations in this authentication session, and generates an AUTH_FAILURE event if there was an outstanding authentication query in progress.  This command invalidates the specified authentication session ID, which should be discarded upon calling this command.
+
+Syntax
+
+AUTH::abort authid
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__abort.ashx
+
+</tooltip>
+<tooltip name="AUTH::authenticate">
+Performs a new authentication operation.  This command returns an error if attempted for a standby system or while an authentication operation is already in progress for this authentication session.
+
+Syntax
+
+AUTH::authenticate <authid>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__authenticate.ashx
+
+</tooltip>
+<tooltip name="AUTH::authenticate_continue">
+Continues an authentication operation by providing the specified string as the credential response for the most recent authorization prompt.This command is only available when the event AUTH_WANTCREDENTIAL is the most recent event generated, and no AUTH::credential commands have been issued since the event, for the specified authentication ID.  Unlike the AUTH::credential commands, the string credential provided by this command does not get cached, even if the desired credential type had been identified (see the wantcredential.ashx" title="iRules.AUTHwantcredential">AUTH::wantcredential_type command).This command is especially useful in providing authentication services to interactive protocols (such as telnet, ftp, and so on), where the actual text prompts and responses might be directly communicated with the remote user.
+
+Syntax
+
+AUTH::authenticate_continue <authid> <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__authenticate_continue.ashx
+
+</tooltip>
+<tooltip name="AUTH::cert_credential">
+Sets the peer certificate credential to the value of '''''' for a future AUTH::authenticate call.  See also the SSL::cert command.  This command returns an error if attempted for a standby system.
+
+Syntax
+
+AUTH::cert_credential authid <peer certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__cert_credential.ashx
+
+</tooltip>
+<tooltip name="AUTH::cert_issuer_credential">
+Sets the peer certificate issuer credential to the value of  for a future AUTH::authenticate call. This command returns an error if attempted for a standby system.
+
+Syntax
+
+AUTH::cert_issuer_credential authid <peer certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__cert_issuer_credential.ashx
+
+</tooltip>
+<tooltip name="AUTH::last_event_session_id">
+This command returns the session ID of the last auth event, which can then be used to relate to the user behind each session.
+
+Syntax
+
+AUTH::last_event_session_id
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__last_event_session_id.ashx
+
+</tooltip>
+<tooltip name="AUTH::password_credential">
+Sets the password credential to the specified string for a future AUTH::authenticate call.  This command returns an error if attempted for a standby system.
+
+Syntax
+
+AUTH::password_credential authid <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__password_credential.ashx
+
+</tooltip>
+<tooltip name="AUTH::response_data">
+AUTH::response_data returns the a set of name/value query results from the most recent query.  This command would normally be called from the AUTH_RESULT event.  The format of the data returned is suitable for setting as the value of a TCL array. AUTH::subscribe must first be called to register interest in query results prior to calling AUTH::authenticate.  As a convenience when using the builtin system auth rules, these rules will call AUTH::subscribe if the variable tmm_auth_subscription is set.  Instead of calling AUTH::subscribe directly, we recommend setting tmm_auth_subscription to "" as a local variable when using the builtin system auth rules in the interest of forward-compatibility.  This can be done in a non- RULE_INIT event like CLIENT_ACCEPTED using 'set tmm_auth_subscription "*"'. Typically, response data is only useful if the result of the auth query was success.  As of v9.4.0, the following modules provide response data: EditLDAP (username/password-based):¶ All name/value pairs from the LDAP query response returned by the server from a successful query, returned in the form of ldap:attr:<name> <value>.  Unsuccessful LDAP queries will not return response data.EditRADIUS¶All name/value pairs from the RADIUS query response returned by the server from a successful query, returned in the form of radius:attr:<name> <value>.  Unsuccessful RADIUS queries will not return response data.EditTACACS¶All name/value pairs from the TACACS query response returned by the server from a successful query, returned in the form of tacplus:attr:<name> <value>.  Unsuccessful TACACS queries will not return response data.EditKerberos¶All name/value pairs from the Kerberos query response returned by the server from a successful query, returned in the form of krbdelegate:attr:<name> <value>.  Unsuccessful Kerberos queries will not return response data.EditLDAP (client certificate-based):¶ ccldap:reply:status <status>where <status> is one of the following strings (without quotation marks):     "OK"    "Error (No such user)"    "Error (Non-unique user (db integrity))"    "Error (Internal Error)"    "Error (LDAP Error)"    "Error (No Certificate Supplied)"    "Error (Error Accessing Certificate)"    "Error (User not in required group(s))"    "Error (User does not have required role(s))"    "Error (In Deny-All mode)"    "Error (Error out of range)"EditOCSP (client certificate-based):¶ ocsp:reply:status <status>where <status> is one of the following strings (without quotation marks):     "OK"    "Error (Could not connect to server)"    "Error (Unknown client certificate)"ccldap:reply:username <username>where <username> is the query username corresponding to the BIG-IP 4.x "set auth hdr enable" feature.
+
+Syntax
+"OK"    "Error (No such user)"    "Error (Non-unique user (db integrity))"    "Error (Internal Error)"    "Error (LDAP Error)"    "Error (No Certificate Supplied)"    "Error (Error Accessing Certificate)"    "Error (User not in required group(s))"    "Error (User does not have required role(s))"    "Error (In Deny-All mode)"    "Error (Error out of range)"
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__response_data.ashx
+
+</tooltip>
+<tooltip name="AUTH::ssl_cc_ldap_status">
+Returns the status from the last successful client certificate-based LDAP query for the specified authorization session <authid>. The system returns an empty string if the last successful query did not perform a client certificate-based LDAP query, or if no query has yet been performed.    This command has been deprecated in favor of AUTH::response_data.
+
+Syntax
+
+AUTH::ssl_cc_ldap_status <authid>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__ssl_cc_ldap_status.ashx
+
+</tooltip>
+<tooltip name="AUTH::ssl_cc_ldap_username">
+Returns the user name that the system retrieved from the LDAP database from the last successful client certificate-based LDAP query for the specified authorization session <authid>. The system returns an empty string if the last successful query did not perform a successful client certificate-based LDAP query, or if no query has yet been performed.  This command has been deprecated in favor of AUTH::response_data.
+
+Syntax
+
+AUTH::ssl_cc_ldap_username <authid>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__ssl_cc_ldap_username.ashx
+
+</tooltip>
+<tooltip name="AUTH::start">
+Initializes an authentication session.  This command returns the authentication session ID, which must be specified to other authentication commands.  Multiple simultaneous authentication sessions (up to 10) can be opened for a single connection, but it is the userâ€™s responsibility to keep track of their respective session IDs.  This command returns an error if attempted for a standby system.
+
+Syntax
+
+AUTH::start <type> <PAM service>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__start.ashx
+
+</tooltip>
+<tooltip name="AUTH::status">
+Returns authentication status. The returned status is a value of 0, 1, -1, or 2, corresponding to success, failure, error, or not-authed, based on the result of the most recent authorization that the system performed for the specified authorization session .In the case of a not-authed result, the authentication process desires a credential not yet provided.  Specifics of the requested credential can be determined using the AUTH::wantcredential_ commands.  The authentication process could be continued using AUTH::authenticate_continue*.
+
+Syntax
+
+AUTH::status <authid>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__status.ashx
+
+</tooltip>
+<tooltip name="AUTH::subscribe">
+AUTH::subscribe registers interest in auth query results.  AUTH::response_data will only return data from query results for which a subscription has been made prior to calling AUTH::authenticate.  As a convenience when using the built-in system auth rules, these rules will call AUTH::subscribe if the variable tmm_auth_subscription is set.  Instead of calling AUTH::subscribe directly, we recommend setting tmm_auth_subscription to "*" when using the built-in system auth rules in the interest of forward-compatibility.  Also see AUTH::unsubscribe.
+
+Syntax
+
+AUTH::subscribe <authid>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__subscribe.ashx
+
+</tooltip>
+<tooltip name="AUTH::unsubscribe">
+AUTH::unsubscribe cancels interest in auth query results.  AUTH::response_data will not return data from query results for which a subscription has been cancelled before AUTH::authenticate has been called.  Also see AUTH::subscribe.
+
+Syntax
+
+AUTH::unsubscribe <authid>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__unsubscribe.ashx
+
+</tooltip>
+<tooltip name="AUTH::username_credential">
+Sets the username credential to the specified string, for a future AUTH::authenticate call.  This command returns an error if attempted for a standby system.
+
+Syntax
+
+AUTH::username_credential authid <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__username_credential.ashx
+
+</tooltip>
+<tooltip name="AUTH::wantcredential_prompt">
+Returns the authorization session authidâ€™s credential prompt string that the system last requested (when the system generated an AUTH_WANTCREDENTIAL event). An example of a promopt string is Username:. The AUTH::wantcredential_prompt command is especially helpful in providing authentication services to interactive protocols (for example, telnet and ftp), where the actual text prompts and responses may be directly communicated with the remote user.
+
+Syntax
+
+AUTH::wantcredential_prompt <authid>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__wantcredential_prompt.ashx
+
+</tooltip>
+<tooltip name="AUTH::wantcredential_prompt_style">
+Returns the authorization session authidâ€™s credential prompt style that the system last requested (when the system generated an AUTH_WANTCREDENTIAL event). The value of the <authid> argument is either echo_on, echo_off, or unknown. This command is especially helpful in providing authentication services to interactive protocols (or example, telnet and ftp), where the actual text prompts and responses may be directly communicated with the remote user.
+
+Syntax
+
+AUTH::wantcredential_prompt_style <authid>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__wantcredential_prompt_style.ashx
+
+</tooltip>
+<tooltip name="AUTH::wantcredential_type">
+Returns the authorization session authidâ€™s credential type that the system last requested (when the system generated an AUTH_WANTCREDENTIAL event). The value of the <authid> argument is either username, password, x509, x509_issuer, or unknown, based upon the systemâ€™s assessment of the credential prompt string and style.
+
+Syntax
+
+AUTH::wantcredential_type <authid>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AUTH__wantcredential_type.ashx
+
+</tooltip>
+<tooltip name="AVR::disable">
+Disables the AVR plugin for the current connection. AVR will remain disabled on the current connection until it is closed or AVR::enable is called. This means that the connection will not be counted by AVR and thus excluded from statistics gathering.
+
+Syntax
+
+AVR::disable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AVR__disable.ashx
+
+</tooltip>
+<tooltip name="AVR::enable">
+Enables the AVR plugin for the current connection. AVR will remain enabled on the current connection until it is closed or AVR::disable is called. Note that enabling AVR alone within the iRule only ensures the message reaches the AVR plugin, it doesn't ensure that statistics will be gathered.
+
+Syntax
+
+AVR::enable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.AVR__enable.ashx
+
+</tooltip>
+<tooltip name="b64decode">
+Returns a string that is base-64 decoded.
+
+Syntax
+
+b64decode <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.b64decode.ashx
+
+</tooltip>
+<tooltip name="b64encode">
+Returns a string that is base-64 encoded, or if an error occurs, an empty string.
+
+Syntax
+
+b64encode
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.b64encode.ashx
+
+</tooltip>
+<tooltip name="CACHE::accept_encoding">
+Overrides the accept_encoding value used by the cache to store the cached content. You can use this command to group various user encoding values into a single group, to minimize duplicated cached content.
+
+Syntax
+
+CACHE::accept_encoding <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CACHE__accept_encoding.ashx
+
+</tooltip>
+<tooltip name="CACHE::age">
+Returns the age of the document in the cache, in seconds.
+
+Syntax
+
+CACHE::age
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CACHE__age.ashx
+
+</tooltip>
+<tooltip name="CACHE::disable">
+Disables the caching for this request.
+
+Syntax
+
+CACHE::disable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CACHE__disable.ashx
+
+</tooltip>
+<tooltip name="CACHE::enable">
+Forces the document to be cached. You can also use this command to cache non-GET requests.
+
+Syntax
+
+CACHE::enable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CACHE__enable.ashx
+
+</tooltip>
+<tooltip name="CACHE::expire">
+Forces the document to be revalidated from the server.
+
+Syntax
+
+CACHE::expire
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CACHE__expire.ashx
+
+</tooltip>
+<tooltip name="CACHE::header">
+The command is used to gather or modify the content of an header stored in the cache.
+
+Syntax
+
+CACHE::header <name>
+CACHE::header insert <name> <value>
+CACHE::header replace <name> <value>...
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CACHE__header.ashx
+
+</tooltip>
+<tooltip name="CACHE::headers">
+Returns the HTTP headers of the cache response.
+
+Syntax
+
+CACHE::headers
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CACHE__headers.ashx
+
+</tooltip>
+<tooltip name="CACHE::hits">
+Returns the document cache hits.
+
+Syntax
+
+CACHE::hits
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CACHE__hits.ashx
+
+</tooltip>
+<tooltip name="CACHE::payload">
+Returns the HTTP payload of the cache response.
+
+Syntax
+
+CACHE::payload
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CACHE__payload.ashx
+
+</tooltip>
+<tooltip name="CACHE::priority">
+Assigns a priority to cached documents. The priority value can be between 1 and 10 inclusive. This command allows users to designate documents that are costly to produce as being more important than others to cache.  This is particularly useful when you have a document that is not requested often, but is expensive to produce (such as a server-compressed document.)  By increasing the priority, you are increasing its likelihood of being served from the cache regardless of hit count.The default priority value for entries in the cache is zero (0 = cache priority disabled).
+
+Syntax
+
+CACHE::priority <1 .. 10>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CACHE__priority.ashx
+
+</tooltip>
+<tooltip name="CACHE::uri">
+Overrides the URI value used by the cache to store the cached content.  Cached content by default is stored with a unique key referring to both the URI of the resource to be cached and the User-Agent for which it was formatted. If multiple variations of the same content must be cached under specific conditions (different client), you can use this command to create a unique key, thus creating cached content specific to that condition.  This can be used to prevent one user or group's cached data from being served to different users/groups.
+
+Syntax
+
+CACHE::uri <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CACHE__uri.ashx
+
+</tooltip>
+<tooltip name="CACHE::useragent">
+Overrides the useragent  value used by the cache to reference the cached content. Cached content by default is stored with a unique key referring to both the resource to be cached and the User-Agent for which is was formatted.  If the content is formatted the same for multiple User-Agents, you can use this command to group various user agent values into a single group, thus minimizing duplicated cached content.
+
+Syntax
+
+CACHE::useragent <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CACHE__useragent.ashx
+
+</tooltip>
+<tooltip name="CACHE::userkey">
+Allows users to add user-defined values to the key used by the cache to reference the cached content.Cached content by default is stored with a unique key referring to both the URI of the resource to be cached and the User-Agent for which it was formatted. If multiple variations of the same content must be cached under specific conditions (different client), you can use this command to create a unique key, thus creating cached content specific to that condition.  This can be used to prevent one user or group's cached data from being served to different users/groups.For example, you can use this command to store different cached content for dialup and broadband by using the MTU as a user-defined key string, or to cache different sets of content for internal and external clients.
+
+Syntax
+
+CACHE::userkey <key>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CACHE__userkey.ashx
+
+</tooltip>
+<tooltip name="class">
+The class command, implemented in v10.0.0, allows you to query data groups and data group properties.These commands work for both internal (defined in the bigip.conf) and external (custom file) data groups.  Internal data groups were not able to make use of the name/value pairing with the := separator until version 10.1.  As of 10.1 all classes support the name/value pairing.The class command deprecates the findclass and matchclass commands as it offers better functionality and performance than the older commands.Note that you should not use a $:: or :: prefix on the datagroup name when using the class command (or in any datagroup reference on 9.4.4 or later).In v9.4.4 - 10, using $::datagroup_name will work but demote the virtual server from running on all TMMs. For details, see the CMP compatibility page.In v11, using $::datagroup_name will result in a TCL runtime error and a reset being sent to the client!Note that starting in v11, any data-groups that are configured in a partition other than Common must be referenced by /Partition_Name/Data-Group_Name, even by iRules configured in that partition.  Data-groups referenced only by name are implicitly presumed to be /Common/Data-Group_Name.
+
+Syntax
+
+class match [<options>] <item> <operator> <
+class>
+class search [<options>] <
+class> <operator> <item>
+class lookup <item> <
+class>
+class element [<options>] <index> <
+class>
+class type <
+class>
+class exists <
+class>
+class size <
+class>
+class names [-nocase] <
+class> [<pattern>]
+class get [-nocase] <
+class> [<pattern>]
+class startsearch <
+class>
+class nextelement [<options>] <
+class> <search_id>
+class anymore <
+class> <search_id>
+class donesearch <
+class> <search_id>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.class.ashx
+
+</tooltip>
+<tooltip name="client_addr">
+Returns the client IP address of a connection. This is a BIG-IP version 4.X variable, provided for backward compatibility. You can use the equivalent 9.X command, IP::client_addr instead.
+
+Syntax
+
+client_addr
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.client_addr.ashx
+
+</tooltip>
+<tooltip name="client_port">
+Returns the TCP port number/service of the specified client. This is a BIG-IP version 4.X variable, provided for backward compatibility. You can use the equivalent 9.X command, TCP::client_port instead.
+
+Syntax
+
+client_port
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.client_port.ashx
+
+</tooltip>
+<tooltip name="clientside">
+Causes the specified iRule commands to be evaluated under the client-side context. This command has no effect if the iRule is already being evaluated under the client-side context.
+
+Syntax
+
+clientside 
+clientside {<iRule commands>}
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.clientside.ashx
+
+</tooltip>
+<tooltip name="clone">
+Causes the system to clone traffic to the specified pool or pool member regardless of monitor status.  (Pool member status may be determined by the use of the LB::status command.   Failure to select a server because none are available may be prevented by using the active_members command to test the number of active members in the target pool before choosing it.)Pool / member may be selected conditionally.  If multiple conditions match, the last match will determine the pool/member to which this traffic is cloned.
+
+Syntax
+
+clone pool <pool_name>
+clone pool <pool_name> [member <addr> [<port>]]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.clone.ashx
+
+</tooltip>
+<tooltip name="close">
+This command closes an existing sideband connection.  It is one of several commands that make up the ability to create sideband connections from iRules.
+
+Syntax
+
+close <connection>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.close.ashx
+
+</tooltip>
+<tooltip name="COMPRESS::buffer_size">
+Sets the compression buffer size.
+
+Syntax
+
+COMPRESS::buffer_size <value>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.COMPRESS__buffer_size.ashx
+
+</tooltip>
+<tooltip name="COMPRESS::disable">
+Disables compression for the current HTTP response. Note that when using this command, you must set the HTTP profile setting Compression to Selective.
+
+Syntax
+
+COMPRESS::disable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.COMPRESS__disable.ashx
+
+</tooltip>
+<tooltip name="COMPRESS::enable">
+Enables compression for the current HTTP response. Note that when using this command, you must set the HTTP profile setting Compression to Selective.
+
+Syntax
+
+COMPRESS::enable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.COMPRESS__enable.ashx
+
+</tooltip>
+<tooltip name="COMPRESS::gzip">
+Sets criteria for compressing HTTP responses.
+
+Syntax
+
+COMPRESS::gzip memory_level <level>
+COMPRESS::gzip window_size <size>
+COMPRESS::gzip level <level>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.COMPRESS__gzip.ashx
+
+</tooltip>
+<tooltip name="COMPRESS::method">
+Specifies the preferred compression algorithm.
+
+Syntax
+
+COMPRESS::method prefer [ â€™gzipâ€™ | â€™deflateâ€™ ]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.COMPRESS__method.ashx
+
+</tooltip>
+<tooltip name="connect">
+This command establishes a sideband connection.  It is one of several commands that make up the ability to create sideband connections from iRules.
+
+Syntax
+
+connect [-protocol TCP|UDP] [-myport <port>] [-myaddr <addr>] [-tos <tos>] [-status <varname>] [-idle <s>] [-timeout <ms>] <destination>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.connect.ashx
+
+</tooltip>
+<tooltip name="connect info">
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.connect info.ashx
+
+</tooltip>
+<tooltip name="cpu">
+The cpu usage command returns the average TMM cpu load for the given interval. All averages are exponential weighted moving averages over the interval.
+
+Syntax
+
+cpu usage [1sec | 5secs | 15secs | 1min | 5mins | 15mins | all_seconds | all_minutes]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.cpu.ashx
+
+</tooltip>
+<tooltip name="crc32">
+Returns the crc32 checksum for the specified string, or if an error occurs, an empty string. Used to ensure data integrity.
+
+Syntax
+
+crc32 <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.crc32.ashx
+
+</tooltip>
+<tooltip name="CRYPTO::decrypt">
+This iRules command decrypts data. A ciphertext decrypted with this command should be encryptable by third party software.
+
+Syntax
+
+CRYPTO::decrypt [-alg <>] [-ctx <> [-final]] [-key[hex] <>] [-iv[hex] <>] [<data>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CRYPTO__decrypt.ashx
+
+</tooltip>
+<tooltip name="CRYPTO::encrypt">
+This iRules command encrypts data. A ciphertext encrypted with this command should be decryptable by third party software.
+
+Syntax
+
+CRYPTO::encrypt [-alg <>] [-ctx <> [-final]] [-key[hex] <>] [-iv[hex] <>] [<data>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CRYPTO__encrypt.ashx
+
+</tooltip>
+<tooltip name="CRYPTO::hash">
+This iRules command generates a hash on a piece of data
+
+Syntax
+
+CRYPTO::hash  [-alg <>] [-ctx <> [-final]] [<data>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CRYPTO__hash.ashx
+
+</tooltip>
+<tooltip name="CRYPTO::keygen">
+This iRules command is used to generate keys that can be used to encrypt and sign data.
+
+Syntax
+
+CRYPTO::keygen -alg <> -len <> [-passphrase <> -salt[hex] <> -rounds <>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CRYPTO__keygen.ashx
+
+</tooltip>
+<tooltip name="CRYPTO::sign">
+This iRules command is used to provide a digital signature of a block of data.
+
+Syntax
+
+CRYPTO::sign [-alg <>] [-ctx <> [-final]] [-key[hex] <>] [<data>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CRYPTO__sign.ashx
+
+</tooltip>
+<tooltip name="CRYPTO::verify">
+This iRules command is used to verify a signed block of data.
+
+Syntax
+
+CRYPTO::verify [-alg <>] [-ctx <> [-final]] [-key[hex] <>] [-signature <>] [<data>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.CRYPTO__verify.ashx
+
+</tooltip>
+<tooltip name="decode_uri">
+Decodes the specified string using HTTP URI encoding per RFC2616 and returns the result. This is a BIG-IP 4.x variable, provided for backward-compatibiliy. You can use the equivalent 9.X commmand URI::decode instead.
+
+Syntax
+
+decode_uri <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.decode_uri.ashx
+
+</tooltip>
+<tooltip name="DEMANGLE::disable">
+
+
+Syntax
+
+DEMANGLE::disable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DEMANGLE__disable.ashx
+
+</tooltip>
+<tooltip name="DEMANGLE::enable">
+
+
+Syntax
+
+DEMANGLE::enable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DEMANGLE__enable.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::avp">
+This iRules command gives access to set and get attribute-value pairs. Specifics for each command are below in the syntax section
+
+Syntax
+
+DIAMETER::avp codes [index] [source "source-data"]
+DIAMETER::avp count [avpname|code] [source "source-data"]
+DIAMETER::avp length "avpname|code" [index] [source "source-data"]
+DIAMETER::avp vflag get "avpname|code" [index] [source "source-data"]
+DIAMETER::avp vflag set "avpname|code" "new-vflag" [index] [source "source-data"]
+DIAMETER::avp mflag get "avpname|code" [index] [source "source-data"]
+DIAMETER::avp mflag set "avpname|code" "new-mflag" [index] [source "source-data"]
+DIAMETER::avp pflag get "avpname|code" [index] [source "source-data"]
+DIAMETER::avp pflag set "avpname|code" "new-pflag" [index] [source "source-data"]
+DIAMETER::avp flags get "avpname|code" [index] [source "source-data"]
+DIAMETER::avp flags set "avpname|code" "new-flags" [index] [source "source-data"]
+DIAMETER::avp vendorid get "avpname|code" [index] [source "source-data"]
+DIAMETER::avp vendorid set "avpname|code" "new-vendorid" [index] [source "source-data"]
+DIAMETER::avp data get "avpname|code" "type" [index] [source "source-data"]
+DIAMETER::avp data set "avpname|code" "new-data" "type" [index] [source "source-data"]
+DIAMETER::avp create "avpname|code" "v" "m" "p" "vendorid" "data" [type]
+DIAMETER::avp read "avpname|code" [index] [source "source-data"]
+DIAMETER::avp delete "avpname|code" [index] [source "source-data"]
+DIAMETER::avp replace "avpname|code" "new-avp" [index] [source "source-data"]
+DIAMETER::avp insert "avpname|code" "new-avp" [index] [source "source-data"]
+DIAMETER::avp append "avpname|code" "new-avp" [index] [source "source-data"]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__avp.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::command">
+The DIAMETER::command command gets or sets the command-code
+
+Syntax
+
+DIAMETER::command [new_command-code]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__command.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::disconnect">
+This iRules command sends Disconnect-Peer-Request to client if run on clientside and server if run on serverside.
+
+Syntax
+
+DIAMETER::disconnect "origin-host" "origin-realm" "disconnect-cause"
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__disconnect.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::drop">
+This iRules command drops the current message quietly. Assuming in any diameter event, there is only one current message.
+
+Syntax
+
+DIAMETER::drop
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__drop.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::header">
+This iRules command gets or sets the DIAMETER header fields
+
+Syntax
+
+DIAMETER::header version [newversion]
+DIAMETER::header rflag|request-flag [newflag]
+DIAMETER::header pflag|proxiable-flag [newflag]
+DIAMETER::header eflag|error-flag [newflag]
+DIAMETER::header tflag|retransmitted-flag [newflag]
+DIAMETER::header flags [newflag]
+DIAMETER::header appid [newappid]
+DIAMETER::header hopid [newhopid]
+DIAMETER::header endid [newendid]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__header.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::host">
+This iRules command gets or sets the value of the origin-host or destination-host attribute-value pair
+
+Syntax
+
+DIAMETER::host origin|dest [new_host]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__host.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::is_request">
+This iRules command returns true if it is a DIAMETER request. Otherwise, it returns false.
+
+Syntax
+
+DIAMETER::is_request
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__is_request.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::is_response">
+This iRules command returns true if it is a DIAMETER response. Otherwise, it returns false.
+
+Syntax
+
+DIAMETER::is_response
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__is_response.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::length">
+This iRules command gets diameter message length. there is no option to set diameter message length. Length will be automatically changed as necessary.
+
+Syntax
+
+DIAMETER::length
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__length.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::payload">
+This iRules command gets or sets DIAMETER message payload
+
+Syntax
+
+DIAMETER::payload
+DIAMETER::payload replace "newpayload"
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__payload.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::realm">
+This iRules command gets or sets the value of the origin-realm or destination-realm attribute-value pair.
+
+Syntax
+
+DIAMETER::realm origin|dest [new_realm]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__realm.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::respond">
+This iRules command sends message to client on clientside or server on serverside.
+
+Syntax
+
+DIAMETER::respond "version" "r" "p" "e" "t" "comcode" "appid" "hopid" "endid" "AVPs"
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__respond.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::result">
+This iRules command gets or sets the value of the result-code attribute-value pair.
+
+Syntax
+
+DIAMETER::result [new_result-code]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__result.ashx
+
+</tooltip>
+<tooltip name="DIAMETER::session">
+This iRules command gets or sets the value of session-id attribute-value pair
+
+Syntax
+
+DIAMETER::session [new_session-id]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DIAMETER__session.ashx
+
+</tooltip>
+<tooltip name="discard">
+Causes the current packet or connection (depending on the context of the event) to be dropped/discarded and the rule continues (no implied return).  This command is identical to drop.
+
+Syntax
+
+discard
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.discard.ashx
+
+</tooltip>
+<tooltip name="DNS::additional">
+This iRules command returns, inserts, removes, or clears RRs from the additional section.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::additional [[insert|remove rr_obj] | clear]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__additional.ashx
+
+</tooltip>
+<tooltip name="DNS::answer">
+This iRules command returns, inserts, removes, or clears RRs from the answer section.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on license
+
+Syntax
+
+DNS::answer [[insert|remove rr_obj] | clear]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__answer.ashx
+
+</tooltip>
+<tooltip name="DNS::authority">
+This iRules command returns, inserts, removes, or clears RRs from the authority section.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::authority [[insert|remove rr_obj] | clear]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__authority.ashx
+
+</tooltip>
+<tooltip name="DNS::class">
+This iRules command gets or sets the resource record class fieldNote: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::class <rr_obj> [value]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__class.ashx
+
+</tooltip>
+<tooltip name="DNS::disable">
+This iRules command sets the service state to disabled for the current dns packet.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on license.
+
+Syntax
+
+DNS::disable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__disable.ashx
+
+</tooltip>
+<tooltip name="DNS::drop">
+This iRules command drops the current DNS packet after the execution of the event.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::drop
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__drop.ashx
+
+</tooltip>
+<tooltip name="DNS::edns0">
+This iRules command gets (v11.0+) and sets (v11.1+) the values of the edns0 pseudo-RR.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::edns0 <exists [nsid]|do|sz|nsid> [value]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__edns0.ashx
+
+</tooltip>
+<tooltip name="DNS::enable">
+This iRules command sets the service state to enabled for the current dns packet.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::enable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__enable.ashx
+
+</tooltip>
+<tooltip name="DNS::header">
+This iRules command gets or sets simple bits or byte fields. Read-only form introduced in v11.0, Read-write capability added in v11.1.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::header <id|qr|opcode|aa|tc|rd|ra|ad|cd|rcode|qdcount|ancount|nscount|arcount> [value]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__header.ashx
+
+</tooltip>
+<tooltip name="DNS::last_act">
+This iRules command sets the action to perform if no DNS service handles this packetNote: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::last_act <allow|drop|reject|hint|noerror>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__last_act.ashx
+
+</tooltip>
+<tooltip name="DNS::len">
+This iRules command returns the dns packet message length.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::len
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__len.ashx
+
+</tooltip>
+<tooltip name="DNS::name">
+This iRules command gets or sets the resource record name field.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::name <rr_obj> [value]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__name.ashx
+
+</tooltip>
+<tooltip name="DNS::origin">
+This iRules command returns the originator of the DNS message.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::origin
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__origin.ashx
+
+</tooltip>
+<tooltip name="DNS::ptype">
+This iRules command returns the type of the DNS packet.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::ptype
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__ptype.ashx
+
+</tooltip>
+<tooltip name="DNS::query">
+This iRules command returns or constructs and sends a query to the DNS-Express database for a name and type (IN class only).Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::query <target> <name> <type> [dnssec]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__query.ashx
+
+</tooltip>
+<tooltip name="DNS::question">
+This iRules command gets (v11.0+) or sets (v11.1+) the question field value.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::question <name|type|class> [value]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__question.ashx
+
+</tooltip>
+<tooltip name="DNS::rdata">
+This iRules command gets or sets the resource record rdata fieldNote: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::rdata <rr_obj> [value]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__rdata.ashx
+
+</tooltip>
+<tooltip name="DNS::return">
+This iRules command skips all further processing after TCL execution and sends the dns packet in the opposite direction.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::return
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__return.ashx
+
+</tooltip>
+<tooltip name="DNS::rr">
+This iRules command creates a new resource record object with specified attributes or as a complete string.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::rr <<name> <type> <class> <ttl> <rdata...> | <string>>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__rr.ashx
+
+</tooltip>
+<tooltip name="DNS::rrname">
+Returns the name requested by the client.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+[
+DNS::rrname]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__rrname.ashx
+
+</tooltip>
+<tooltip name="DNS::rrtype">
+Returns the resource record type requested by the client.Note: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+[
+DNS::rrtype]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__rrtype.ashx
+
+</tooltip>
+<tooltip name="DNS::ttl">
+This iRules command gets or sets the resource record ttl fieldNote: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::ttl <rr_obj> [value]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__ttl.ashx
+
+</tooltip>
+<tooltip name="DNS::type">
+This iRules command gets or sets the resource record type fieldNote: This command requires the DNS Profile, which is only enabled as part of GTM or the DNS Services add-on.
+
+Syntax
+
+DNS::type <rr_obj> [value]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.DNS__type.ashx
+
+</tooltip>
+<tooltip name="domain">
+A custom iRule function which parses the specified string as a dotted domain name and returns the last <count> portions of the domain name.
+
+Syntax
+
+domain <string> <count>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.domain.ashx
+
+</tooltip>
+<tooltip name="drop">
+Causes the current packet or connection (depending on the context of the event) to be dropped/discarded and the rule continues (no implied return).  This command is identical to discard.
+
+Syntax
+
+drop
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.drop.ashx
+
+</tooltip>
+<tooltip name="event">
+Enables or disables evaluation of the specified iRule event, or all iRule events, on this connection. However, the iRule continues to run.
+
+Syntax
+
+event [<name>] [enable|disable] | [enable all|disable all]
+
+v11 Additions/Changes:
+event info
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.event.ashx
+
+</tooltip>
+<tooltip name="findclass">
+Searches a data group list for a member whose key matches the specified string, and if a match is found, returns the data-group member string.  Note: findclass has been deprecated in v10 in favor of the new class commands.  The class command offers better functionality and performance than findclassOnly the key value of the data group list member (the portion up to the first separator character, which defaults to space unless otherwise specified) is compared to the specified string to determine a match.If a match is found, and no separator character is specified, the command returns the entire member value associated with the matched key (including the key).If a match is found and a separator is specified, the data group member is split at the first separator, and the portion of the list member following the first separator is returned.Note that you should not use a $:: or :: prefix on the datagroup name when using the class command (or in any datagroup reference on 9.4.4 or later).In v9.4.4 - 10, using $::datagroup_name will work but demote the virtual server from running on all TMMs. For details, see the CMP compatibility page.In v11, using $::datagroup_name will result in a runtime error and TCP reset being sent to the client!
+
+Syntax
+
+findclass <string> <data group> [<separator>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.findclass.ashx
+
+</tooltip>
+<tooltip name="findstr">
+A custom iRule function which finds a string within another string and returns the string starting at the offset specified from the match.
+
+Syntax
+
+findstr <string> <search_string> [<skip_count> [<terminator count or string>]]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.findstr.ashx
+
+</tooltip>
+<tooltip name="forward">
+Sets the connection to forward IP packets.  This is strict forwarding and will bypass any pool configured on the virtual server.The request will be forwarded out the appropriate interface according to the routes in the LTM routing table. No destination address or port translation is performed.
+
+Syntax
+
+forward
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.forward.ashx
+
+</tooltip>
+<tooltip name="getfield">
+A custom iRule function which splits a string on a character or string, and returns the string corresponding to the specific field.
+
+Syntax
+
+getfield <string> <split> <field_number>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.getfield.ashx
+
+</tooltip>
+<tooltip name="HSL::open">
+Open a handle for High Speed Logging communication
+
+Syntax
+
+HSL::open -proto <UDP|TCP> -pool <poolname>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HSL__open.ashx
+
+</tooltip>
+<tooltip name="HSL::send">
+Send data via High Speed Logging
+
+Syntax
+
+HSL::send <handle> <data>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HSL__send.ashx
+
+</tooltip>
+<tooltip name="htonl">
+Convert the unsigned integer from host byte order to network byte order.
+
+Syntax
+
+htonl <hostlong>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.htonl.ashx
+
+</tooltip>
+<tooltip name="htons">
+Convert the unsigned short integer from host byte order to network byte order.
+
+Syntax
+
+htons <hostshort>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.htons.ashx
+
+</tooltip>
+<tooltip name="HTTP::class">
+Returns or sets the HTTP class selected by the HTTP selector.
+
+Syntax
+
+HTTP::class
+HTTP::class [enable|disable]
+HTTP::class [asm|wa]
+HTTP::class select <name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__class.ashx
+
+</tooltip>
+<tooltip name="HTTP::close">
+Closes the HTTP connection.
+
+Syntax
+
+HTTP::close
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__close.ashx
+
+</tooltip>
+<tooltip name="HTTP::collect">
+Collects an amount of HTTP body data, optionally specified with the <length> argument. When the system collects the specified amount of data, it calls the Tcl event HTTP_REQUEST_DATA or HTTP_RESPONSE_DATA.The collected data can be accessed via the HTTP::payload command.Note that this command cannot be called after any Tcl command that sends an HTTP response (e.g. redirect, HTTP::redirect, and HTTP::respond). A run-time error will result.Care must be taken when using HTTP::collect to not stall the connection. For example, some clients expect a response (such as a "100 Continue" header) from the server before they will send data. To avoid a delay, you would need to send such a response (possibly via TCP::respond) in your iRule. Also, if you use HTTP::collect without specifying a length, you must have some non-HTTP event (e.g. AUTH_RESULT or NAME_RESOLVED) run HTTP::release, or HTTP processing will not continue, and the collected data will be discarded when the connection times out. It is important to note that these semantics are different than those of the TCP::collect and TCP::release commands. With TCP::collect, the event for processing the data (CLIENT_DATA) will fire without TCP::release being called, whereas with HTTP::collect, the event (HTTP_REQUEST_DATA or HTTP_RESPONSE_DATA) will not fire without HTTP::release being called. Again, this is referring to using HTTP::collect without specifying a length. If you do specify a length, then the HTTP_REQUEST_DATA or HTTP_RESPONSE_DATA event will fire without calling HTTP::release.Note that although any size payload can theoretically be collected, the maximum size of a Tcl variable in v9 and v10 is 4MB with a smaller functional maximum after charset expansion of approximately 1Mb.  In v11, the maximum variable size was increased to 32Mb.  Any payload manipulation outside of calls to HTTP::payload should obey that limit. The second example below includes the best practice logic to enforce that limit, including the suppression of response chunking to allow more accurate determination of collect length.
+
+Syntax
+
+HTTP::collect
+HTTP::collect <length>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__collect.ashx
+
+</tooltip>
+<tooltip name="http_cookie">
+Specifies the value in the Cookie: header for the specified cookie name. This is a BIG-IP version 4.X variable, provided for backward-compatibility. You can use the equivalent 9.X command HTTP::cookie instead
+
+Syntax
+
+http_cookie <cookie_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.http_cookie.ashx
+
+</tooltip>
+<tooltip name="HTTP::cookie">
+Queries for or manipulates cookies in HTTP requests and responses. This command replaces the BIG-IP 4.X variable http_cookie.
+
+Syntax
+# Rename a cookie by inserting a new cookie name with the same value as the original.  Then remove the old cookie.when HTTP_REQUEST {   # Check if old cookie exists in request   if { [
+HTTP::cookie exists "old-cookie-name"] } {      # Insert a new cookie with the new name and old cookie's value      
+HTTP::cookie insert name "new-cookie-name" value [
+HTTP::cookie value "old-cookie-name"]      # Remove the old cookie      
+HTTP::cookie remove "old-cookie-name"    }}
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__cookie.ashx
+
+</tooltip>
+<tooltip name="HTTP::disable">
+Changes the HTTP filter from full parsing to passthrough mode. This command is useful when using an HTTP profile with an application that proxies data over HTTP. One use of this command is when you need to tunnel PPP over HTTP and disable HTTP processing once the connection has been established.
+
+Syntax
+
+HTTP::disable
+HTTP::disable discard
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__disable.ashx
+
+</tooltip>
+<tooltip name="HTTP::enable">
+Changes the HTTP filter from passthrough to full parsing mode. This could be useful, for instance, if you need to determine whether or not HTTP is passing over the connection and enable the HTTP filter appropriately, or if you have a protocol that is almost but not quite like HTTP, and you need to re-enable HTTP parsing after temporarily disabling it.Use of this command can be extremely tricky to get exactly right; its use is not recommended in the majority of cases.Note: This command does not function in certain versions of BIG-IP (v9.4.0 - v9.4.4). This issue is tracked as CR95437 and is fixed in BIG-IP v9.4.5.
+
+Syntax
+
+HTTP::enable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__enable.ashx
+
+</tooltip>
+<tooltip name="HTTP::fallback">
+Specifies or overrides the fallback host specified in the HTTP profile.
+
+Syntax
+
+HTTP::fallback <host>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__fallback.ashx
+
+</tooltip>
+<tooltip name="http_header">
+Evaluates the string following an HTTP header tag that you specify. This command is a BIG-IP version 4.X variable, provided for backward-compatibility. You can use the equivalent 9.X command HTTP::header, instead.
+
+Syntax
+
+http_header(header_tag_string)
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.http_header.ashx
+
+</tooltip>
+<tooltip name="HTTP::header">
+Queries or modifies HTTP headers. This command replaces the BIG-IP 4.X variable http_header.Note: HTTP::header commands affect only headers passing THROUGH the load balancer, not locally-generated responses.  Note: The header name is not case sensitive, so for example, 'HTTP::header value HEADER_NAME' will match a header with the name HeAdEr_NaMe.
+
+Syntax
+
+HTTP::header [value] <name>
+HTTP::header values <name>
+HTTP::header names
+HTTP::header count [*name*]
+HTTP::header at <index>
+HTTP::header exists <name>
+HTTP::header insert ["lws"] [<name> <value>]+
+HTTP::header lws
+HTTP::header is_keepalive
+HTTP::header is_redirect
+HTTP::header replace <name> [<string>]
+HTTP::header remove <name>
+HTTP::header insert_modssl_fields <addr port | addr addr addr | port port port>
+HTTP::header sanitize [header name]+
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__header.ashx
+
+</tooltip>
+<tooltip name="http_host">
+Specifies the value in the Host: header of the HTTP request. This is a BIG-IP version 4.X variable, provided for backward-compatibility. You can use the equivalent 9.X command HTTP::host instead.
+
+Syntax
+
+http_host
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.http_host.ashx
+
+</tooltip>
+<tooltip name="HTTP::host">
+Returns the value contained in the Host header of an HTTP request. This command replaces the BIG-IP 4.X variable http_host.The Host header always contains the requested host name (which may be a Host Domain Name string or an IP address), and will also contain the requested service port whenever a non-standard port is specified (other than 80 for HTTP, other than 443 for HTTPS).  When present, the non-standard port is appended to the requsted name as a numeric string with a colon separating the 2 values (just as it would appear in the browser's address bar):Host:  host.domain.com:8080RFC2616 (section 3.2.3) states that host header evaluation MUST be case insensitive.  So it is a good practice to set the Host header value to lower case before performing comparisons.  This can be done using [string tolower [HTTP::host]].
+
+Syntax
+
+HTTP::host
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__host.ashx
+
+</tooltip>
+<tooltip name="HTTP::is_keepalive">
+Returns a true value if this is a Keep-Alive connection.
+
+Syntax
+
+HTTP::is_keepalive
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__is_keepalive.ashx
+
+</tooltip>
+<tooltip name="HTTP::is_redirect">
+Returns a true value if the response is a redirect. Since only responses can be redirects, it does not make sense to use this command in a clientside event.
+
+Syntax
+
+HTTP::is_redirect
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__is_redirect.ashx
+
+</tooltip>
+<tooltip name="http_method">
+Specifies the action of the HTTP request. Common values are GET amd POST. This command is a BIG-IP version 4.X variable, provided for backward-compatibility. You can use the equivalent  9.Xcommand HTTP::method instead.
+
+Syntax
+
+http_method
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.http_method.ashx
+
+</tooltip>
+<tooltip name="HTTP::method">
+Returns the type of HTTP request method. This command replaces the BIG-IP 4.X variable http_method.
+
+Syntax
+
+HTTP::method
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__method.ashx
+
+</tooltip>
+<tooltip name="HTTP::password">
+Returns the password part of HTTP basic authentication. As described in RFC2617 the username and password in basic authentication is sent by the client in the Authorization header.  The client base64 encodes the username and password in the format of:   Authorization: Basic base64encoding(username:password)The HTTP::username command parses and base64 decodes the username.The HTTP::password command parses and base64 decodes the password.
+
+Syntax
+
+HTTP::password
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__password.ashx
+
+</tooltip>
+<tooltip name="HTTP::path">
+Returns or sets the path part of the HTTP request.  The path is defined as the path and filename in a request. It does not include the query string.  For the following URL:http://www.example.com:8080/main/index.jsp?user=test&login=checkThe path is:/main/index.jspNote that only ? is used as the separator for the query string. So, for the following URL:http://www.example.com:8080/main/index.jsp;session_id=abcdefgh?user=test&login=checkthe path is:/main/index.jsp;session_id=abcdefgh
+
+Syntax
+http://www.example.com:8080/main/index.jsp?user=test&login=check
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__path.ashx
+
+</tooltip>
+<tooltip name="HTTP::payload">
+Queries for or manipulates HTTP payload (content) information. With this command, you can retrieve content, query for content size, or replace a certain amount of content. The content does not include the HTTP headers.
+
+Syntax
+
+HTTP::payload <length>
+HTTP::payload <offset> <length>
+HTTP::payload length
+HTTP::payload rechunk
+HTTP::payload unchunk
+HTTP::payload replace <offset> <length> <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__payload.ashx
+
+</tooltip>
+<tooltip name="HTTP::query">
+Returns the query part of the HTTP request. The query is defined as the part of the request past a ? character, if any.For the following URL:   http://www.example.com:8080/main/index.jsp?user=test&login=checkThe query is:   user=test&login=check
+
+Syntax
+
+HTTP::query
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__query.ashx
+
+</tooltip>
+<tooltip name="HTTP::redirect">
+Redirects an HTTP request or response to the specified URL. Note that this command sends the response to the client immediately. Therefore, you cannot specify this command multiple times in an iRule, nor can you specify any other commands that modify header or content after you specify this command.This command will always use a 302 response code. If you wish to use a different one (e.g. 301), you will need to craft a response using [HTTP::respond].If the client is a typical web browser, it will reflect the new URL that you specify. If you wish to transparently translate the URI for your servers (so that the client browser displays the "old" URI), you can use the [HTTP::path] or [HTTP::uri] commands; the [HTTP::header] command  can also be used to set a new Host header if needed.This command is equivalent to the BIG-IP 4.X redirect statement.
+
+Syntax
+
+HTTP::redirect <url>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__redirect.ashx
+
+</tooltip>
+<tooltip name="HTTP::release">
+Releases the data collected via HTTP::collect. Unless a subsequent HTTP::collect command was issued, there is no need to use the HTTP::release command inside of the HTTP_REQUEST_DATA and HTTP_RESPONSE_DATA events, since (in these cases) the data is implicitly released.It is important to note that these semantics are different than those of the TCP::collect and TCP::release commands. With TCP::collect, the event for processing the data (CLIENT_DATA) will fire without TCP::release being called, whereas with HTTP::collect, the event (HTTP_REQUEST_DATA or HTTP_RESPONSE_DATA) will not fire without HTTP::release being called (at least implicitly).
+
+Syntax
+
+HTTP::release
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__release.ashx
+
+</tooltip>
+<tooltip name="HTTP::request">
+Returns the raw HTTP request headers as a string. You can access the request payload (e.g. POST data) by triggering payload collection with the [HTTP::collect] command and then using [HTTP::payload] in the [HTTP_REQUEST_DATA] event.
+
+Syntax
+
+HTTP::request
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__request.ashx
+
+</tooltip>
+<tooltip name="HTTP::request_num">
+Returns the number of HTTP transactions that a client or server has made on its current connection, including the current transaction.
+
+Syntax
+
+HTTP::request_num
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__request_num.ashx
+
+</tooltip>
+<tooltip name="HTTP::respond">
+Generates a response to the client as if it came from the server. If the the command runs on the client side, it sends the response to the client without any load balancing taking place. If the command runs on the server side, the content from the actual server is discarded and replaced with the information provided. Note that because the system sends the response data immediately after this iRule runs, we recommend that you not run any more iRules after it. Also, this command cannot be called if another response has already been sent to the client (e.g. via HTTP::redirect).The response generated is currently an HTTP/1.0 response. The HTTP status code is determined by the supplied  parameter.  The response has a "Server: BIG-IP" header, to differentiate replies generated from the BIG-IP versus those from actual servers. The "Content-Length" header is computed and supplied automatically; a user-specified one is overridden.
+
+Syntax
+
+HTTP::respond <status code> [content <content Value>] [noserver] [<Header name> <Header Value>]+
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__respond.ashx
+
+</tooltip>
+<tooltip name="HTTP::retry">
+Re-sends a request to a server. Can be either the same or a different request, to the same or a different server.  To replay the same request, save the request to a variable in the HTTP_REQUEST event, then use it with this command.A different request may alternatively be specified. The request string must be well-formed and complete, including all required headers.The request generated by this command triggers HTTP_REQUEST and all subsequent client-side events.Note: If you want to retry a request with a payload, you should use HTTP::collect to collect the payload and then append the payload to the request headers retrieved using HTTP::request in HTTP_REQUEST_DATA.
+
+Syntax
+
+HTTP::retry <request>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__retry.ashx
+
+</tooltip>
+<tooltip name="HTTP::status">
+Returns the response status code as defined in RFC2616
+
+Syntax
+
+HTTP::status
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__status.ashx
+
+</tooltip>
+<tooltip name="http_uri">
+Specifies a URL, but does not include the protocol and the fully qualified domain name (FQDN). For example, if the URL is http://www.mysite.com/buy.asp, then the URI is /buy.asp. This command is a BIG-IP 4.X variable, provided for backward-compatibility. You can use the equivalent 9.x command HTTP::uri instead.
+
+Syntax
+
+http_uri
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.http_uri.ashx
+
+</tooltip>
+<tooltip name="HTTP::uri">
+Returns or sets the URI part of the HTTP request. This command replaces the BIG-IP 4.X variable http_uri.For the following URL:   http://www.example.com:8080/main/index.jsp?user=test&login=checkThe URI is:   /main/index.jsp?user=test&login=check
+
+Syntax
+
+HTTP::uri
+HTTP::uri <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__uri.ashx
+
+</tooltip>
+<tooltip name="HTTP::username">
+Returns the username part of HTTP basic authentication.  As described in RFC2617 the username and password in basic authentication is sent by the client in the Authorization header.  The client base64 encodes the username and password in the format of:   Authorization: Basic base64encoding(username:password)The HTTP::username command parses and base64 decodes the username.The HTTP::password command parses and base64 decodes the password.
+
+Syntax
+
+HTTP::username
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__username.ashx
+
+</tooltip>
+<tooltip name="http_version">
+Specifies the HTTP protocol version. Possible values are "HTTP/1.0" or "HTTP/1.1". This is a BIG-IP version 4.X variable, provided for backward compatibility. You can use the equivalent 9.X command, HTTP::version instead.
+
+Syntax
+
+http_version
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.http_version.ashx
+
+</tooltip>
+<tooltip name="HTTP::version">
+Returns or sets the HTTP version of the request or response. This command replaces the BIG-IP 4.X variable http_version.If needed, Connection and Host headers will automatically be added appropriately.Note: HTTP::version will return the original version of the request or response, even if it has been used to change it.
+
+Syntax
+
+HTTP::version ["0.9" | "1.0" | "1.1"]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.HTTP__version.ashx
+
+</tooltip>
+<tooltip name="iFile">
+This iRules command returns content and attributes from external files on the BIG-IP system
+
+Syntax
+ifile get <
+iFile Name>ifile listallifile attributes <
+iFile Name>ifile size <
+iFile Name>ifile last_updated_by <
+iFile Name>ifile last_update_time <
+iFile Name>ifile revision <
+iFile Name>ifile checksum <
+iFile Name>array set <variable> [ifile attributes <
+iFile Name>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.iFile.ashx
+
+</tooltip>
+<tooltip name="imid">
+Parses the BIG-IP 4.X http_uri variable and the user-agent header field to return an i-mode identifier string that can be used for i-mode session persistence. This is a BIG-IP 4.X function, provided for backward compatibility.The imid function takes no arguments and simply returns the string representing the i-mode identifier or the empty string, if none is found.Note:  The imid function currently does not work. This issue is tracked by CR96666.
+
+Syntax
+
+imid
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.imid.ashx
+
+</tooltip>
+<tooltip name="IP::addr">
+Performs comparison of IP address/subnet/supernet to IP address/subnet/supernet, or parses 4 binary bytes into an IPv4 dotted quad address
+
+Syntax
+
+IP::addr <addr1>[/<mask>] equals <addr2>[/<mask>]
+IP::addr parse [-swap] <binary field> [<offset>]
+IP::addr <addr1> mask <mask>
+
+v11 Additions/Changes:
+IP::addr parse [-ipv6|-ipv4 [-swap]] <bytearray> [<offset>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.IP__addr.ashx
+
+</tooltip>
+<tooltip name="IP::client_addr">
+Returns the client IP address of a connection. This command is equivalent to the command clientside { IP::remote_addr } and to the BIG-IP 4.X variable client_addr.In BIG-IP 10.x with route domains enabled if the client is in any non-default route domain, this command returns the client IP address in the x.x.x.x%rd.  For clients in the default route domain, it returns just the IPv4 address.
+
+Syntax
+
+IP::client_addr
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.IP__client_addr.ashx
+
+</tooltip>
+<tooltip name="IP::hops">
+This command is used to give you the estimated number of hops between the peer in question, and the client machine making the request.
+
+Syntax
+
+IP::hops
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.IP__hops.ashx
+
+</tooltip>
+<tooltip name="IP::idle_timeout">
+Returns the idle timeout value, or specifies an idle timeout value as the criteria for selecting the pool to which you want the BIG-IP system to send traffic.
+
+Syntax
+
+IP::idle_timeout
+IP::idle_timeout <value>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.IP__idle_timeout.ashx
+
+</tooltip>
+<tooltip name="IP::local_addr">
+When called in a clientside context, this command returns the IP address of the virtual server the client is connected to.  When called in a serverside context it returns the self-ip address or spoofed client IP address LTM is using for the serverside connection.  This command is primarily useful for generic rules that are re-used.   Also, it is useful in reusing the connected endpoint in another statement (such as with the listen command) or to make routing type decisions.   You can also specify the IP::client_addr and IP::server_addr commands.  This command in BIG-IP 10.x returns identical output as BIG-IP 9.x if the IP address of virtual or self-ip is in the default route domain else it returns the IP address as well as the route domain in the x.x.x.x%rd format.This command is equivalent to the BIG-IP 4.X variable local_addr.
+
+Syntax
+
+IP::local_addr
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.IP__local_addr.ashx
+
+</tooltip>
+<tooltip name="ip_protocol">
+Returns the IP protocol value. This is a BIG-IP 4.X variable, provided for backward-compatibility. You can use the command IP::protocol instead.
+
+Syntax
+
+ip_protocol
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ip_protocol.ashx
+
+</tooltip>
+<tooltip name="IP::protocol">
+Returns the IP protocol value. This command replaces the BIG-IP 4.X variable ip_protocol.  For a list of the IP protocol numbers, see /etc/protocols or the IANA protocol number list
+
+Syntax
+
+IP::protocol
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.IP__protocol.ashx
+
+</tooltip>
+<tooltip name="IP::remote_addr">
+Returns the IP address of the host on the far end of the connection. In the clientside context, this is the client IP address.  In the serverside context this is the node IP address.  You can also specify the IP::client_addr and IP::server_addr commands, respectively.In BIG-IP 10.x with route domains enabled this command returns the remote IP address in the x.x.x.x%rd of the server or client (depending on the context) that is in any non-default route domain else it returns just the IP address as expected.This command is equivalent to the BIG-IP 4.X variable remote_addr.
+
+Syntax
+
+IP::remote_addr
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.IP__remote_addr.ashx
+
+</tooltip>
+<tooltip name="IP::server_addr">
+Returns the serverâ€™s (node's) IP address once a serverside connection has been established. This command is equivalent to the command serverside { IP::remote_addr } and to the BIG-IP 4.X variable server_addr. The command returns 0 if the serverside connection has not been made.  In BIG-IP 10.x with route domains enabled this command returns the server's (node's) address once the serverside connection is established in the x.x.x.x%rd if the server is in any non-default route domains else it returns just the IPv4 address as expected.
+
+Syntax
+
+IP::server_addr
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.IP__server_addr.ashx
+
+</tooltip>
+<tooltip name="IP::stats">
+This command supplies information about the number of packets or bytes being sent or received in a given connection.
+
+Syntax
+
+IP::stats
+IP::stats pkts in
+IP::stats pkts out
+IP::stats pkts
+IP::stats bytes in
+IP::stats bytes out
+IP::stats bytes
+IP::stats age
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.IP__stats.ashx
+
+</tooltip>
+<tooltip name="ip_tos">
+Returns the ToS level of a packet. The Type of Service (ToS) standard is a means by which network equipment can identify and treat traffic differently based on an identifier. As traffic enters the site, the BIG-IP system can apply a rule that sends the traffic to different pools of servers based on the ToS level within a packet.This is a BIG-IP version 4.X variable, provided for backward-compatibility. You can use the equivalent 9.X command IP::tos instead.
+
+Syntax
+
+ip_tos
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ip_tos.ashx
+
+</tooltip>
+<tooltip name="IP::tos">
+Returns (or sets) the ToS value encoded within a packet. The Type of Service (ToS) standard is a means by which network equipment can identify and treat traffic differently based on an identifier. As traffic enters the site, the BIG-IP system can apply a rule that sends the traffic to different pools of servers based on the ToS level within a packet, or can set the ToS value on traffic matching specific patterns.This command is equivalent to the BIG-IP 4.X variable ip_tos.
+
+Syntax
+
+IP::tos
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.IP__tos.ashx
+
+</tooltip>
+<tooltip name="ip_ttl">
+Synonym for IP::ttl. Returns the TTL of the latest IP packet received.
+
+Syntax
+
+ip_ttl
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ip_ttl.ashx
+
+</tooltip>
+<tooltip name="IP::ttl">
+Returns the TTL of the latest IP packet received.
+
+Syntax
+
+IP::ttl
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.IP__ttl.ashx
+
+</tooltip>
+<tooltip name="IP::version">
+Returns the IP version of a connection. When called in a clientside event, this command returns the IP version for the clientside connection.  When called in a serverside event, this command returns the IP version for the serverside connection.
+
+Syntax
+
+IP::version
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.IP__version.ashx
+
+</tooltip>
+<tooltip name="ISESSION::deduplication">
+Allows selection of deduplication based on L7 content inspection
+
+Syntax
+
+ISESSION::deduplication enable|disable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ISESSION__deduplication.ashx
+
+</tooltip>
+<tooltip name="ISTATS::get">
+Reads in the value associated with the given iStats key
+
+Syntax
+
+ISTATS::get <key>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ISTATS__get.ashx
+
+</tooltip>
+<tooltip name="ISTATS::incr">
+Increments the specified key by the given iStats value.
+
+Syntax
+
+ISTATS::incr <key> <value>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ISTATS__incr.ashx
+
+</tooltip>
+<tooltip name="ISTATS::set">
+Set the given key's value within iStats
+
+Syntax
+
+ISTATS::set <key> <value>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ISTATS__set.ashx
+
+</tooltip>
+<tooltip name="lasthop">
+Sets the lasthop of a IP connection. The lasthop is the destination for packets coming back to the client. This is usually the router that sends the packets to the BIG-IP (if "auto lasthop" is set), or is determined by the IP routing table. This command lets you specify the lasthop to use for a particular connection.
+
+Syntax
+
+lasthop [<vlan>] <IP address>
+lasthop <vlan> <ethernet address>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.lasthop.ashx
+
+</tooltip>
+<tooltip name="LB::class">
+Provides the name of the traffic class that matched the connection
+
+Syntax
+
+LB::class
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LB__class.ashx
+
+</tooltip>
+<tooltip name="LB::command">
+This command...
+
+Syntax
+
+LB::command
+LB::command transparent_port
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LB__command.ashx
+
+</tooltip>
+<tooltip name="LB::detach">
+This command disconnects the server side connection
+
+Syntax
+
+LB::detach
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LB__detach.ashx
+
+</tooltip>
+<tooltip name="LB::down">
+Sets the status of the specified node or pool member as being down. If you specify no arguments, the status of the currently-selected node is modified.Note: Calling LB::down in an iRule triggers an immediate monitor probe regardless of the monitor interval settings.
+
+Syntax
+
+LB::down 
+LB::down node <address>
+LB::down pool <pool> member <address> <port>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LB__down.ashx
+
+</tooltip>
+<tooltip name="LB::mode">
+Sets the load balancing mode, overriding the mode set in the pool definition
+
+Syntax
+
+LB::mode [default | rr | roundrobin | leastconns |           fastest | predictive | observed | ratio |           dynratio | nodeleastconns | noderatio]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LB__mode.ashx
+
+</tooltip>
+<tooltip name="LB::persist">
+This command forces the system to make a persistence decision, and returns a string that can be evaluated to activate that selection, or with the use of the  parameter, returns a persistence key that may be used in conjunction with the persist command to manipulate the persistence table.This enables an iRule to evaluate the pending load balancing/persistence decision early, and use that information to manage the connection.
+
+Syntax
+
+LB::persist
+LB::persist key
+LB::persist cookie
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LB__persist.ashx
+
+</tooltip>
+<tooltip name="LB::queue">
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LB__queue.ashx
+
+</tooltip>
+<tooltip name="LB::reselect">
+This command is used to advance to the next available node in a pool, either using the load balancing settings of that pool, or by specifying a member explicitly. Note that the reselect may not happen immediately; it may wait until the current iRule event is completely finished executing.There is no reselect retry limit built into the command: You MUST implement a limiting mechanism in your iRule using logic similar to that in the examples below. For more information, refer to AskF5 SOL10386 - Using LB::reselect iRules command without a limiting mechanism may result in a SYN flood
+
+Syntax
+
+LB::reselect
+LB::reselect nexthop <IP address>
+LB::reselect node <node_ip_address> <node_port>
+LB::reselect pool <pool_name>
+LB::reselect pool <pool_name> member <member>
+LB::reselect rateclass <rateclass name>
+LB::reselect virtual <virtual server name>
+LB::reselect vlan <vlan name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LB__reselect.ashx
+
+</tooltip>
+<tooltip name="LB::select">
+This command forces the system to make a load balancing selection based on current conditions, and returns a string in the form of a pool command that can be eval'd to activate that selection.This enables an iRule to make LB decision early, and use that information to manage the connection.Two of the most common scenarios are:1. To compare the selection that would be made using the load balancing criteria to the actual server that should be picked, and force the alternative selection before the serverside flow is established with the "wrong" server. If you wait to evaluate the load balancing selection until after the serverside flow is established (in SERVER_CONNECTED or later), then use LB::detach / LB::reselect, client data that has already entered the abandoned serverside flow may be lost.2. To use information about the selected server to influence the characteristics of the serverside flow (ie. specific SNAT based on selected server, insertion of custom header based on selected server, etc. for other conditions or actions - see 2nd example below.)
+
+Syntax
+
+LB::select
+LB::select transparent_port
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LB__select.ashx
+
+</tooltip>
+<tooltip name="LB::server">
+This command allows you to query for information about the member selected after a load balancing decision has been made.If no server was selected (all servers down), this command with either no arguments or the "name" argument will return the pool name only - useful for determining the default pool applied to a virtual server.
+
+Syntax
+
+LB::server
+LB::server name
+LB::server pool
+LB::server addr
+LB::server port
+LB::server priority
+LB::server ratio
+LB::server route_domain
+LB::server weight
+LB::server ripeness
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LB__server.ashx
+
+</tooltip>
+<tooltip name="LB::snat">
+This command returns information on the SNAT configuration for the current connection.Possible output values are those which can be set by the snat and snatpool commands.
+
+Syntax
+
+LB::snat
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LB__snat.ashx
+
+</tooltip>
+<tooltip name="LB::status">
+Returns the status of a node address or pool member. Possible status values are up, down, session_enabled, and session_disabled. If you supply no arguments, returns the status of the currently-selected pool member.
+
+Syntax
+
+LB::status
+LB::status node <address>
+LB::status pool <pool name> member <IP address> <port>
+LB::status <up | down | session_enabled | session_disabled>
+LB::status  node <address> <up | down | session_enabled | session_disabled>
+LB::status  pool <pool name> member <address> <port> <up | down | session_enabled | session_disabled>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LB__status.ashx
+
+</tooltip>
+<tooltip name="LB::up">
+Sets the status of the specified node or pool member as being up. If you specify no arguments, the status of the currently-selected node is modified.
+
+Syntax
+
+LB::up 
+LB::up node <address>
+LB::up pool <pool> member <address> <port>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LB__up.ashx
+
+</tooltip>
+<tooltip name="LINK::lasthop">
+Returns the MAC address of the last hop.
+
+Syntax
+
+LINK::lasthop
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LINK__lasthop.ashx
+
+</tooltip>
+<tooltip name="LINK::nexthop">
+Returns the MAC address of the next hop.  Returns the broadcast address ff:ff:ff:ff:ff:ff when called before a serverside connection has been established.
+
+Syntax
+
+LINK::nexthop
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LINK__nexthop.ashx
+
+</tooltip>
+<tooltip name="link_qos">
+Returns the QoS level. The Quality of Service (QoS) standard is a means by which network equipment can identify and treat traffic differently based on an identifier. As traffic enters the site, the BIG-IP system can apply an iRule that sends the traffic to different pools of servers based on the QoS level within a packet.This is a BIG-IP version 4.X variable, provided for backward-compatibility. You can use the equivalent 9.X command LINK::qos instead.
+
+Syntax
+
+link_qos
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.link_qos.ashx
+
+</tooltip>
+<tooltip name="LINK::qos">
+Returns the QoS level set for the current packet. The Quality of Service (QoS) standard is a means by which network equipment can identify and treat traffic differently based on an identifier. This command can be used to direct traffic based on the QoS level within a packet.This command is equivalent to the BIG-IP 4.X variable link_qos.
+
+Syntax
+
+LINK::qos
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LINK__qos.ashx
+
+</tooltip>
+<tooltip name="LINK::vlan_id">
+Returns the VLAN tag of the packet. This command is equivalent to the BIG-IP 4.X variable vlan_id.
+
+Syntax
+
+LINK::vlan_id
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.LINK__vlan_id.ashx
+
+</tooltip>
+<tooltip name="listen">
+Sets up a related ephemeral listener to allow an incoming related connection to be established.  The source address and/or port of the related connection is unknown but the destination address and port are known.
+
+Syntax
+
+listen { proto <ip_protocol> timeout <seconds>bind <vlan> <addr> <port> server <addr> <port> allow <addr> [<port>]}
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.listen.ashx
+
+</tooltip>
+<tooltip name="local_addr">
+Selects a pool based on a client's local IP address. For example, you can load balance traffic based on part of the clientâ€™s IP address. This is a BIG-IP version 4.X variable, provided for backward-compatibility. You can use the equivalent 9.X command IP::local_addr instead.
+
+Syntax
+IP::
+local_addr
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.local_addr.ashx
+
+</tooltip>
+<tooltip name="log">
+Generates and logs the specified message to the Syslog-ng utility. This command works by performing variable expansion on the message as defined for the HTTP profile Header Insert setting.The log command can produce large amounts of output.  Use with care in production environments, especially where disk space is limited.The syslog facility is limited to logging 1024 bytes per request.  Longer strings will be truncated.The High Speed Logging feature offers the ability to send TCP or UDP syslog messages from an iRule with very low CPU or memory overhead.  Consider using HSL instead of the default log command for remote logging.
+
+Syntax
+
+log <message>
+log [-noname] <facility>.[<level>] <message>
+log [-noname] <remote_ip>[:<remote_port>] <facility>.[<level>] <message>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.log.ashx
+
+</tooltip>
+<tooltip name="matchclass">
+Performs comparisons against the contents of data group. Typically used for conditional logic control.Note: matchclass has been deprecated in v10 in favor of the new class commands.  The class command offers better functionality and performance than matchclass.Note that you should not use a $:: or :: prefix on the datagroup name when using the matchclass command (or in any datagroup reference on 9.4.4 or later).In v9.4.4 - 10, using $::datagroup_name will work but demote the virtual server from running on all TMMs. For details, see the CMP compatibility page.In v11, using $::datagroup_name will result in a TCL runtime error and reset being sent to the client!
+
+Syntax
+
+matchclass <data-group> <operator name> <value>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.matchclass.ashx
+
+</tooltip>
+<tooltip name="md5">
+Returns the RSA Data Security, Inc. MD5 Message Digest Algorithm (md5) message digest of the specified string, or if an error occurs, an empty string. Used to ensure data integrity.
+
+Syntax
+
+md5 <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.md5.ashx
+
+</tooltip>
+<tooltip name="members">
+This command behaves much like active_members, but counts or lists all members (IP+port combinations) in a pool, not just active ones.
+
+Syntax
+
+members [-list] <pool>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.members.ashx
+
+</tooltip>
+<tooltip name="NAME::lookup">
+Performs a DNS query, typically returning the A record for the indicated hostname, or the PTR record for the indicated IP address.Starting in v10.1, the RESOLV::lookup command has been introduced, which is the inline version of this command. With RESOLV::lookup, the iRule execution will suspend and the result will be simply returned, whereas NAME::lookup continues and eventually causes NAME_RESOLVED to fire, where the NAME::response command can be used to retrieve the lookup result.
+
+Syntax
+
+NAME::lookup <IP address>
+NAME::lookup <hostname>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.NAME__lookup.ashx
+
+</tooltip>
+<tooltip name="NAME::response">
+Returns a list of records received in response to a DNS query made with the NAME__lookup command.  If no records are returned, returns null.
+
+Syntax
+
+NAME::response [ address [<index>] | name ]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.NAME__response.ashx
+
+</tooltip>
+<tooltip name="nexthop">
+Sets the nexthop of an IP connection. The nexthop is the destination for packets going from the BIG-IP to the server. This is usually determined by the IP routing table. This command lets you specify the nexthop to use for a particular connection.
+
+Syntax
+
+nexthop [<vlan>] <IP address>
+nexthop <vlan> <ethernet address>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.nexthop.ashx
+
+</tooltip>
+<tooltip name="node">
+Causes the specified server node (IP address and port number) to be used directly, thus bypassing any load-balancing.
+
+Syntax
+
+node <addr> [<port>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.node.ashx
+
+</tooltip>
+<tooltip name="nodes">
+This command behaves like active_nodes but lists all nodes in a pool, not just nodes that are currently active.
+
+Syntax
+
+nodes <pool>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.nodes.ashx
+
+</tooltip>
+<tooltip name="NTLM::disable">
+Disables processing for NTLM
+
+Syntax
+
+NTLM::disable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.NTLM__disable.ashx
+
+</tooltip>
+<tooltip name="NTLM::enable">
+Enables processing for NTLM
+
+Syntax
+
+NTLM::enable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.NTLM__enable.ashx
+
+</tooltip>
+<tooltip name="ntohl">
+Convert the unsigned integer from network byte order to host byte order.
+
+Syntax
+
+ntohl <netlong>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ntohl.ashx
+
+</tooltip>
+<tooltip name="ntohs">
+Convert the unsigned short integer from network byte order to host byte order.
+
+Syntax
+
+ntohs <netshort>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ntohs.ashx
+
+</tooltip>
+<tooltip name="ONECONNECT::detach">
+Controls the behavior of a server-side connection when a OneConnect profile is on the virtual server.  The default behavior is that the server-side connection detaches after each response is completed, and a new load balancing decision and persistence look-up are performed for every request.Disabling detaching prevents this behavior.Note: the use of the terms "request" and "response" imply the presence of a supported layer 7 profile (e.g. the HTTP profile) on the virtual server.  An iRule can also detaching the server-side connection using the LB::detach command.Note that this command has no impact on whether or not the server-side connection will return to the idle connection pool when the client connection closes.  The  ONECONNECT::reuse command controls this behavior.
+
+Syntax
+
+ONECONNECT::detach [enable | disable]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ONECONNECT__detach.ashx
+
+</tooltip>
+<tooltip name="ONECONNECT::label">
+Associate OneConnect keying information with connection
+
+Syntax
+
+ONECONNECT::label update <key>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ONECONNECT__label.ashx
+
+</tooltip>
+<tooltip name="ONECONNECT::reuse">
+This command controls whether server-side connections are picked from the pool of idle connections, and whether idle server-side connections are returned to the pool or closed when a client connection detaches or closes.  It will also display the current status of connection reuse, if called without any options.For information on how to control the detaching behavior, see ONECONNECT::detach.The semantics of this command depend on the context in which it is being executed.  Refer to Considering Context Part 1 and Considering Context Part 2 for more information on contexts.
+
+Syntax
+
+ONECONNECT::reuse enable
+ONECONNECT::reuse disable
+ONECONNECT::reuse
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ONECONNECT__reuse.ashx
+
+</tooltip>
+<tooltip name="Operators">
+The valid TCL operators are listed below, grouped in decreasing order of precedence. Operand Description - + ~ ! Unary minus, unary plus, bit-wise NOT, logical NOT. None of these operators may be applied to string operands, and bit-wise NOT may be applied only to integers. * / %Multiply, divide, remainder. None of these operators may be applied to string operands, and remainder may be applied only to integers. The remainder will always have the same sign as the divisor and an absolute value smaller than the divisor. + -Add and subtract. Valid for any numeric operands. << >>Left and right shift. Valid for integer operands only. A right shift always propagates the sign bit. < > <= >=Boolean less, greater, less than or equal, and greater than or equal. Each operator produces 1 if the condition is true, 0 otherwise. These operators may be applied to strings as well as numeric operands, in which case string comparison is used. == !=Boolean equal and not equal. Each operator produces a zero/one result. Valid for all operand types. eq neBoolean string equal and string not equal. Each operator produces a zero/one result. The operand types are interpreted only as strings. &Bit-wise AND. Valid for integer operands only. ^Bit-wise exclusive OR. Valid for integer operands only.|Bit-wise OR. Valid for integer operands only. &&Logical AND. Produces a 1 result if both operands are non-zero, 0 otherwise. Valid for boolean and numeric (integers or floating-point) operands only. ||Logical OR. Produces a 0 result if both operands are zero, 1 otherwise. Valid for boolean and numeric (integers or floating-point) operands only. x?y:zIf-then-else, as in C. If x evaluates to non-zero, then the result is the value of y. Otherwise the result is the value of z. The x operand must have a boolean or numeric value.In addition to the TCL operators above, the following operators have been added for use within iRules:OperandDescription containsTests if one string contains another string ends_withTests if one string ends with another string equalsTests if one string equals another string matches_globImplement glob style matching within a comparison matches_regexTests if one string matches a regular expression starts_withTests if one string starts_with another string switchEvaluates one of several scripts, depending on a given value andPerforms a logical "and" comparison between two values notPerforms a logical "not" on a value orPerforms a logical "or" comparison between two values
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.Operators.ashx
+
+</tooltip>
+<tooltip name="peer">
+Causes the specified iRule commands to be evaluated under the peerâ€™s (opposite) context. This is a general form of the clientside and serverside commands.
+
+Syntax
+
+peer { <iRule commands> }
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.peer.ashx
+
+</tooltip>
+<tooltip name="persist">
+Causes the system to use the named persistence type to persist the connection. Also allows direct inspection and manipulation of the persistence table.
+
+Syntax
+
+persist simple [<mask>] [<timeout>]        
+persist source_addr [<mask>] [<timeout>]        
+persist sticky [<mask>] [<timeout>]        
+persist dest_addr [<mask>] [<timeout>]        
+persist ssl [<timeout>]        
+persist msrdp [<timeout>] 
+persist cookie [insert [<cookie_name>] [<expiration>] |                rewrite [<cookie_name>] [<expiration>] |                passive [<cookie_name>] |                hash <cookie_name> [ {<offset> [<length>]} [<timeout>]] ]
+persist uie <string> [<timeout>]        
+persist hash <string> [<timeout>]
+persist carp <string> [<timeout>]
+persist none  <timeout> = The timeout in seconds.
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.persist.ashx
+
+</tooltip>
+<tooltip name="pool">
+Causes the system to load balance traffic to the specified pool or pool member . In case only pool member is specified ,the system will load balance traffic to the specified pool member regardless of pool member monitor status.  Pool member status may be determined by the use of the LB::status command.   Server failure to respond may be caught in the LB_FAILED event.  Failure to select a server because none are available may be caught in the LB_FAILED event or prevented by using the active_members command to test the number of active servers in the pool before sending traffic.)Pool / member may be selected conditionally.  If multiple conditions match, the last match will determine the pool/member to which this traffic is load balanced.
+
+Syntax
+
+pool <
+pool_name>
+pool <
+pool_name> [member <addr> [<port>]]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.pool.ashx
+
+</tooltip>
+<tooltip name="priority">
+The priority command is used as an attribute associated with any iRule event.  When the iRules are loaded into the internal iRules engine for a given virtual server, they are stored in a table with the event name and a priority (with a default of 500).  Lower numbered priority events are evaluated before higher numbered priority events: When an event is triggered an event, the irules engine passes control to each of the code blocks for that given event in the order of lowest to highest priority.  Multiple events with the same priority will be executed in the order they are inserted into the table.The valid values for the priority are 0 to 1000 inclusive.You can assign a priority between 1 and 1000 in one of two ways: either with the priority command at the outermost scope of a rule, in which case the designated priority is used for all subsequent events; or as an additional argument to the when command, in which the priority is only used for that event.
+
+Syntax
+
+priority nnnwhen <event_name>when <event_name> 
+priority nnn
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.priority.ashx
+
+</tooltip>
+<tooltip name="PROFILE::auth">
+Returns the current value of the specified setting in the assigned authentication profile.
+
+Syntax
+
+PROFILE::auth <setting_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__auth.ashx
+
+</tooltip>
+<tooltip name="PROFILE::clientssl">
+Returns the current value of the specified setting in the assigned Client SSL profile.
+
+Syntax
+
+PROFILE::clientssl <profile_setting>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__clientssl.ashx
+
+</tooltip>
+<tooltip name="PROFILE::diameter">
+Returns the current value of the specified setting in an assigned DIAMETER profile.
+
+Syntax
+
+PROFILE::diameter <setting_value>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__diameter.ashx
+
+</tooltip>
+<tooltip name="PROFILE::exists">
+Determine if a profile is configured on a virtual server
+
+Syntax
+
+PROFILE::exists [auth | clientssl | fastL4 | ftp | http | httpclass | oneconnect | persist | serverssl | stream | tcp | udp | xml]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__exists.ashx
+
+</tooltip>
+<tooltip name="PROFILE::fasthttp">
+Returns the current value of the specified setting in the assigned Fast HTTP profile.
+
+Syntax
+
+PROFILE::fasthttp <setting_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__fasthttp.ashx
+
+</tooltip>
+<tooltip name="PROFILE::fast L4">
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__fast L4.ashx
+
+</tooltip>
+<tooltip name="PROFILE::ftp">
+Returns the current value of the specified setting in the assigned FTP profile.
+
+Syntax
+
+PROFILE::ftp <setting_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__ftp.ashx
+
+</tooltip>
+<tooltip name="PROFILE::http">
+Returns the current value of the specified setting in the assigned HTTP profile.
+
+Syntax
+
+PROFILE::http adaptive_parsing
+PROFILE::http attributes
+PROFILE::http basic_auth_realm
+PROFILE::http compress_allow_http_10
+PROFILE::http compress_browser_workarounds
+PROFILE::http compress_buffer_size
+PROFILE::http compress_content_type_excludes
+PROFILE::http compress_content_type_includes
+PROFILE::http compress_cpusaver
+PROFILE::http compress_cpusaver_high
+PROFILE::http compress_cpusaver_low
+PROFILE::http compress_gzip_level
+PROFILE::http compress_gzip_memlevel
+PROFILE::http compress_gzip_windowsize
+PROFILE::http compress_keep_accept_encoding
+PROFILE::http compress_min_size
+PROFILE::http compress_mode
+PROFILE::http compress_preferred_method
+PROFILE::http compress_uri_excludes
+PROFILE::http compress_uri_includes
+PROFILE::http compress_vary_header
+PROFILE::http config_source
+PROFILE::http default_name
+PROFILE::http dirty_cnt
+PROFILE::http fallback_host
+PROFILE::http header_erase
+PROFILE::http header_insert
+PROFILE::http insert_xforwarded_for
+PROFILE::http lws_max_column
+PROFILE::http lws_separator
+PROFILE::http mark
+PROFILE::http max_header_size
+PROFILE::http max_requests
+PROFILE::http name
+PROFILE::http object_id
+PROFILE::http one_connect
+PROFILE::http pipelining
+PROFILE::http ramcache
+PROFILE::http ramcache_aging_rate
+PROFILE::http ramcache_content_type_excludes
+PROFILE::http ramcache_ignore_client_cache_control
+PROFILE::http ramcache_insert_age_header
+PROFILE::http ramcache_max_age
+PROFILE::http ramcache_max_entries
+PROFILE::http ramcache_object_max_size
+PROFILE::http ramcache_object_min_size
+PROFILE::http ramcache_size
+PROFILE::http ramcache_uri_excludes
+PROFILE::http ramcache_uri_includes
+PROFILE::http ramcache_uri_pinned
+PROFILE::http redirect_rewrite
+PROFILE::http response_chunking
+PROFILE::http update_handler
+PROFILE::http user_spec
+PROFILE::http validate_checkpoint
+PROFILE::http validate_commit
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__http.ashx
+
+</tooltip>
+<tooltip name="PROFILE::httpclass">
+Returns the current value of the specified setting in the assigned HTTP Class profile.
+
+Syntax
+
+PROFILE::httpclass <setting_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__httpclass.ashx
+
+</tooltip>
+<tooltip name="PROFILE::oneconnect">
+Returns the current value of the specified setting in the assigned Oneconnect profile.
+
+Syntax
+
+PROFILE::oneconnect <setting_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__oneconnect.ashx
+
+</tooltip>
+<tooltip name="PROFILE::persist">
+Returns the current value of the specified setting in the assigned persistence profile.
+
+Syntax
+
+PROFILE::persist <setting_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__persist.ashx
+
+</tooltip>
+<tooltip name="PROFILE::serverssl">
+Returns the current value of the specified setting in the assigned Server SSL profile.
+
+Syntax
+
+PROFILE::serverssl <setting_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__serverssl.ashx
+
+</tooltip>
+<tooltip name="PROFILE::stream">
+Returns the current value of the specified setting in the assigned Stream profile.
+
+Syntax
+
+PROFILE::stream <setting_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__stream.ashx
+
+</tooltip>
+<tooltip name="PROFILE::tcp">
+Returns the current value of the specified setting in an assigned TCP profile.
+
+Syntax
+
+PROFILE::tcp <setting_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__tcp.ashx
+
+</tooltip>
+<tooltip name="PROFILE::udp">
+Returns the current value of the specified setting in an assigned UDP profile.
+
+Syntax
+
+PROFILE::udp <setting_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__udp.ashx
+
+</tooltip>
+<tooltip name="PROFILE::xml">
+Returns the current value of the specified setting in an assigned XML profile.
+
+Syntax
+
+PROFILE::xml <setting_value>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.PROFILE__xml.ashx
+
+</tooltip>
+<tooltip name="RADIUS::avp">
+This command returns or adds/changes/removes RADIUS attribute-value pairs.  Radius profile must be applied for access to this command.
+
+Syntax
+
+RADIUS::avp attr [ attr_type]
+RADIUS::avp delete attr
+RADIUS::avp insert attr value [ attr_type ]
+RADIUS::avp replace attr value [ attr_type ]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RADIUS__avp.ashx
+
+</tooltip>
+<tooltip name="RADIUS::code">
+This command returns the RADIUS message code
+
+Syntax
+
+RADIUS::code
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RADIUS__code.ashx
+
+</tooltip>
+<tooltip name="RADIUS::id">
+This command returns the RADIUS message id
+
+Syntax
+
+RADIUS::id
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RADIUS__id.ashx
+
+</tooltip>
+<tooltip name="rateclass">
+Causes the system to select the specified rate class to use when transmitting packets.
+
+Syntax
+
+rateclass <
+rateclass_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.rateclass.ashx
+
+</tooltip>
+<tooltip name="recv">
+This command receives data from an established sideband connection.  It is one of several commands that make up the ability to create sideband connections from iRules.
+
+Syntax
+
+recv [-eol] [-peek] [-timeout <ms>] [-status <varname>] [numChars] <connection> [varname]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.recv.ashx
+
+</tooltip>
+<tooltip name="redirect">
+Redirects an HTTP request to a specific location. The location can be either a host name or a URI. This is a BIG-IP 4.X statement, provided for backward compatibility. You can use the equivalent 9.X command HTTP::redirect instead.
+
+Syntax
+
+redirect [<host_name> | <URI>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.redirect.ashx
+
+</tooltip>
+<tooltip name="reject">
+Causes the connection to be rejected, returning a reset as appropriate for the protocol.  Subsequent code in the current event is still executed prior to the reset being sent.
+
+Syntax
+
+reject
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.reject.ashx
+
+</tooltip>
+<tooltip name="relate_client">
+Sets up a related established connection.  This can be used with protocols that parse information out of a control connection and then establish a data connection based on information that was exchanged in the control connection.
+
+Syntax
+
+relate_client { proto <ip_proto> clientflow <vlan> <local_addr> <local_port> <rmt_addr> <rmt_port> serverflow <vlan> <local_addr> <local_port> <rmt_addr> <rmt_port> }
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.relate_client.ashx
+
+</tooltip>
+<tooltip name="relate_server">
+Sets up a related established connection.  This can be used with protocols that parse information out of a control connection and then establish a data connection based on information that was exchanged in the control connection.
+
+Syntax
+
+relate_server { proto <ip_proto> clientflow <vlan><local_addr> <local_port> <rmt_addr> <rmt_port> serverflow <vlan> <local_addr> <local_port> <rmt_addr> <rmt_port> }
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.relate_server.ashx
+
+</tooltip>
+<tooltip name="remote_addr">
+Selects a pool based on part of the clientâ€™s IP address. This is a BIG-IP version 4.X variable, provided for backward compatibility. You can use the equivalent 9.X command IP::remote_addr instead.
+
+Syntax
+
+remote_addr
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.remote_addr.ashx
+
+</tooltip>
+<tooltip name="RESOLV::lookup">
+RESOLV::lookup performs a DNS query, returning the A record for the indicated hostname, or the PTR record for the indicated IP address.  The functional difference between this command and the older NAME::lookup command is that RESOLV::lookup suspends and returns the result inline, whereas NAME::lookup continues and eventually triggers the NAME_RESOLVED event to fire.  You then need to call NAME::response to retrieve the result.  RESOLV::lookup should be faster than the older NAME::lookup method.RESOLV::lookup allows you to specify a single DNS server IP address or the name of a virtual server which load balances DNS queries. This can be used to implement other external DNS based lookup services like large real time block lists.By default, TMM will make up to 4 consecutive query attempts (1 original with 3 retries) with an individual query timeout of 5 seconds.  These parameters are globally configurable using these database keys:b db tmm.resolv.retryb db tmm.resolv.timeoutOr via tmsh:tmsh modify /sys db tmm.resolv.retry value < value >tmsh modify /sys db tmm.resolv.timeout value < value >
+
+Syntax
+b db tmm.resolv.retryb db tmm.resolv.timeoutOr via tmsh:tmsh modify /sys db tmm.resolv.retry value < value >tmsh modify /sys db tmm.resolv.timeout value < value >
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RESOLV__lookup.ashx
+
+</tooltip>
+<tooltip name="return">
+Causes immediate exit from the currently executing event in the currently executing iRule.  iRule processing is not aborted, and subsequent events will be triggered and evaluated.  Note that return does not:cause an exit from the iRule altogether;prevent the same event from firing in another iRule; orprevent the same event with a higher priority value from firing in the same iRule.To prevent further processing of an event in the current rule or other rules for the current TCP connection, you can use 'event EVENT_NAME disable'.
+
+Syntax
+
+return
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.return.ashx
+
+</tooltip>
+<tooltip name="REWRITE::disable">
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.REWRITE__disable.ashx
+
+</tooltip>
+<tooltip name="REWRITE::enable">
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.REWRITE__enable.ashx
+
+</tooltip>
+<tooltip name="REWRITE::payload">
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.REWRITE__payload.ashx
+
+</tooltip>
+<tooltip name="REWRITE::post_process">
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.REWRITE__post_process.ashx
+
+</tooltip>
+<tooltip name="rmd160">
+Returns the RIPEMD-160 (RACE Integrity Primitives Evaluation Message Digest) message digest of the specified string, or an empty string if an error occurs.  Used to ensure data integrity.
+
+Syntax
+
+rmd160 <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.rmd160.ashx
+
+</tooltip>
+<tooltip name="ROUTE::age">
+The amount of time that has elapsed since the last update to the  ROUTE::rtt,  ROUTE::rttvar and  ROUTE::bandwidth statistics for the matched route metric entry. ROUTE::age has a value of 0 when there are no statistics available.
+
+Syntax
+
+ROUTE::age <destination IP address>
+ROUTE::age <destination IP address> <gateway IP address>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ROUTE__age.ashx
+
+</tooltip>
+<tooltip name="ROUTE::bandwidth">
+The average of the bandwidth estimates for all TCP connections routed to the given destination.  NOTE: Collection for this statistic is not yet implemented; hence it always has a value of 0.
+
+Syntax
+
+ROUTE::bandwidth <destination IP address>
+ROUTE::bandwidth <destination IP address> <gateway IP address>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ROUTE__bandwidth.ashx
+
+</tooltip>
+<tooltip name="ROUTE::domain">
+Returns the current routing domain of the current connection.  everal commands allow an addition rt_domain option: node, snat, LB::status
+
+Syntax
+
+ROUTE::domain
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ROUTE__domain.ashx
+
+</tooltip>
+<tooltip name="ROUTE::rtt">
+The average of scaled smoothed round-trip time estimates for all TCP connections routed to the given destination.  ROUTE::rtt returns a value of 0 when there are no statistics available.NOTE: The returned value is scaled; to express it in terms of  TCP::rtt multiply it by 32/10000.NOTE: When used with the fastL4 profile, RTT from client/server needs to be enabled and the client and server need to be using TCP timestamps.
+
+Syntax
+
+ROUTE::rtt <destination IP address>
+ROUTE::rtt <destination IP address> <gateway IP address>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ROUTE__rtt.ashx
+
+</tooltip>
+<tooltip name="ROUTE::rttvar">
+The scaled average variance of the smoothed round-trip time estimates for all TCP connections routed to the given destination. ROUTE::rttvar has a value of 0 when there are no statistics available.Note: the value is in 1/32's of a millisecond. (Divide the returned value by 32 to get the actual round trip time in milliseconds.)Note: When used with the fastL4 profile, rtt from client/server needs to be enabled and the client and server need to be using TCP timestamps.
+
+Syntax
+
+ROUTE::rttvar <destination IP address>
+ROUTE::rttvar <destination IP address> <gateway IP address>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.ROUTE__rttvar.ashx
+
+</tooltip>
+<tooltip name="RTSP::collect">
+Collects the amount of data that you specify.
+
+Syntax
+
+RTSP::collect [collect_len]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RTSP__collect.ashx
+
+</tooltip>
+<tooltip name="RTSP::header">
+Manages headers in RTSP requests and responses.
+
+Syntax
+
+RTSP::header exists <header_name>
+RTSP::header insert <header_name> <header_value>
+RTSP::header remove <header_name>
+RTSP::header replace <header_name> <value> <header_name> <value>
+RTSP::header value <header_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RTSP__header.ashx
+
+</tooltip>
+<tooltip name="RTSP::method">
+Returns the method/command (for example, DESCRIBE, PLAY) from the current RTSP request.
+
+Syntax
+
+RTSP::method
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RTSP__method.ashx
+
+</tooltip>
+<tooltip name="RTSP::msg_source">
+Indicates whether the request or response originated from the client or the server. This command returns the string client or server.
+
+Syntax
+
+RTSP::msg_source
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RTSP__msg_source.ashx
+
+</tooltip>
+<tooltip name="RTSP::payload">
+Queries for or replaces content information. With this command, you can retrieve content, query for content size, or replace a certain amount of content.
+
+Syntax
+
+RTSP::payload [<size>]        
+RTSP::payload length        
+RTSP::payload replace <offset> <length> <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RTSP__payload.ashx
+
+</tooltip>
+<tooltip name="RTSP::release">
+Releases the collected data. Unless a subsequent RTSP::collect command was issued, there is no need to use the RTSP::release command inside of the RTSP_REQUEST_DATA and RTSP_RESPONSE_DATA events, since in these cases, the data is implicitly released.
+
+Syntax
+
+RTSP::release
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RTSP__release.ashx
+
+</tooltip>
+<tooltip name="RTSP::respond">
+Sends an RTSP response to the client. The return value of the RTSP::msg_source command must be client. When an iRule responds to an RTSP request, the RTSP filter performs no further processing on the request and will not send the RTSP request to the server.A maximum of one response is allowed per RTSP request.
+
+Syntax
+
+RTSP::respond <status code> <status string> [<headers/body>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RTSP__respond.ashx
+
+</tooltip>
+<tooltip name="RTSP::status">
+Returns the HTTP style status code (for example, 200 or 401) from the current RTSP response.
+
+Syntax
+
+RTSP::status
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RTSP__status.ashx
+
+</tooltip>
+<tooltip name="RTSP::uri">
+Returns the complete URI of the RTSP request.
+
+Syntax
+
+RTSP::uri
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RTSP__uri.ashx
+
+</tooltip>
+<tooltip name="RTSP::version ">
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.RTSP__version .ashx
+
+</tooltip>
+<tooltip name="SCTP::client_port">
+Returns the SCTP port/service number of the specified client. This command is equivalent to the command clientside { SCTP::remote_port }.
+
+Syntax
+
+SCTP::client_port
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SCTP__client_port.ashx
+
+</tooltip>
+<tooltip name="SCTP::collect">
+Causes SCTP to start collecting the specified amount of content data. After collecting the data, event CLIENT_DATA will be triggered.
+
+Syntax
+
+SCTP::collect [<length>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SCTP__collect.ashx
+
+</tooltip>
+<tooltip name="SCTP::local_port">
+Returns the local SCTP port/service number.
+
+Syntax
+
+SCTP::local_port
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SCTP__local_port.ashx
+
+</tooltip>
+<tooltip name="SCTP::mss">
+Returns the on-wire Maximum Segment Size (MSS)  for an SCTP connection.
+
+Syntax
+
+SCTP::mss
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SCTP__mss.ashx
+
+</tooltip>
+<tooltip name="SCTP::payload">
+Returns the accumulated SCTP data content, or replaces collected payload with the specified data.
+
+Syntax
+
+SCTP::payload [<size>]
+SCTP::payload replace <offset> <length> <data>
+SCTP::payload length
+SCTP::payload ppi
+SCTP::payload sid
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SCTP__payload.ashx
+
+</tooltip>
+<tooltip name="SCTP::ppi">
+Returns or sets the SCTP payload protocol indicator.
+
+Syntax
+
+SCTP::ppi
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SCTP__ppi.ashx
+
+</tooltip>
+<tooltip name="SCTP::release">
+Causes SCTP to resume processing the connection and flush collected data.
+
+Syntax
+
+SCTP::release
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SCTP__release.ashx
+
+</tooltip>
+<tooltip name="SCTP::remote_port">
+Returns the remote SCTP port/service number.
+
+Syntax
+
+SCTP::remote_port
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SCTP__remote_port.ashx
+
+</tooltip>
+<tooltip name="SCTP::respond">
+Sends the specified data directly to the peer. This command is used to complete a protocol handshake with an iRule.
+
+Syntax
+
+SCTP::respond <data>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SCTP__respond.ashx
+
+</tooltip>
+<tooltip name="SCTP::server_port">
+Returns the SCTP port/service number of the specified server. This command is equivalent to the command serverside { SCTP::remote_port }.
+
+Syntax
+
+SCTP::server_port
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SCTP__server_port.ashx
+
+</tooltip>
+<tooltip name="SDP::field">
+This command will return the value of a specific SDP field
+
+Syntax
+
+SDP::field field-name <index>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SDP__field.ashx
+
+</tooltip>
+<tooltip name="SDP::media">
+This command allows you to get or set different aspects of the media information for your SDP connection.
+
+Syntax
+
+SDP::media attr <media-index> <attr-index>
+SDP::media count
+SDP::media <media-index>
+SDP::media type <media-index>
+SDP::media port <media-index>
+SDP::media port <media-index> â€œnew value"
+SDP::media transport <media-index>
+SDP::media conn <media-index>
+SDP::media conn <media-index> â€œnew valueâ€?
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SDP__media.ashx
+
+</tooltip>
+<tooltip name="SDP::session_id">
+This command allows you to get SDP session id for the current connection
+
+Syntax
+
+SDP::session_id
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SDP__session_id.ashx
+
+</tooltip>
+<tooltip name="send">
+This command sends data on an existing sideband connection.  It is one of several commands that make up the ability to create sideband connections from iRules.
+
+Syntax
+
+send [-status <varname>] [-timeout <ms>] <connection> <data>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.send.ashx
+
+</tooltip>
+<tooltip name="server_addr">
+Returns the IP address of the server. This is a BIG-IP version 4.X variable, provided for backward compatibility. You can use the equivalent 9.X command IP::server_addr instead.
+
+Syntax
+
+server_addr
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.server_addr.ashx
+
+</tooltip>
+<tooltip name="server_port">
+Returns the TCP port/service number of the specified server. This is a BIG-IP version 4.X variable, provided for backward compatibility. You can use the equivalent 9.X command TCP::server_port instead.
+
+Syntax
+
+server_port
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.server_port.ashx
+
+</tooltip>
+<tooltip name="serverside">
+Causes the specified iRule command or commands to be evaluated under the server-side context. This command has no effect if the iRule is already being evaluated under the server-side context.
+
+Syntax
+
+serverside
+serverside { <iRule command> }
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.serverside.ashx
+
+</tooltip>
+<tooltip name="session">
+Utilizes the persistence table to store arbitrary information based on the same keys as persistence. This information does not affect the persistence itself.
+
+Syntax
+
+session add <mode> <key> <data> [<timeout>]
+session lookup <mode> <key>
+session delete <mode> <key>   <mode> = simple | source_addr | sticky | dest_addr | ssl | uie | hash | sip         <key> = <mode specific value> | { <value> [any virtual | service | pool] [pool <name>] }             the latter key specification is used to delete persistence entries regardless of virtual, service, or pool association.  <timeout> = The timeout in seconds. Defaults to 180 seconds.  If the 
+session key is touched (updated or looked up), the timeout counter starts over again.
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.session.ashx
+
+</tooltip>
+<tooltip name="sha1">
+Returns the Secure Hash Algorithm version 1.0 (SHA1) message digest of the specified string, or if an error occurs, an empty string. Used to ensure data integrity.
+
+Syntax
+
+sha1 <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.sha1.ashx
+
+</tooltip>
+<tooltip name="sha256">
+Returns the Secure Hash Algorithm (SHA2) 256-bit message digest of the specified string.  If an error occurs, an empty string is returned. Used to ensure data integrity.
+
+Syntax
+
+sha256 <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.sha256.ashx
+
+</tooltip>
+<tooltip name="sha384">
+Returns the Secure Hash Algorithm (SHA2) 384-bit message digest of the specified string.  If an error occurs, an empty string is returned. Used to ensure data integrity.
+
+Syntax
+
+sha384 <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.sha384.ashx
+
+</tooltip>
+<tooltip name="sha512">
+Returns the Secure Hash Algorithm (SHA2) 512-bit message digest of the specified string.  If an error occurs, an empty string is returned. Used to ensure data integrity.
+
+Syntax
+
+sha512 <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.sha512.ashx
+
+</tooltip>
+<tooltip name="sharedvar">
+Allows a variable to be accessed in both sides of a VIP-targetting-VIP
+
+Syntax
+
+sharedvar <variable name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.sharedvar.ashx
+
+</tooltip>
+<tooltip name="SIP::call_id">
+Returns the value of the Call-ID header in a SIP request.  Only the first 256 bytes of the Call-ID will be returned.
+
+Syntax
+
+SIP::call_id
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SIP__call_id.ashx
+
+</tooltip>
+<tooltip name="SIP::discard">
+Discard a SIP message
+
+Syntax
+
+SIP::discard
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SIP__discard.ashx
+
+</tooltip>
+<tooltip name="SIP::from">
+Returns the value of the From header in a SIP request.
+
+Syntax
+
+SIP::from
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SIP__from.ashx
+
+</tooltip>
+<tooltip name="SIP::header">
+This set of commands allows you to get or set information in the SIP header.
+
+Syntax
+
+SIP::header "header-name" <index>
+SIP::header value "header-name" <index>
+SIP::header remove "header-name" <index>
+SIP::header insert "header-name" "header-value" <index>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SIP__header.ashx
+
+</tooltip>
+<tooltip name="SIP::method">
+Returns the type of SIP request method.
+
+Syntax
+
+SIP::method
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SIP__method.ashx
+
+</tooltip>
+<tooltip name="SIP::payload">
+Returns the accumulated SIP data content.
+
+Syntax
+
+SIP::payload
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SIP__payload.ashx
+
+</tooltip>
+<tooltip name="SIP::respond">
+This command allows you to terminate a SIP request and send a custom formatted response directly from the iRule.
+
+Syntax
+
+SIP::respond code <â€œphraseâ€? <â€œheader-nameâ€? â€œheader-valueâ€?> >
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SIP__respond.ashx
+
+</tooltip>
+<tooltip name="SIP::response">
+These commands allow you to get or rewrite the SIP response code or phrase.
+
+Syntax
+
+SIP::response code
+SIP::response phrase
+SIP::response rewrite code <phrase>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SIP__response.ashx
+
+</tooltip>
+<tooltip name="SIP::to">
+Returns the value of the To header in a SIP request.
+
+Syntax
+
+SIP::to
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SIP__to.ashx
+
+</tooltip>
+<tooltip name="SIP::uri">
+Returns or sets the complete URI of the request.
+
+Syntax
+
+SIP::uri
+SIP::uri <string>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SIP__uri.ashx
+
+</tooltip>
+<tooltip name="SIP::via">
+This set of commands allows you to get information in the SIP via header.
+
+Syntax
+
+SIP::via <index>
+SIP::via proto <index>
+SIP::via sent_by <index>
+SIP::via received <index>
+SIP::via branch <index>
+SIP::via maddr <index>
+SIP::via ttl <index>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SIP__via.ashx
+
+</tooltip>
+<tooltip name="snat">
+Causes the system to assign the specified source address to the serverside connection(s).  The assignment is valid for the duration of the clientside connection or until 'snat none' is called.  The iRule SNAT command overrides the SNAT configuration of the virtual server or a SNAT pool.  It does not override the 'Allow SNAT' setting of a pool.
+
+Syntax
+
+snat <addr> [<port>] | none | automap
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.snat.ashx
+
+</tooltip>
+<tooltip name="snatpool">
+Causes the pool of addresses identified by <snatpool_name> to be used as translation addresses to create a SNAT.
+
+Syntax
+
+snatpool <
+snatpool_name> [member <IP address>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.snatpool.ashx
+
+</tooltip>
+<tooltip name="SSL::authenticate">
+Overrides the current setting for authentication frequency or for the maximum depth of certificate chain traversal.
+
+Syntax
+
+SSL::authenticate <"once" | "always">
+SSL::authenticate depth <number>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__authenticate.ashx
+
+</tooltip>
+<tooltip name="SSL::cert">
+Returns data about an X509 SSL certificate, or sets the certificate mode.
+
+Syntax
+
+SSL::cert <index>
+SSL::cert issuer <index>
+SSL::cert count
+SSL::cert mode <"request" | "require" | "ignore">
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__cert.ashx
+
+</tooltip>
+<tooltip name="SSL::cipher">
+Returns an SSL cipher name, its version, and the number of secret bits used.
+
+Syntax
+
+SSL::cipher name
+SSL::cipher version
+SSL::cipher bits
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__cipher.ashx
+
+</tooltip>
+<tooltip name="SSL::collect">
+Starts the collection of plaintext data either indefinitely or for the specified amount of data.  On successful collection, the corresponding data event is triggered.  For clientside collection, the CLIENTSSL_DATA event is triggered.  For serverside collection, the SERVERSSL_DATA event is triggered.
+
+Syntax
+
+SSL::collect [<length>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__collect.ashx
+
+</tooltip>
+<tooltip name="SSL::disable">
+Disables SSL processing. This command is useful when using a virtual server that services both SSL and non-SSL traffic, or when you want to selectively re-encrypt traffic to pool members.Note: Disabling SSL on the serverside only applies before serverside connection has been established (SERVER_CONNECTED) or when the clientside of the connection is in a detached state (e.g., oneconnect, LB::detach).
+
+Syntax
+
+SSL::disable [clientside | serverside]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__disable.ashx
+
+</tooltip>
+<tooltip name="SSL::enable">
+Re-enables SSL processing.Note that the proper use of this command is highly protocol dependent and not recommended in the majority of cases. To selectively enable SSL processing, you should instead  use an ssl profile and then use  SSL::disable to selectively disable SSL processing.
+
+Syntax
+
+SSL::enable [clientside | serverside]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__enable.ashx
+
+</tooltip>
+<tooltip name="SSL::extensions">
+Returns or manipulates SSL extensions.
+
+Syntax
+
+SSL::extensions
+SSL::extensions count
+SSL::extensions -index <extension number>
+SSL::extensions -type <extension type value>
+SSL::extensions exists -type <extension type value>
+SSL::extensions insert <opaque extensions>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__extensions.ashx
+
+</tooltip>
+<tooltip name="SSL::handshake">
+Halts or resumes SSL activity. This is useful for suspending SSL activity while authentication is in progress.
+
+Syntax
+
+SSL::handshake hold
+SSL::handshake resume
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__handshake.ashx
+
+</tooltip>
+<tooltip name="SSL::is_renegotiation_secure">
+Returns the current state of SSL Secure Renegotiation.
+
+Syntax
+
+SSL::is_renegotiation_secure
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__is_renegotiation_secure.ashx
+
+</tooltip>
+<tooltip name="SSL::mode">
+Gets the enabled/disabled state of SSL
+
+Syntax
+
+SSL::mode
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__mode.ashx
+
+</tooltip>
+<tooltip name="SSL::modssl_sessionid_headers">
+Returns a list of fields that the system will add to the HTTP headers, in order to emulate modssl behavior. The return type is a Tcl list; this list will be interpreted as a header-name/header-value pair by  HTTP::header, for example.
+
+Syntax
+
+SSL::modssl_sessionid_headers [initial | current]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__modssl_sessionid_headers.ashx
+
+</tooltip>
+<tooltip name="SSL::payload">
+The SSL::payload commands allow you to return and manipulate the data collected via the  SSL::collect command. This data is in plaintext format.
+
+Syntax
+
+SSL::payload length
+SSL::payload [[<offset>] <length>]
+SSL::payload replace <offset> <length> <data>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__payload.ashx
+
+</tooltip>
+<tooltip name="SSL::profile">
+This command allows you to switch between SSL profiles, both client and server. Note: This should be done before the SSL negotiation occurs, or your rule will require the use of the SSL::renegotiate command. In order to switch SSL profiles, a profile must be assigned to the virtual to begin with; switching the clientssl profile requires an existing clientssl profile, and similarly for serverssl profiles. You can also use  SSL::disable to use SSL selectively.
+
+Syntax
+
+SSL::profile <profile_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__profile.ashx
+
+</tooltip>
+<tooltip name="SSL::release">
+Releases the collected plaintext data to the next layer/filter up.
+
+Syntax
+
+SSL::release [<length>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__release.ashx
+
+</tooltip>
+<tooltip name="SSL::renegotiate">
+Controls renegotiation of an SSL connection, often used to enforce new encryption settings or certificate requirements.This command has different results depending on whether the BIG-IP system evaluates the command under a client-side or a server-side context. The command only succeeds if SSL is enabled on the connection; otherwise, the command returns an error.
+
+Syntax
+
+SSL::renegotiate
+SSL::renegotiate [enable | disable]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__renegotiate.ashx
+
+</tooltip>
+<tooltip name="SSL::respond">
+Returns the specified plaintext data back to the origin over the encrypted SSL connection.
+
+Syntax
+
+SSL::respond <data>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__respond.ashx
+
+</tooltip>
+<tooltip name="SSL::secure_renegotiation">
+Controls the SSL Secure Renegotiation mode.
+
+Syntax
+
+SSL::secure_renegotiation [request|require|require-strict]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__secure_renegotiation.ashx
+
+</tooltip>
+<tooltip name="SSL::session">
+Invalidates the current session. Specifically, this commands drops the current SSL session ID from the session cache to prevent reuse of the session.
+
+Syntax
+
+SSL::session invalidate
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__session.ashx
+
+</tooltip>
+<tooltip name="SSL::sessionid">
+Gets the SSL session ID.
+
+Syntax
+
+SSL::sessionid
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__sessionid.ashx
+
+</tooltip>
+<tooltip name="SSL::unclean_shutdown">
+Sets the value of the Unclean Shutdown setting. This command only affects the current connection, and only affects the current context (e.g., when run in a client-side context, it only affects the current client-side connection).
+
+Syntax
+
+SSL::unclean_shutdown <â€œenableâ€? | â€œdisableâ€?>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__unclean_shutdown.ashx
+
+</tooltip>
+<tooltip name="SSL::verify_result">
+Gets or sets the result code for peer certificate verification. Result codes use the same values as those of OpenSSL's X509 verify_result (X509_V_ERR_*) definitions.
+
+Syntax
+
+SSL::verify_result [<result_code>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.SSL__verify_result.ashx
+
+</tooltip>
+<tooltip name="STATS::get">
+Retrieves the value of the specified field of the specified Statistics profile.
+
+Syntax
+
+STATS::get <profile> <field>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.STATS__get.ashx
+
+</tooltip>
+<tooltip name="STATS::incr">
+Increments the value of the specified setting (field), in the specified Statistics profile, by the specified value. If you do not specify a value, the system increments by 1.  It is possible to set a negative value in order to decrement the counter.  Returns the current value of the field which was incremented.
+
+Syntax
+
+STATS::incr <profile> <field> [<value>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.STATS__incr.ashx
+
+</tooltip>
+<tooltip name="STATS::set">
+Sets the value of the specified setting (field), in the specified Statistics profile, to the specified value. If you do not specify a value, the BIG-IP system sets the value to 0.
+
+Syntax
+
+STATS::set <profile> <field> [<value>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.STATS__set.ashx
+
+</tooltip>
+<tooltip name="STATS::setmax">
+Ensures that the value of the specified Statistics profile setting (field) is at the least value.
+
+Syntax
+
+STATS::setmax <profile> <field> [<value>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.STATS__setmax.ashx
+
+</tooltip>
+<tooltip name="STATS::setmin">
+Ensures that the value of the specified Statistics profile setting (field) is at the most value.
+
+Syntax
+
+STATS::setmin <profile> <field> [<value>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.STATS__setmin.ashx
+
+</tooltip>
+<tooltip name="STREAM::disable">
+Disables the stream filter for this connection.
+
+Syntax
+
+STREAM::disable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.STREAM__disable.ashx
+
+</tooltip>
+<tooltip name="STREAM::enable">
+Enables the stream filter for the life of the current TCP connection or until disabled with STREAM::disable.
+
+Syntax
+
+STREAM::enable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.STREAM__enable.ashx
+
+</tooltip>
+<tooltip name="STREAM::encoding">
+Specifies non-default content encoding. The default value is ascii.
+
+Syntax
+
+STREAM::encoding <ascii | utf-8>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.STREAM__encoding.ashx
+
+</tooltip>
+<tooltip name="STREAM::expression">
+Replaces the stream expression in the Stream profile with the specified value. The syntax is identical to the profile syntax. Note that this change affects this connection only and is sticky for the duration of the connection.
+
+Syntax
+
+STREAM::expression <expression>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.STREAM__expression.ashx
+
+</tooltip>
+<tooltip name="STREAM::match">
+Returns the matching characters.
+
+Syntax
+
+STREAM::match
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.STREAM__match.ashx
+
+</tooltip>
+<tooltip name="STREAM::max_matchsize">
+Sets the maximum size, in bytes, that the system can buffer during partial matches. The default value is 4096.The STREAM profile will buffer data for partial matches; if more than max_matchsize would be buffered, the connection will be torn down. This way a regex like foobarbaz+ won't keep matching until the box runs out of memory. The default is 4K, and  STREAM::max_matchsize can be use to set it to something else.
+
+Syntax
+
+STREAM::max_matchsize <size>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.STREAM__max_matchsize.ashx
+
+</tooltip>
+<tooltip name="STREAM::replace">
+Changes the specified target replacement string in the Stream profile. This command is not sticky and is applied only once during the current match. If the target expression is missing, the replacement is skipped.
+
+Syntax
+
+STREAM::replace [<target>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.STREAM__replace.ashx
+
+</tooltip>
+<tooltip name="substr">
+A custom iRule function which returns a substring named <string>, based on the values of the <skip_count> and <terminator> arguments. Note the following:The <skip_count> and <terminator> arguments are used in the same way as they are for the findstr command.The <skip_count> argument is the index into <string> of the first character to be returned, where 0 indicates the first character of <string>.The <terminator> argument can be either the subtring length or the substring terminating string.If <terminator> is an integer, the returned string will include that many characters, or up to the end of the string, whichever is shorter.If <terminator> is a string, the returned string will include characters up to but not including the first occurence of the string.If <terminator> is a string which does not occur in the search space, from <skip_count> to the end of <string> is returned.This command is equivalent to the Tcl string range command except that the value of the <terminator> argument may be either a character or a count.
+
+Syntax
+
+substr <string> <skip_count> [<terminator>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.substr.ashx
+
+</tooltip>
+<tooltip name="table">
+The table command (like the session command) is a way to access the session table. The table command is a superset of the session command, with improved syntax for general purpose use. Please see the table command article series for detailed information on its use.Session table entries are synched to the peer unit by default.  This can be controlled by a database key, StateMirror.MirrorSessions. Ensure the Mirroring Address is configured under System â€ºâ€º High Availability â€ºâ€º Network Mirroring, and that the peer unit is reachable. In versions prior to 11.1, if the peer is not reachable, but session mirroring is enabled, TMM will leak memory and may crash.  For details see SOL12370.This command is not available to GTM.
+
+Syntax
+
+table set      [-notouch] [-sub
+table <name>] [-mustexist|-excl] <key> <value> [<timeout> [<lifetime>]]
+table add      [-notouch] [-sub
+table <name>]                    <key> <value> [<timeout> [<lifetime>]]
+table replace  [-notouch] [-sub
+table <name>]                    <key> <value> [<timeout> [<lifetime>]]
+table lookup   [-notouch] [-sub
+table <name>] <key>
+table incr     [-notouch] [-sub
+table <name>] [-mustexist] <key> [<delta>]
+table append   [-notouch] [-sub
+table <name>] [-mustexist] <key>  <string>
+table delete   [-sub
+table <name>] <key>|-all
+table timeout  [-sub
+table <name>] [-remaining] <key>
+table timeout  [-sub
+table <name>]              <key> [<value>]
+table lifetime [-sub
+table <name>] [-remaining] <key>
+table lifetime [-sub
+table <name>]              <key> [<value>]
+table keys -sub
+table <name> [-count|-notouch]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.table.ashx
+
+</tooltip>
+<tooltip name="tcl_platform">
+A variable that contains platform specific information. In general, this variable holds useful data concerning the platform on which a specific Tcl interpreter is running. Starting in BIG-IP v10.0.0, information specific to BIG-IP is also provided. Note that if a virtual server accesses a normal global variable (such as tcl_platform) via an iRule, the virtual server would not be compatible with CMP and would be demoted to run on a single node. The static namespace has been provided to allow general access to constant global values in a CMP-compatible fashion. In this way, the tcl_platform array can be accessed via static::tcl_platform to be CMP-compatible.
+
+Syntax
+
+tcl_platform(os)
+tcl_platform(osVersion)
+tcl_platform(tmmVersion)
+tcl_platform(byteOrder)
+tcl_platform(platform)
+tcl_platform(wordsize)
+
+v11 Additions/Changes:
+tcl_platform(machine)
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.tcl_platform.ashx
+
+</tooltip>
+<tooltip name="TCP::bandwidth">
+Returns the bandwidth estimate for the peer, in bytes per second. If no estimate is currently available, or if route metrics are disabled or unavailable, then 0 is returned. The details of bandwidth estimate calculation are proprietary. The values returned are only estimates, and can vary even during the connection. Note: Starting with BIG-IP v9.4.2, client bandwidth calculations are always unavailable, so this function will always return 0.
+
+Syntax
+
+TCP::bandwidth
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__bandwidth.ashx
+
+</tooltip>
+<tooltip name="TCP::client_port">
+Returns the remote TCP port/service number of the clientside TCP connection. This command is equivalent to the TCP::remote_port command in a clientside context, and to the BIG-IP 4.x variable client_port.
+
+Syntax
+
+TCP::client_port
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__client_port.ashx
+
+</tooltip>
+<tooltip name="TCP::close">
+Closes the TCP connection.
+
+Syntax
+
+TCP::close
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__close.ashx
+
+</tooltip>
+<tooltip name="TCP::collect">
+Causes TCP to start collecting the specified amount of content data. After collecting the data in a clientside event, the CLIENT_DATA event will be triggered. When collecting the data in a serverside event, the SERVER_DATA event will be triggered.It is important to note that, when an explicit length is not specified, the semantics of TCP::collect and  TCP::release are different than those of the  HTTP::collect and  HTTP::release commands. With TCP::collect, the event for processing the data (CLIENT_DATA or SERVER_DATA ) will fire without  TCP::release being called, whereas with HTTP::collect, the event (HTTP_REQUEST_DATA or HTTP_RESPONSE_DATA) will not fire without  HTTP::release being called.
+
+Syntax
+
+TCP::collect [<collect_bytes> [<skip_bytes>]]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__collect.ashx
+
+</tooltip>
+<tooltip name="TCP::local_port">
+Returns the local TCP port/service number of a TCP connection. This command is equivalent to the BIG-IP 4.X variable local_port.When used in a clientside context, this command returns the client-side TCP destination port.When used in a serverside context, this command returns the server-side TCP source port.
+
+Syntax
+
+TCP::local_port [ clientside | serverside ]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__local_port.ashx
+
+</tooltip>
+<tooltip name="TCP::mss">
+Returns the on-wire Maximum Segment Size (MSS) for a TCP connection.
+
+Syntax
+
+TCP::mss
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__mss.ashx
+
+</tooltip>
+<tooltip name="TCP::nagle">
+Enables or disables the Nagle algorithm on the current TCP connection.
+
+Syntax
+
+TCP::nagle [enable | disable]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__nagle.ashx
+
+</tooltip>
+<tooltip name="TCP::notify">
+Causes the the USER_REQUEST or USER_RESPONSE event to be raised. The event may or may not be raised immediately upon calling TCP::notify. In particular, the USER_REQUEST event will not be raised until the server-side TCP connection is complete, and, if there is data waiting to be sent to the server, it will not be raised until that data is sent. Similarly, if there is data waiting to be sent to the client, the USER_RESPONSE event will not be raised until the data is sent. The concept of "data waiting to be sent" is very difficult to precisely define; it refers to application data that has finished client-side processing.
+
+Syntax
+
+TCP::notify [request | response]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__notify.ashx
+
+</tooltip>
+<tooltip name="TCP::offset">
+Returns the number of bytes currently held in memory via  TCP::collect. This data is available via  TCP::payload.
+
+Syntax
+
+TCP::offset
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__offset.ashx
+
+</tooltip>
+<tooltip name="TCP::option">
+Gets or sets the value of the specified option kind from the TCP header.The TCP::option get command is only functional when BIG-IP has been configured to collect options before the iRule is called.  In v10, this is done with a db variable and is effective only on the clientside.  When called in the serverside context it returns an error indicating that the specified option was not configured for collection.  In v11, this is configured through the TCP profile and the command can be used in either the serverside context or the clientside, depending on the profile configuration.  TCP::option set is available only in v11 and can be used in either context.
+
+Syntax
+
+TCP::option get <option>
+
+v11 Additions/Changes:
+TCP::option set <option number> <value> <next|all>
+TCP::option noset <option number>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__option.ashx
+
+</tooltip>
+<tooltip name="TCP::payload">
+Returns the accumulated TCP data content, or replaces collected payload with the specified data.
+
+Syntax
+
+TCP::payload [<size>]
+TCP::payload replace <offset> <length> <data>
+TCP::payload length
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__payload.ashx
+
+</tooltip>
+<tooltip name="TCP::release">
+Causes TCP to release and flush collected data, and allow other protocol layers to resume processing the connection.
+
+Syntax
+
+TCP::release [<length>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__release.ashx
+
+</tooltip>
+<tooltip name="TCP::remote_port">
+Returns the remote TCP port/service number of a TCP connection. This command is equivalent to the BIG-IP 4.X variable remote_port.When used in a clientside context, this command returns the client-side TCP source port, and is equivalent to the  TCP::client_port command.When used in a serverside context, this command returns the server-side TCP destination port, and is equivalent to the  TCP::server_port command.
+
+Syntax
+
+TCP::remote_port [ clientside | serverside ]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__remote_port.ashx
+
+</tooltip>
+<tooltip name="TCP::respond">
+Sends the specified data directly to the peer. This command can be used to complete a protocol handshake via an iRule.
+
+Syntax
+
+TCP::respond <data>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__respond.ashx
+
+</tooltip>
+<tooltip name="TCP::rtt">
+Returns the smoothed round-trip time estimate for a TCP connection.
+
+Syntax
+
+TCP::rtt
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__rtt.ashx
+
+</tooltip>
+<tooltip name="TCP::server_port">
+Returns the remote TCP port/service number of the serverside TCP connection. This command is equivalent to the TCP::remote_port command in a serverside context, and to the BIG-IP 4.x variable server_port.
+
+Syntax
+
+TCP::server_port
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__server_port.ashx
+
+</tooltip>
+<tooltip name="TCP::unused_port">
+Returns an unused TCP port for the specified IP tuple, using the value of <hint_port> as a starting point if it is supplied. If no appropriate unused local port could be found, 0 is returned.
+
+Syntax
+
+TCP::unused_port <remote_addr> <remote_port> <local_addr> [<hint_port>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TCP__unused_port.ashx
+
+</tooltip>
+<tooltip name="timing">
+The timing command can be used to enable iRule timing statistics.  This will then collect timing information as specified each time the rule is evaluated.  Statistics may be viewed with "b rule  show all" or in the Statistics tab of the iRules Editor. You'll likely only want to look at the average and min numbers as max is often way, way out there due to the optimizations being performed on the first run of the rule. By "optimizations" we mean that TMM is doing its normal data inspection/collection routine which is performed for each new connection. This process allows you to use the streamlined, cached values later in your iRules, such as HTTP::host and IP::local_addr. This process is more resource intensive than a normal pass through the iRule and as such will offset the "max" statistics, hence the need to throw out this number when scoping your iRule usage. Additionally, enabling timing does have some overhead, though it should be negligible. Related docs detailing how to calculate the time / CPU percent used:  https://devcentral.f5.com/default.aspx?tabid=53&view=topic&forumid=5&postid=3650iRules Optimization 101 - #5 - Evaluating iRule Performance
+
+Syntax
+
+timing <on |off>when EVENT_NAME { <iRule code> }when EVENT_NAME 
+timing <on | off>{ <iRule code> }
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.timing.ashx
+
+</tooltip>
+<tooltip name="TMM::cmp_count">
+This command provides the active number of TMM instances running.To determine the blade the iRule is currently executing on, see the TMM::cmp_group page. To determine the CPU ID an iRule is currently executing on within a blade, see the TMM::cmp_unit page.
+
+Syntax
+
+TMM::cmp_count
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TMM__cmp_count.ashx
+
+</tooltip>
+<tooltip name="TMM::cmp_group">
+This command returns the number (0-x) of the group of the CPU currently executing the rule. Typically, a group refers to the blade number on a chassis system, and is always 0 on other platforms. New meanings may be added for future platform architectures.This is helpful if you believe one CPU is doing something it shouldn't and you want to isolate the issue rather than see an aggregate of all ""CPUs"".To determine the total number of TMM instances running, see the TMM::cmp_count page.  To determine the CPU ID an iRule is current executing on within a blade, see the TMM::cmp_unit page.Note that use of this command in the RULE_INIT event is restricted by the validator in versions prior to v10.2.3 and v11.1.0 (ID342860).  It is valid in all other events, and this limitation can be worked around in prior versions, as shown in an example below.
+
+Syntax
+
+TMM::cmp_group
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TMM__cmp_group.ashx
+
+</tooltip>
+<tooltip name="TMM::cmp_unit">
+This command returns the number (0-x) of the CPUs executing the rule. Helpful if you believe one of the CPUs is doing something it shouldn't and you want to isolate the issue rather than see an aggregate of all CPUs.  To determine the total number of TMM instances running, see the TMM::cmp_count page.  To determine which blade an iRule is current executing on, see the TMM::cmp_group page. Note that in versions v10.1.0 through v10.2.2 and v11.0.0, this command is valid in all events except RULE_INIT.  This limitation was removed in v10.2.3 and v11.1.0 (ID 342860).  You can work around this limitation as shown in the example below.
+
+Syntax
+
+TMM::cmp_unit
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.TMM__cmp_unit.ashx
+
+</tooltip>
+<tooltip name="translate">
+Enables, disables, or queries (as specified) destination address or port translation
+
+Syntax
+
+translate address|port|service [enable|disable]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.translate.ashx
+
+</tooltip>
+<tooltip name="UDP::client_port">
+Returns the UDP port/service number of the client system. This command is equivalent to the command clientside { UDP::remote_port }.
+
+Syntax
+
+UDP::client_port
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.UDP__client_port.ashx
+
+</tooltip>
+<tooltip name="UDP::drop">
+Drops the current UDP packet without removing the flow from the connection table
+
+Syntax
+
+UDP::drop
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.UDP__drop.ashx
+
+</tooltip>
+<tooltip name="UDP::local_port">
+Returns the local UDP port/service number.
+
+Syntax
+
+UDP::local_port [clientside | serverside]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.UDP__local_port.ashx
+
+</tooltip>
+<tooltip name="UDP::mss">
+Returns the on-wire Maximum Segment Size (MSS) for a UDP connection.
+
+Syntax
+
+UDP::mss
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.UDP__mss.ashx
+
+</tooltip>
+<tooltip name="UDP::payload">
+Returns the content or length of the current UDP payload.  Notice that, unlike TCP, there is no need to trigger a collect, and there is no corresponding release.  Moreover, this command is valid not only in CLIENT_DATA and SERVER_DATA, but may be invoked within CLIENT_ACCEPTED.  In that case, it will evaluate to the data contained in the segment that triggered the CLIENT_ACCEPTED event - though not necessarily every segment in a UDP stream (see CLIENT_ACCEPTED event description for more details).
+
+Syntax
+
+UDP::payload [<size>]
+UDP::payload replace <offset> <length> <data>
+UDP::payload length
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.UDP__payload.ashx
+
+</tooltip>
+<tooltip name="UDP::remote_port">
+Returns the remote UDP port/service number.
+
+Syntax
+
+UDP::remote_port [clientside | serverside]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.UDP__remote_port.ashx
+
+</tooltip>
+<tooltip name="UDP::respond">
+Sends the specified data directly to the peer. This command can be used to complete a protocol handshake inside an iRule.
+
+Syntax
+
+UDP::respond <data>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.UDP__respond.ashx
+
+</tooltip>
+<tooltip name="UDP::server_port">
+Returns the UDP port/service number of the server. This command is equivalent to the command serverside { UDP::remote_port }.
+
+Syntax
+
+UDP::server_port
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.UDP__server_port.ashx
+
+</tooltip>
+<tooltip name="UDP::unused_port">
+Returns an unused UDP port for the specified IP tuple.
+
+Syntax
+
+UDP::unused_port <remote_addr> <remote_port> <local_addr> [<hint_port>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.UDP__unused_port.ashx
+
+</tooltip>
+<tooltip name="URI::basename">
+Extracts the basename part of a given uri string.For the following URI:   /main/index.jsp?user=test&login=check The basename is:   index.jsp
+
+Syntax
+/main/index.jsp?user=test&login=check
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.URI__basename.ashx
+
+</tooltip>
+<tooltip name="URI::compare">
+Compares two URI's as recommended by RFC2616 section 3.2.3.ftp://ftp.rfc-editor.org/in-notes/rfc2616.txt3.2.3 URI Comparison   When comparing two URIs to decide if they match or not, a client   SHOULD use a case-sensitive octet-by-octet comparison of the entire   URIs, with these exceptions:      - A port that is empty or not given is equivalent to the default        port for that URI-reference;        - Comparisons of host names MUST be case-insensitive;        - Comparisons of scheme names MUST be case-insensitive;        - An empty abs_path is equivalent to an abs_path of "/".   Characters other than those in the "reserved" and "unsafe" sets (see   RFC 2396 [42]) are equivalent to their ""%" HEX HEX" encoding.   For example, the following three URIs are equivalent:      http://abc.com:80/~smith/home.html      http://ABC.com/%7Esmith/home.html      http://ABC.com:/%7esmith/home.html
+
+Syntax
+ftp://ftp.rfc-editor.org/in-notes/rfc2616.txt3.2.3 URI Comparison   When comparing two URIs to decide if they match or not, a client   SHOULD use a case-sensitive octet-by-octet comparison of the entire   URIs, with these exceptions:      - A port that is empty or not given is equivalent to the default        port for that URI-reference;        - Comparisons of host names MUST be case-insensitive;        - Comparisons of scheme names MUST be case-insensitive;        - An empty abs_path is equivalent to an abs_path of "/".   Characters other than those in the "reserved" and "unsafe" sets (see   RFC 2396 [42]) are equivalent to their ""%" HEX HEX" encoding.   For example, the following three URIs are equivalent:      http://abc.com:80/~smith/home.html      http://ABC.com/%7Esmith/home.html      http://ABC.com:/%7esmith/home.html
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.URI__compare.ashx
+
+</tooltip>
+<tooltip name="URI::decode">
+Returns a URI decoded version of a given URI.  For details on URI (or percent encoding), see this Wikipedia page: Percent encodingThis command is equivalent to the BIG-IP 4.X variable decode_uri.
+
+Syntax
+
+URI::decode <uri>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.URI__decode.ashx
+
+</tooltip>
+<tooltip name="URI::encode">
+Returns the encoded version of the given URI.  For details on URI (or percent encoding), see this Wikipedia page: Percent encodingThis command is equivalent to the BIG-IP 4.X variable encode_uri.
+
+Syntax
+
+URI::encode <uri>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.URI__encode.ashx
+
+</tooltip>
+<tooltip name="URI::host">
+Returns the host portion of a given URI.
+
+Syntax
+
+URI::host <uri>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.URI__host.ashx
+
+</tooltip>
+<tooltip name="URI::path">
+Returns the path portion of the given URI.
+
+Syntax
+
+URI::path <uri>
+URI::path <uri> <start> <end>
+URI::path <uri> <start>
+URI::path <uri> depth
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.URI__path.ashx
+
+</tooltip>
+<tooltip name="URI::port">
+Returns the host port from the given URI.
+
+Syntax
+
+URI::port <uri>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.URI__port.ashx
+
+</tooltip>
+<tooltip name="URI::protocol">
+Returns the protocol of the given URI.
+
+Syntax
+
+URI::protocol <uri>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.URI__protocol.ashx
+
+</tooltip>
+<tooltip name="URI::query">
+Returns the query string portion of the given URI or the value of a query string parameter.
+
+Syntax
+
+URI::query <uri>
+URI::query <uri> <param>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.URI__query.ashx
+
+</tooltip>
+<tooltip name="use">
+This is a BIG-IP 4.X statement, provided for backward-compatibility.  The use statement must be paired with certain BIG-IP 9.X commands such as node, pool, rateclass, snat, and snatpool.The use command is not required on BIG-IP 9.X systems.
+
+Syntax
+
+use <object> <object_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.use.ashx
+
+</tooltip>
+<tooltip name="virtual">
+Returns the name of the associated virtual server that the connection is flowing through. In 9.4.0 and higher, it can be also used to route the connection to another virtual server, without leaving the BIG-IP.
+
+Syntax
+
+virtual [<name>]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.virtual.ashx
+
+</tooltip>
+<tooltip name="vlan_id">
+Returns the VLAN tag of the packet. This is a BIG-IP 4.X variable, provided for backward-compatibility. You can use the equivalent 9.X command LINK::vlan_id instead.
+
+Syntax
+
+vlan_id
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.vlan_id.ashx
+
+</tooltip>
+<tooltip name="WAM::disable">
+Disables the WAM plugin for the current TCP connection.  WAM will remain disabled on the current TCP connection until it is closed or WAM::enable is called.
+
+Syntax
+
+WAM::disable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.WAM__disable.ashx
+
+</tooltip>
+<tooltip name="WAM::enable">
+Enables the WAM plugin for the current TCP connection.  WAM will remain enabled on the current TCP connection until it is closed or WAM::disable is called.
+
+Syntax
+
+WAM::enable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.WAM__enable.ashx
+
+</tooltip>
+<tooltip name="WEBSSO::disable">
+This command causes APM to forward a request without doing SSO processing on it. If APM receives HTTP 401 response from server,  401 response is forwarded to the end user. The scope of this iRule command is per HTTP request. Admin needs to execute it for each HTTP request.
+
+Syntax
+
+WEBSSO::disable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.WEBSSO__disable.ashx
+
+</tooltip>
+<tooltip name="WEBSSO::enable">
+This command causes APM to do the SSO processing on the HTTP request. This is to allow admin to re-enable WEBSSO processing for a request if it was disabled before by doing WEBSSO::disable for the request. The scope of this iRule command is per HTTP request. Admin needs to execute it for each HTTP request.
+
+Syntax
+
+WEBSSO::enable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.WEBSSO__enable.ashx
+
+</tooltip>
+<tooltip name="WEBSSO::select">
+This command causes APM to use specified SSO configuration object to do SSO for the HTTP request. Admin should make sure that the selected SSO method works for the specified request (and is enabled on backend server request is going to). The scope of this iRule command is per HTTP request. Admin needs to execute it for each HTTP request.
+
+Syntax
+
+WEBSSO::select $sso_config_object_name
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.WEBSSO__select.ashx
+
+</tooltip>
+<tooltip name="when">
+Used to specify an event in an iRule. All BIG-IP 9.X iRules begin with a when command. You can specify multiple when commands within a single iRule.
+
+Syntax
+
+when <event_name>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.when.ashx
+
+</tooltip>
+<tooltip name="whereis">
+Returns the geographic location of a specific IP address.For more information on using whereis in LTM, you can check Jason Rahm's articleEditLegal usage notes¶The Quova data is purchased by F5 for use on BIG-IP systems and products for traffic management.  The key to understanding EULA compliance is to figure out where the geolocation decision is being made.  It is a direct violation of the EULA to use F5â€™s data to embed geolocation information or codes representing geolocation information into the requests such that another application or server could make the decision on what to do with that data.  Customers wishing to use geolocation data on their webservers or in their applications to make decisions in those products can purchase geolocation data from Quova.  F5â€™s traffic management products have a lot of power and flexibility and can make lots of decisions about traffic using the geolocation data on the BIG-IP.  For example, a geolocation lookup can be used to route traffic requests to a different site, different server, different URL, or even substitute a different image, object, etc in the stream.  The key is that the BIG-IP is making use of the data to make a decision to take some action.  These are all allowed and in fact, intended usage of the geolocation data.  Passing the data looked up to another system or displaying it back publicly is a violation of the basic data EULA.  To summarize, all usage of the data must remain local to the system with the following two exceptions:Location can be placed in an encrypted cookie for reference ONLY by other BIG-IP devicesLogging data can contain location info and collected into a central logging solution for analysis of F5 logs.Note that you can get a waiver of the EULA from F5/Quova.  In the near future, F5 expects to have expanded data sets available with less restrictions on the use cases.  If youâ€™re unsure, run your use case by your sales engineer.
+
+Syntax
+
+whereis <ip> [country | continent | state | abbrev | city | zip | area_code |    latitude | longitude | isp | org | country_cf | state_cf | city_cf | proxy_type]+
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.whereis.ashx
+
+</tooltip>
+<tooltip name="X509::cert_fields">
+When given a valid certificate, returns a TCL list of field names and values which can be added to the HTTP headers in order to emulate ModSSL behavior. The output can be passed to 'HTTP::header insert $list' as a list for insertion in the HTTP request or response.
+
+Syntax
+
+X509::cert_fields <X509 certificate> <verify error code> <options list>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__cert_fields.ashx
+
+</tooltip>
+<tooltip name="X509::extensions">
+Returns the X509 extensions set on the specified X509 certificate.  If the certificate does not have any extensions, the output is "(no extensions)".
+
+Syntax
+
+X509::extensions <X509 certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__extensions.ashx
+
+</tooltip>
+<tooltip name="X509::hash">
+Returns the MD5 hash (fingerprint) of the specified X509 certificate.
+
+Syntax
+
+X509::hash <X509 certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__hash.ashx
+
+</tooltip>
+<tooltip name="X509::issuer">
+Returns the issuer of the specified X509 certificate.
+
+Syntax
+
+X509::issuer <X509 certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__issuer.ashx
+
+</tooltip>
+<tooltip name="X509::not_valid_after">
+Returns the not-valid-after date of the specified X509 certificate.
+
+Syntax
+
+X509::not_valid_after <X509 certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__not_valid_after.ashx
+
+</tooltip>
+<tooltip name="X509::not_valid_before">
+Returns the not-valid-before date of the specified X509 certificate.
+
+Syntax
+
+X509::not_valid_before <X509 certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__not_valid_before.ashx
+
+</tooltip>
+<tooltip name="X509::serial_number">
+Returns the serial number of the specified X509 certificate.
+
+Syntax
+
+X509::serial_number <X509 certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__serial_number.ashx
+
+</tooltip>
+<tooltip name="X509::signature_algorithm">
+Returns the signature algorithm of the specified X509 certificate.
+
+Syntax
+
+X509::signature_algorithm <X509 certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__signature_algorithm.ashx
+
+</tooltip>
+<tooltip name="X509::subject">
+Returns the subject of the specified X509 certificate.
+
+Syntax
+
+X509::subject <X509 certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__subject.ashx
+
+</tooltip>
+<tooltip name="X509::subject_public_key">
+Returns the subjectâ€™s public key of the specified X509 certificate.
+
+Syntax
+
+X509::subject_public_key <X509 certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__subject_public_key.ashx
+
+</tooltip>
+<tooltip name="X509::subject_public_key_RSA_bits">
+Returns the size, in bits, of the subjectâ€™s public RSA key of the specified X509 certificate. This command is only applicable when the public key type is RSA. Otherwise, the command generates an error.
+
+Syntax
+
+X509::subject_public_key_RSA_bits <X509 certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__subject_public_key_RSA_bits.ashx
+
+</tooltip>
+<tooltip name="X509::subject_public_key_type">
+Returns the subjectâ€™s public key type of the specified X509 certificate. The returned value can be either RSA, DSA, or unknown.
+
+Syntax
+
+X509::subject_public_key_type <X509 certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__subject_public_key_type.ashx
+
+</tooltip>
+<tooltip name="X509::verify_cert_error_string">
+Returns the same result as the OpenSSL function X509_verify_cert_error_string(). Values for the <X509 verify error code> argument must be the same values as those that the SSL::verify result command returns.
+
+Syntax
+
+X509::verify_cert_error_string <X509 verify error code>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__verify_cert_error_string.ashx
+
+</tooltip>
+<tooltip name="X509::version">
+Returns the version number of the specified X509 certificate (an integer).
+
+Syntax
+
+X509::version <X509 certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__version.ashx
+
+</tooltip>
+<tooltip name="X509::whole">
+Returns the specified X509 certificate, in its entirety, in PEM format.
+
+Syntax
+
+X509::whole <X509 certificate>
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.X509__whole.ashx
+
+</tooltip>
+<tooltip name="XML::address">
+Queries the elements of a WS-Addressing header within a SOAP message.Note: All XML commands are unavailable beginning in v10.
+
+Syntax
+
+XML::address action
+XML::address endpoint
+XML::address from
+XML::address message_id
+XML::address port_type
+XML::address replyto
+XML::address service_name
+XML::address to
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.XML__address.ashx
+
+</tooltip>
+<tooltip name="XML::collect">
+Collects and parses incoming XML data.Note: All XML commands are unavailable beginning in v10.
+
+Syntax
+
+XML::collect [explicit | implicit]
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.XML__collect.ashx
+
+</tooltip>
+<tooltip name="XML::element">
+Returns the name of the current in-scope XML element.Note: All XML commands are unavailable beginning in v10.
+
+Syntax
+
+XML::element
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.XML__element.ashx
+
+</tooltip>
+<tooltip name="XML::event">
+Returns the event name of the current context.Note: All XML commands are unavailable beginning in v10.
+
+Syntax
+
+XML::event
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.XML__event.ashx
+
+</tooltip>
+<tooltip name="XML::eventid">
+Returns the key used to register the current XML event.  Each call to the XML::subscribe command returns a unique key that can be used later to help with multiple subscriptions within the same document.Note: All XML commands are unavailable beginning in v10.
+
+Syntax
+
+XML::eventid
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.XML__eventid.ashx
+
+</tooltip>
+<tooltip name="XML::parse">
+Disables all future XML parsing.Note: All XML commands are unavailable beginning in v10.
+
+Syntax
+
+XML::parse disable
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.XML__parse.ashx
+
+</tooltip>
+<tooltip name="XML::release">
+Releases the collected XML data.  This method is used when you specify the explicit mode with the XML::collect command.Note: All XML commands are unavailable beginning in v10.
+
+Syntax
+
+XML::release
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.XML__release.ashx
+
+</tooltip>
+<tooltip name="XML::soap">
+Returns information about the current SOAP message.Note: All XML commands are unavailable beginning in v10.
+
+Syntax
+
+XML::soap element
+XML::soap namespace
+XML::soap faultcode
+XML::soap faultstring
+XML::soap faultdetail
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.XML__soap.ashx
+
+</tooltip>
+<tooltip name="XML::subscribe">
+Subscribes to a specified category of XML events.  You must specify which category of events you would like to have raised.Note: All XML commands are unavailable beginning in v10.
+
+Syntax
+
+XML::subscribe addressing
+XML::subscribe allevent
+XML::subscribe cdata <key>
+XML::subscribe cdata_regexp <key>
+XML::subscribe element <key>
+XML::subscribe element_regexp <key>
+XML::subscribe end_element <key>
+XML::subscribe remove <id>
+XML::subscribe soap
+
+
+Official Documentation: https://devcentral.f5.com/wiki/iRules.XML__subscribe.ashx
+
+</tooltip>

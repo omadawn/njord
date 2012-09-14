@@ -1,12 +1,10 @@
 package com.f5.AaronForster.njord.test;
 
 
-import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 
 import org.junit.Test;
-import org.uispec4j.Button;
 import org.uispec4j.TextBox;
 import org.uispec4j.Trigger;
 import org.uispec4j.UISpec4J;

@@ -1,0 +1,20 @@
+# This is the list of modules and their codes that will be returned from ic.getManagementProvision().get_provisioned_list();
+# Grabbed from: https://devcentral.f5.com/wiki/iControl.Management__Provision__get_provisioned_list.ashx This is another one that should be acuired dynamically
+TMOS_MODULE_ASM	 0	 The Application Security Module.
+TMOS_MODULE_SAM	 1	 aka TMOS_MODULE_APM The Access Policy Module.
+TMOS_MODULE_WAM	 2	 The Web Accelerator Module.
+TMOS_MODULE_PSM	 3	 The Protocol Security Manager	
+TMOS_MODULE_WOM	 4	 The WAN Optimization Module.
+TMOS_MODULE_LC	 5	 The Link Controller Module.
+TMOS_MODULE_LTM	 6	 The Local Traffic Manager Module.
+TMOS_MODULE_GTM	 7	 The Global Traffic Manager Module.
+TMOS_MODULE_UNKNOWN	 8	 The module is unknown (or unsupported by iControl).
+TMOS_MODULE_WOML	 9	 The WAN Optimization Module (Lite).
+TMOS_MODULE_APML	 10	 The Access Policy Module (Lite).
+TMOS_MODULE_EM	 11	 The Enterprise Manager Module.
+TMOS_MODULE_VCMP	 12	 The Virtual Clustered MultiProcessing Module.
+TMOS_MODULE_TMOS	 13	 The Traffic Management part of the Core OS.
+TMOS_MODULE_HOST	 14	 The non-Traffic Management, non-GUI part of the Core OS.
+TMOS_MODULE_UI	 15	 The GUI part of the Core OS.
+TMOS_MODULE_MONITORS	 16	 Represents the external monitors - used for stats only.
+TMOS_MODULE_AVR	 17	 The Application Visualization and Reporting Module

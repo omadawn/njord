@@ -3,7 +3,6 @@
  */
 package com.f5.AaronForster.njord.util;
 
-import iControl.GlobalLBRule;
 import iControl.GlobalLBRuleRuleDefinition;
 import iControl.LocalLBRuleRuleDefinition;
 

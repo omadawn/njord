@@ -1,8 +1,5 @@
 package com.f5.AaronForster.njord.util;
 
-import org.fife.ui.rsyntaxtextarea.RSyntaxDocument;
-import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
-import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
 
 /**
  * NjordConstants provides a single place to track various types of constants for <code>Njord</code>.
@@ -10,7 +7,7 @@ import org.fife.ui.rsyntaxtextarea.TokenMakerFactory;
  * 
  * @author Aaron Forster a.forster@f5.com
  * @since 0.8.3
- * @version 1.0
+ * @version 1.2
  *
  */
 public interface NjordConstants {
@@ -47,13 +44,63 @@ public interface NjordConstants {
 	/**
 	 * Local Traffic iRule type
 	 */
-	public static final int IRULE_TYPE_LTM					= 101;
+	public static final int IRULE_TYPE_LTM					= 191;
 	
 	/**
 	 * Global Traffic iRule type
 	 */
-	public static final int IRULE_TYPE_GTM					= 102;
+	public static final int IRULE_TYPE_GTM					= 192;
+	
+	//###################################################################
+	//                 Token Types
+	//###################################################################
+	
+	/**
+	 * Events Token type
+	 */
+	public static final int TOKEN_TYPE_EVENT						= 101;
 
+	/**
+	 * Operators Token type
+	 */
+	public static final int TOKEN_TYPE_OPERATOR						= 102;
+	
+	/**
+	 * Statements Token type
+	 */
+	public static final int TOKEN_TYPE_STATEMENT					= 103;
+	
+	/**
+	 * Functions Token type
+	 */
+	public static final int TOKEN_TYPE_FUNCTION						= 104;
+	
+	/**
+	 * Commands Token type
+	 */
+	public static final int TOKEN_TYPE_COMMAND						= 105;
+	
+	/**
+	 * TCLCommands Token type
+	 */
+	public static final int TOKEN_TYPE_TCL_COMMAND					= 106;
+	
+	//###################################################################
+	//                 Parser Notice Types
+	//###################################################################
+	//Used in NjordParser to determine what we've found.
+	
+	/**
+	 * Parser type for task labels such as #TODO: #HACK: or #FIXME:
+	 */
+	public static final int PARSER_TYPE_TASK					= 501;
+	
+	/**
+	 * Parser type for commands such as HTTP::header or info
+	 */
+	public static final int PARSER_TYPE_COMMAND					= 502;
+	
+	
 }
 //Constants that define the different programming languages understood by
 //* <code>RSyntaxTextArea</code>.  These constants are the values you can pass

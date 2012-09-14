@@ -13,6 +13,7 @@ import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 import javax.swing.Box;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -24,7 +25,6 @@ import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;
 import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
-import javax.swing.JCheckBox;
 
 // Currently this code will produce a bunch of different dialogs. I need to add one that will produce the prefs dialog I am going for.
 
@@ -160,6 +160,20 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
 		chckbxSaveWindowGeometry.setSelected(true);
 		panel.add(chckbxSaveWindowGeometry, "8, 6");
 		
+		JLabel lblShowSystemiRules = new JLabel("Show system iRules");
+		lblShowSystemiRules.setToolTipText("NOT YET IMPLEMENTED: System iRules cannot be edited however Njord currently will not mark the editor read only you will be able to edit the code but not save it.");
+		panel.add(lblShowSystemiRules, "4, 8");
+		
+		JCheckBox chckbxSwSysiRules = new JCheckBox("");
+		panel.add(chckbxSwSysiRules, "8, 8");
+		
+		JLabel lblDisplayExperimentalItems = new JLabel("Display experimental items (VERY Experimental)");
+		lblDisplayExperimentalItems.setToolTipText("NOT YET IMPLEMENTED");
+		panel.add(lblDisplayExperimentalItems, "4, 10");
+		
+		JCheckBox chckbxShwExpmntl = new JCheckBox("");
+		panel.add(chckbxShwExpmntl, "8, 10");
+		
 		Component horizontalStrut_1 = Box.createHorizontalStrut(20);
 		panel_1.add(horizontalStrut_1, BorderLayout.EAST);
 		
@@ -170,28 +184,7 @@ public class PreferencesDialog extends JDialog implements ActionListener, Proper
         
         
         
-        
-        
-        
-        
-        
-        
         ////////////////////////////////////              Panel Stuff
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
-        
         
         
         
